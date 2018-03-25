@@ -1,0 +1,20 @@
+# Directories automatically created by setup test:
+env/
+exports/
+profiles/
+testdata/
+
+# Python auto-generated files and folders:
+__pycache__/
+*.pyc
+
+# Local files:
+*.local
+
+# Journal files:
+*.log
+
+# Backup files:
+*~
+*.bak
+*.kate-swp

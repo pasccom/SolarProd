@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title>Ducomquet: Production solaire</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script src="js/d3.js" charset="utf-8"></script>
+        <script src="js/FileSaver.js" charset="utf-8"></script>
+    </head>
+    <body>
+        <div>
+            <div class="toolbar">
+                <select id="day" title="Jour">
+                </select>
+                <select id="month" title="Mois">
+                </select>
+                <select id="year" title="Année">
+                </select>
+                <select id="var" title="Variable">
+                </select>
+                <select id="sum" title="Aggrégation">
+                </select>
+                <img id="plot" class="button" src="img/plot.png" alt="Tracer" title="Tracer" />
+            </div>
+            <div class="toolbar">
+                <img id="prev" class="button disabled" src="img/prev.png" alt="Précédent" title="Précédent" />
+                <img id="today" class="button" src="img/today.png" alt="Aujourd'hui" title="Aujourd'hui" />
+                <img id="next" class="button disabled" src="img/next.png" alt="Suivant" title="Suivant" />
+                <img id="export" class="button disabled" src="img/csv.png" alt="Export CSV" title="Export CSV" />
+            </div>
+        </div>
+        <svg class="framed" id="chart" preserveAspectRatio="xMidYMid meet"></svg><div class="framed" id="legend"></div>
+        <script>
+// Disables selects:
+d3.select('#day').attr('disabled', true);
+d3.select('#month').attr('disabled', true);
+d3.select('#year').attr('disabled', true);
+d3.select('#var').attr('disabled', true);
+d3.select('#sum').attr('disabled', true);
+        
+// Margins around the chart:        
+var margins = {
+    left: 60,
+    right: 20,
+    top: 20,
+    bottom: 40,
+};
+
+// Locale format for dates:
+var locale = d3.timeFormatLocale({
+  dateTime: "%A %_d %B %Y à %X",
+  date: "%d/%m/%Y",
+  time: "%H:%M:%S",
+  periods: ["AM", "PM"],
+  days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+  shortDays: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
+  months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+  shortMonths: ["jan", "fev", "mar", "avr", "mai", "jun", "jul", "aou", "sep", "oct", "nov", "dec"]
+});
+var localeLongMonth = locale.format('%B');
+var localeShortMonth = locale.format('%b');
+
+// Day and month to select:
+var selectMonth = 0;
+var selectDay = 0;
+var selectDir = 1;
+// Current day, month and year:
+var currentYear = undefined;
+var currentMonth = undefined;
+var currentDay = undefined;
+// Cache for first/last day, month and year:
+var cache = {};
+
+// Sommations:
+var sums = {
+    sum:    'Total',
+    inv:    'Par onduleur',
+    str:    'Par string',
+};
+
+// Variables names:
+var shortVars = ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp'];
+var longVars =  ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température'];
+var units =     ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C'];
+var minPrefix = -4;
+var prefixes = ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'];
+
+// Scales:
+var x = d3.scaleTime();
+var y = d3.scaleLinear();
+
+// Axes:
+var xAxis = d3.axisBottom().scale(x)
+                           .tickSizeOuter(0);
+var yAxis = d3.axisLeft().scale(y)
+                         .tickSizeOuter(0);   
+var yGrid = d3.axisRight().scale(y);
+              
+// Useful DOM elements:
+var svg = d3.select('#chart');
+var legend = d3.select('#legend');
+
+var chart = svg.append('g')
+               .attr('transform', "translate(" + margins.left + "," + margins.top + ")");
+var groups = null;
+var lines = null;                   
+var axes = [
+    chart.append('g')
+         .classed('grid', true),
+    chart.append('g')
+         .classed('axis', true)
+         .attr('id', 'xaxis'),
+    chart.append('g')
+         .classed('axis', true)
+         .attr('id', 'yaxis'),
+];  
+var labels = [
+    svg.append('g')
+       .classed('label', true),
+    svg.append('g')
+       .classed('label', true),
+];
+labels[0].append('text');
+labels[1].append('text').attr('transform', 'rotate(-90)');
+
+// Setup marker:
+svg.append('marker').lower()
+   .attr('id', 'arrowhead')
+   .attr('viewBox', "0 0 10 10")
+   .attr('refX', '0')
+   .attr('refY', '5') 
+   .attr('markerUnits', 'strokeWidth')
+   .attr('markerWidth', '16')
+   .attr('markerHeight', '8')
+   .attr('preserveAspectRatio', 'none')
+   .attr('orient', 'auto')
+   .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                  .style('fill', '#000000');
+
+// Resizes the container and the scales          
+var resizeTimer = null;
+
+function windowResize()
+{   
+    // Legend width between 175px and 250px
+    var lw = 175 + 75*(window.innerWidth - 24 - 700)/(1000 - 700);
+    if (lw > 250)
+        lw = 250;
+    if (lw < 175)
+        lw = 0;
+        
+    // Compute toolbar total width (currently 403):
+    //var tw = 20;
+    //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
+      
+    // Plot width and height:
+    var w = window.innerWidth - lw - (8*(lw != 0)) - 18;
+    var h = window.innerHeight - 56;
+    if (window.innerWidth < 403)
+        h -= 38;
+    svg.attr('width', w)
+       .attr('height', h);
+    
+    // Manages legend:
+    if (lw == 0) {
+        legend.style('display', 'none');
+    } else {
+        legend.style('display', 'inline-block')
+              .style('width', (lw - 10) + 'px')
+              .style('height', h + 'px')
+              .style('margin-left', '8px');
+    }
+
+    
+    // Update plot only after some time:
+    if (resizeTimer)
+        clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        resizeTimer = null;
+    
+        svg.attr('viewBox', "0 0 " + w + " " + h);
+    
+        x.range([0, w - margins.left - margins.right]);
+        y.range([h -  margins.top - margins.bottom, 0]);
+        
+        yGrid.tickSize(w - margins.left - margins.right);
+        
+        labels[0].attr('transform', "translate(" + ((w + margins.left - margins.right)/2) + "," + (h - 8) + ")");
+        labels[1].attr('transform', "translate(20," + ((h + margins.top - margins.bottom)/2) + ")");
+        
+        draw();
+    }, 100);
+}
+
+// Customize the axes:
+function customizeAxis(selection, axis)
+{
+    // Add axis:
+    selection.call(axis);
+    
+    // Remove last tick (even if not visble for marker):
+    var domain = selection.select('.domain');var d = domain.attr('d');
+        if (d.endsWith('0') || d.endsWith('6'))
+            d = d.slice(0, -2);
+        domain.attr('d', d);    
+    
+    // Add/remove marker
+    domain.attr('marker-end', (axis.tickSizeOuter() == 0) ? 'url(#arrowhead)' : null);
+        
+    // Move ticks to the right so that they are at band boundaries:
+    if (axis.tickSizeOuter() != 0) {
+        var ticks = selection.selectAll('.tick').select('line');
+        ticks.attr('x1', x.bandwidth()*(1 + x.padding())/2);
+        ticks.attr('x2', x.bandwidth()*(1 + x.padding())/2);
+    }
+}
+
+// Customize the grid (which is in fact an axis with long ticks):
+function customizeGrid(selection, grid)
+{
+    selection.call(grid);
+    selection.select('.domain').remove();
+}
+
+// Draw the axes (and the grid)
+function drawAxes(variable, log1000Div)
+{
+    // Adapt x axis tick labels:
+    if (labels[0].select('text').text() == 'Mois') {
+        if (d3.max(x.range()) - d3.min(x.range()) >= 750)
+            xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
+        else
+            xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
+    }
+
+    // Draw axes and grid:
+    axes[0].lower()
+           .call(function(s) {customizeGrid(s, yGrid);});
+    axes[1].raise()
+           .attr('transform', "translate(0, " + y(0) + ")")
+           .call(function(s) {customizeAxis(s, xAxis);});
+    axes[2].raise()
+           .call(function(s) {customizeAxis(s, yAxis);});
+    
+    // Draw y label:
+    labels[1].select('text').text(longVars[variable] + ' (' + prefixes[-minPrefix + log1000Div] + units[variable] + ')');
+}
+
+// Update visibility in legend so that it matches the visility of the element:
+function updateVisibility()
+{
+    // Ensure the checkboxes match the visility of the elements:
+    legend.selectAll('input').each(function(d) {
+        if (d[0] === undefined) {
+            this.checked = (d3.select(d).style('display') != 'none');
+        } else {
+            var allSelected = true;
+            var anySelected = false;
+            d.forEach(function(e) {
+                allSelected &= (d3.select(e).style('display') != 'none');
+                anySelected |= (d3.select(e).style('display') != 'none');
+            });
+            this.checked = anySelected;
+            this.indeterminate = !allSelected && anySelected;
+        }
+    });
+}
+
+// Change the visibility of an element:
+function changeVisiblilty(d)
+{
+    var selection;
+    if (groups) {
+        var group;
+        var elem;
+        
+        // Get group number for current element:
+        groups.filter(function(d, i) {return i == 0;})
+              .selectAll('g').each(function(e, i) {
+            d3.select(this).selectAll('rect').each(function(e, j) {
+                var element = this;
+                if ((d[0] === undefined) && (d == element))
+                    group = i;
+                if (d[0] !== undefined)
+                    d.forEach(function(e) {if (e == element) group = i;});
+            });
+        });
+        // Get element number for current element (if it is an element):
+        groups.filter(function(d, i) {return i == 0;})
+              .selectAll('g').selectAll('rect').each(function(e, i) {
+            if (this == d)
+                elem = i;
+        });
+        console.log('group:', group, 'elem:', elem);
+        
+        // Get all element at position elem in group group:
+        selection = groups.selectAll('g').filter(function(e, i) {return (i == group);});
+        selection = selection.selectAll('rect').filter(function(e, i) {return (elem === undefined ? true : (i == elem));});
+    } else {
+        selection = (d[0] === undefined) ? d3.select(d) : d3.selectAll(d);
+    }
+    
+    // Show/hides elements:
+    if (d3.select(d3.event.target).property('checked'))
+        selection.style('display', 'initial');
+    else
+        selection.style('display', 'none');
+        
+    updateVisibility();
+}
+
+// Draw the legend:
+function drawLegend(data)
+{
+    var sum = d3.select('#sum').property('value');
+    if (sum == '')
+        sum = 'sum';
+        
+    if (!legend)
+        return;
+    legend.selectAll('*').remove();
+    legend.append('h4').text('Légende');
+    
+    // Get d3 selection:
+    var getD3 = function(d) {
+        if (d === undefined)
+            return data;
+        else if (d[0] === undefined)
+            return d3.select(d);
+        else
+            return d3.select(d[0]);
+    };
+    
+    // Functions for styling legend items:
+    if (lines != null) {
+        var style = function(selection) {
+            selection.classed('legenditem', true);
+            selection.style('color', function(d) {return getD3(d).style('stroke');});
+            selection.style('opacity', function(d) {return getD3(d).style('stroke-opacity');});
+        };
+    } else if (groups != null) {
+        var style = function(selection) {
+            selection.classed('legenditem', true);
+            selection.style('color', function(d) {return getD3(d).style('fill');});
+            selection.style('background-color', function(d) {return getD3(d).style('fill');});
+            selection.style('opacity', function(d) {return getD3(d).style('fill-opacity');});
+        };
+    } else {
+        return;
+    }
+        
+    // Creates legend (using lists)
+    if (sum == 'sum') {
+        legend.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+        legend.append('span').text(' Total');
+    } else {
+        var inv = legend.append('ul').selectAll('li')
+                                     .data(data._groups);
+        inv = inv.enter().append('li');
+        inv.append('span').style('background', 'white');
+        
+        if (sum == 'str') {
+            inv.select('span').append('span').text(function(d, i) {return 'Onduleur ' + (i + 1);});
+            inv.append('span').classed('input', true)
+                              .append('input')
+                              .attr('type', 'checkbox')
+                              .on('change', changeVisiblilty);
+            
+            var str = inv.append('ul').selectAll('li')
+                                      .data(function(d) {return d;});
+            str = str.enter().append('li');
+            str.append('span').style('background', 'white');
+            
+            str.select('span').append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+            str.select('span').append('span').text(function(d, i) {return ' String ' + (i + 1);});
+            str.append('span').classed('input', true)
+                              .append('input')
+                              .attr('type', 'checkbox')
+                              .on('change', changeVisiblilty);
+        } else {
+            inv.select('span').append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+            inv.select('span').append('span').text(function(d, i) {return ' Onduleur ' + (i + 1);});
+            inv.append('span').classed('input', true)
+                              .append('input')
+                              .attr('type', 'checkbox')
+                              .on('change', changeVisiblilty);
+        }
+        
+        updateVisibility();
+    }
+}
+
+// Draws the chart/plot:
+function draw()
+{
+    if (groups)
+        drawHist();
+    if (lines)
+        drawLines();
+}
+
+// Draw a plot using polyline curves:
+function drawLines(data)
+{
+    // Ensure we are in line mode:
+    if (groups)
+        groups.remove();
+    groups = null;
+    if (!lines)
+        lines = chart.selectAll('g.nonexistent');
+    
+    // Manages data (arguments <-> lines):
+    if (data === undefined) {
+        if (lines.empty())
+            return;
+        data = lines.data();
+    } else {
+        lines = lines.data(data);
+        lines.exit().remove();
+        lines = lines.enter().append('g').merge(lines);   
+    }
+
+    if (data[0].dates.length <= 2) {
+        hideAxes();
+        lines.selectAll('*').remove();
+        return;
+    }
+    
+    // Get plotted variable:   
+    var variable = d3.select('#var').property('value');
+    if (variable == '')
+        variable = 0;
+    var v = shortVars[variable];
+    
+    // Get sum function:
+    var sum = d3.select('#sum').property('value');
+    if (sum == '')
+        sum = 'sum';
+    
+    // Groups of lines (by inverter):
+    var linesGroups = lines.selectAll('g').data(function(d) {
+        if (v.endsWith('dc')) {
+            if (sum == 'str')
+                return d[v].map(function(a) {return {
+                    dates: d.dates,
+                    data: a,
+                };});
+            else if (sum == 'inv')
+                return d[v].map(function(a) {return {
+                    dates: d.dates,
+                    data: d3.transpose(a).map(function(e) {return d3.sum(e);}),
+                };});
+            else
+                return [{
+                    dates: d.dates,
+                    data: d[v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});}),
+                }];
+        } else {
+            if (sum == 'sum')
+                return [{
+                    dates: d.dates,
+                    data: d3.transpose(d[v]).map(function(a) {return d3.sum(a);}),
+                }];
+            else
+                return d[v].map(function(a) {return {
+                    dates: d.dates,
+                    data: a,
+                };});
+        }
+    });
+    linesGroups.exit().remove();
+    linesGroups = linesGroups.enter().append('g').merge(linesGroups);
+    linesGroups.attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size());});
+    
+    // Paths (by string):
+    var paths = linesGroups.selectAll('path').data(function(d) { 
+        if (v.endsWith('dc')) {
+            if (sum == 'str')
+                return d.data.map(function(a) {return d3.zip(d.dates, a);});
+            else if (sum == 'inv')
+                return [d3.zip(d.dates, d.data)];
+            else
+                return [d3.zip(d.dates, d3.transpose(d.data).map(function(e) {return d3.sum(e);}))];
+        } else {
+            return [d3.zip(d.dates, d.data)];
+        }
+    });
+    paths.exit().remove();
+    paths = paths.enter().append('path').classed('line', true).merge(paths);
+    
+    // Compute unit divider:
+    var maxData = d3.max(paths.data(), function(a) {return d3.max(a, function(d) {return d[1];});});
+    var div = 1;
+    var log1000Div = 0;
+    while (maxData/div >= 1000) {
+        div *= 1000;
+        log1000Div += 1;
+    }
+    while (maxData/div < 1) {
+        div /= 1000;
+        log1000Div -= 1;
+    }
+    
+    // Set scale domains:
+    y.domain([0, maxData/div]);
+    
+    // Draws lines:
+    var line = d3.line().x(function(d) {return x(d[0]);})
+                    .y(function(d) {return y(d[1]/div);});
+    paths.attr('d', line)
+         .attr('stroke-opacity', function(d, i) {return 0.9 - 0.7*i*linesGroups.size()/paths.size();});
+    
+    // Draw axes and legend:
+    drawAxes(variable, log1000Div);
+    drawLegend(paths);
+}
+
+// Set the attributes correctly (draw the chart)
+function drawHist(data)
+{
+    if (lines)
+        lines.remove();
+    lines = null;
+    if (!groups)
+        groups = chart.selectAll('g.nonexistent');
+        
+    // Manages data (arguments <-> groups)
+    if (data === undefined) {
+        if (groups.empty())
+            return;
+        data = groups.data();
+    } else {
+        groups = groups.data(data);
+        groups.exit().remove();
+        groups = groups.enter().append('g').merge(groups);   
+    }
+    
+    if (data.length == 0) {
+        hideAxes();
+        groups.remove();
+        return;
+    }
+       
+    // Get plotted variable:   
+    var variable = d3.select('#var').property('value');
+    if (variable == '')
+        variable = 0;
+    var v = shortVars[variable];
+    
+    // Get sum function:
+    var sum = d3.select('#sum').property('value');
+    if (sum == '')
+        sum = 'sum';
+    maxFun = function(a) {return d3.max(a, function(d) {return d3.max(d);});};
+    if (v.endsWith('dc')) {
+        if (sum == 'sum') {
+            sumFun = function(a) {return [[d3.sum(a, function(d) {return d3.sum(d);})]];};
+            groupsFun = function(d) {return 1;};
+            barsFun = function(d) {return 1;};
+        } else if (sum == 'inv') {
+            sumFun = function(a) {return [a.map(function(d) {return d3.sum(d);})];};
+            groupsFun = function(d) {return d[v].length;};
+            barsFun = function(d) {return 1;};
+        } else {
+            sumFun = function(a) {return a;};
+            groupsFun = function(d) {return d.length;};
+            barsFun = function(d) {return d3.max(d[v], function(a) {return a.length});};
+        }
+    } else {
+        if (sum == 'sum') {
+            sumFun = function(a) {return [[d3.sum(a)]];};
+            groupsFun = function(d) {return 1;};
+            barsFun = function(d) {return 1;};
+        } else {
+            sumFun = function(a) {return a.map(function(e) {return [e];});};
+            groupsFun = function(d) {return d[v].length;};
+            barsFun = function(d) {return 1;};
+        }
+    }
+
+    // Compute unit divider:
+    var maxData = d3.max(data, function(d) {return maxFun(sumFun(d[v]));});
+    var div = 1;
+    var log1000Div = 0;
+    while (maxData/div >= 1000) {
+        div *= 1000;
+        log1000Div += 1;
+    }
+    while (maxData/div < 1) {
+        div /= 1000;
+        log1000Div -= 1;
+    }
+    
+    // Set scales padding/domain:
+    x.padding((sum == 'sum') ? 0 : 0.1);
+    y.domain([0, maxData/div]);
+    
+    // Manages subGroups:
+    var nGroups = d3.max(data, groupsFun);
+    var subGroups = groups.selectAll('g');
+    subGroups = subGroups.data(function(d) {return sumFun(d[v]);});          
+    subGroups.exit().remove();
+    subGroups = subGroups.enter().append('g').merge(subGroups);
+    subGroups.attr('transform', function(d, i) {return "translate(" + (x.bandwidth()*i/nGroups) + ",0)";})
+             .attr('fill', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);})
+             .attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);});
+    
+    // Manages bars:
+    var nBars = d3.max(data, barsFun);
+    var bars = subGroups.selectAll('rect');
+    bars = bars.data(function(d) {return d;});
+    bars.style('display', 'initial');
+    bars.exit().remove();
+    bars = bars.enter().append('rect').classed('bar', true).merge(bars);
+    
+    // Draw bars:
+    bars.attr('x', function(d, i) {return x.bandwidth()*i/nGroups/nBars;})
+        .attr('y', function(d) {return y(d/div);})
+        .attr('width', 0.98*x.bandwidth()/nGroups/nBars)
+        .attr('height', function(d) {return y(0) - y(d/div);})
+        .attr('fill-opacity', function(d, i) {return 0.25 + 0.5*i/nBars;});
+        
+    // Places groups:
+    groups.attr('transform', function(d) {return "translate(" + (x(d.date) + 0.01*x.bandwidth()/nGroups/nBars) + ",0)";});
+    
+    // Draw axes and legend:    
+    drawAxes(variable, log1000Div);
+    drawLegend(groups.filter(function(d, i) {return i == 0;}).selectAll('g').selectAll('rect'));
+}
+
+// Removes the current axes:
+function hideAxes() {
+    labels[0].select('text').text('');
+    labels[1].select('text').text('');
+    
+    axes[0].selectAll('*').remove();
+    axes[1].selectAll('*').remove();
+    axes[2].selectAll('*').remove();
+}
+
+// Fetch data:
+function plot(today) {
+    // The selected date:
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    // Constructs data path:
+    var file = '';
+    var folder = '';
+    if (day != '') {
+        while (day.length < 2)
+            day = "0" + day;
+        folder = (folder == '') ? 'days' : folder;
+        file = "/" + day + file;
+    }
+    if (month != '') {
+        while (month.length < 2)
+            month = "0" + month;
+        folder = (folder == '') ? 'months' : folder;
+        file = "/" + month + file;
+    }
+    if (year != '') {
+        folder = (folder == '') ? 'years' : folder;
+        file = "/" + year + file;
+    }
+    if (file == '')
+        file = 'years';
+    if (today) {
+        file = 'today';
+        folder = '';
+        selectMonth = -1;
+        selectDay = -1;
+        selectDir = 1;
+        d3.select('#year').property('value', d3.select('#year').selectAll('option')
+                                                               .filter(function() {return (this.nextElementSibling == null);})
+                                                               .attr('value'));
+        updateMonths();
+        updatePrevNext();
+    }
+    console.log("Data file path: " + folder + file + '.json')
+    
+    // Fetch the data with AJAX:
+    d3.json('data/' + folder + file + '.json').on('error', function(error) {
+        console.warn('Error:', error);
+    }).on('load', function(json) {
+        // Updates the available variables list:
+        if (Array.isArray(json)) {
+            updateVariables(Object.keys(json[0]));
+        } else {
+            updateVariables(Object.keys(json));
+        }
+        
+        // Setup x scale and x axis according to the data:
+        var range = x.range();
+        if ((folder == 'days') || today) {
+            json.dates = json.dates.map(function(d) {return d3.isoParse(d);});
+            labels[0].select('text').text('Temps (h)');
+            x = d3.scaleTime();
+            x.range(range);
+            x.domain(d3.extent(json.dates));
+            xAxis = d3.axisBottom().scale(x)
+                                   .tickSizeOuter(0);
+            xAxis.ticks(d3.timeHour.every(1))
+            xAxis.tickFormat(locale.format('%_H'));
+            
+            drawLines([json]);
+        } else if (folder == 'months') {
+            json.forEach(function(d) {d.date = d3.isoParse(d.date).getDate();});
+            labels[0].select('text').text('Jour');
+            x = d3.scaleBand();
+            x.range(range);
+            x.domain(json.map(function(d) {return d.date}));
+            xAxis = d3.axisBottom().scale(x);
+            drawHist(json);
+        } else if (folder == 'years') {
+            json.forEach(function(d) {d.date = d3.isoParse(d.date).getMonth();});
+            labels[0].select('text').text('Mois');
+            x = d3.scaleBand();
+            x.range(range);
+            x.domain(json.map(function(d) {return d.date}));
+            xAxis = d3.axisBottom().scale(x);
+            drawHist(json);
+        } else {
+            json.forEach(function(d) {d.date = d3.isoParse(d.date).getFullYear();});
+            labels[0].select('text').text('Année')
+            x = d3.scaleBand();
+            x.range(range);
+            x.domain(json.map(function(d) {return d.date}));
+            xAxis = d3.axisBottom().scale(x);
+            drawHist(json);
+        }
+        
+        // Updates the current day, month and year:
+        currentYear = year;
+        currentMonth = month;
+        currentDay = day;
+        
+        d3.select('#export').classed('disabled', false);
+    }).get();
+}
+
+// Updates the variable selector:
+function updateVariables(keys)
+{
+    // Available variables as indexes of shortVars:
+    keys = keys.filter(function(k) {return !k.startsWith('date');});
+    keys = keys.map(function(k) {return shortVars.indexOf(k);});
+    keys.sort;
+
+    // Adds the new variables using a data join:
+    var variable = d3.select('#var').property('value');
+    var vars = d3.select('#var')
+                 .attr('disabled', null)
+                 .selectAll('option')
+                 .data(keys, function(d) {return d;});
+    vars.enter()
+        .append('option')
+        .attr('value', function(d) {return d;})
+        .text(function(d) {return longVars[d];});
+    vars.exit().remove();
+    vars.order();
+    
+    // Updates sums if needed:
+    if (d3.select('#var').property('value') != variable)
+        updateSums(true);
+}
+
+// Updates the sum selector:
+function updateSums()
+{
+    // Available sums by variables:
+    var variable = shortVars[d3.select('#var').property('value')];
+    switch (variable) {
+    case 'uac':
+    case 'temp':
+        keys = ['inv'];
+        break;
+    case 'pdc':
+        keys = ['sum', 'inv', 'str'];
+        break;
+    case 'udc':
+        keys = ['str'];
+        break;
+    default:
+        console.warn('Unknown variable: ' + variable);
+    case 'nrj':
+    case 'pwr':
+    case 'pac':
+        keys = ['sum', 'inv'];
+        break;
+    }
+    
+    // Adds the new sums using a data join:
+    var sum = d3.select('#sum')
+                .attr('disabled', (keys.length < 2) ? true : null)
+                .selectAll('option')
+                .data(keys, function(d) {return d;});
+    sum.enter()
+       .append('option')
+       .attr('value', function(d) {return d;})
+       .text(function(d) {return sums[d];});
+    sum.exit().remove();
+    sum.order();
+}
+
+// Get cache:
+d3.json("list/cache.json", function(json) {
+    if (json) {
+        cache = json;
+    }
+});
+
+// Update cache:
+function updateCache()
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    if (selectDay == 1)
+        cache.lastDay = [year, month, day];
+    else if (selectDay == -1)
+        cache.firstDay = [year, month, day];
+    else if (selectMonth == 1)
+        cache.lastMonth = [year, month];
+    else if (selectMonth == -1)
+        cache.firstMonth = [year, month];
+    else
+        return;
+    
+    selectDir = 1;
+    console.log('Updated cache:', cache);
+    updatePrevNext();
+}
+
+// Update years selector:
+d3.json("list/years.json", function(json) {
+    if (json) {
+        json.unshift('');
+        d3.select('#year').attr('disabled', null)
+                        .selectAll('option')
+                        .data(json)
+                        .enter()
+                        .append('option')
+                        .attr('value', function(d) {return d;})
+                        .text(function(d) {return d;});
+    }
+});
+
+// Update months selector:
+function updateMonths(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    
+    d3.select('#month').attr('disabled', true);
+    d3.select('#day').attr('disabled', true);
+    
+    if (year == '') {
+        d3.select('#month')
+          .attr('disabled', true)
+          .selectAll('option').remove();
+        d3.select('#day')
+          .attr('disabled', true)
+          .selectAll('option').remove();
+        if (callPlot)
+            plot();
+        return;
+    }
+    console.log("Selected new year: " + year);
+    
+    // Fetch available months with AJAX:
+    d3.json("list/months/" + year + ".json", function(json) {
+        if (json === null) {
+            d3.select('#month')
+              .attr('disabled', true)
+              .selectAll('option').remove();
+            d3.select('#day')
+              .attr('disabled', true)
+              .selectAll('option').remove();
+            if (selectMonth*selectDir < 0)
+                prevYearPlot(callPlot);
+            else if (selectMonth*selectDir > 0)
+                nextYearPlot(callPlot);
+            if (callPlot)
+                plot();
+            return;
+        }
+        json.unshift('');
+        
+        var months = d3.select('#month')
+                       .attr('disabled', null)
+                       .selectAll('option')
+                       .data(json, function(d) {return d;});
+        months.enter()
+              .append('option')
+              .attr('value', function(d) {return d;})
+              .text(function(d) {return (d == '') ? '' : localeLongMonth(new Date(year, d - 1));});
+        months.exit().remove();
+        
+        d3.select('#month')
+          .selectAll('option')
+          .filter(function(d) {return (d == '');})
+          .lower();
+        
+        if (selectMonth*selectDir > 0)
+            d3.select('#month').property('value', json[selectMonth*selectDir]);
+        if (selectMonth*selectDir < 0)
+            d3.select('#month').property('value', json[json.length + selectMonth*selectDir]);
+        if (selectMonth != 0)
+            updatePrevNext();
+        if ((selectDay == 0) && (selectDir == -1))
+            updateCache();
+        selectMonth = 0;
+        
+        updateDays(callPlot);
+        if ((callPlot) && (d3.select('#day').property('value') == ''))
+            plot();
+    });
+}
+
+// Update days selector:
+function updateDays(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    
+    if (month == '') {
+        d3.select('#day')
+          .attr('disabled', true)
+          .selectAll('option').remove();
+        if (callPlot)
+            plot();
+        return;
+    }
+    
+    while (month.length < 2)
+        month = "0" + month;
+    console.log("Selected new month: " + month + "/" + year);
+    
+    // Fetch available days with AJAX:
+    d3.json("list/days/" + year + "/" + month + ".json", function(json) {
+        if (json === null) {
+             d3.select('#day')
+               .attr('disabled', true)
+               .selectAll('option').remove();
+            if (selectDay*selectDir < 0)
+                prevMonthPlot(callPlot);
+            else if (selectDay*selectDir > 0)
+                nextMonthPlot(callPlot);
+            if (callPlot)
+                plot();
+            return;
+        }
+        json.unshift('');
+        
+        var days = d3.select('#day')
+                     .attr('disabled', null)
+                     .selectAll('option')
+                     .data(json, function(d) {return d;});
+        days.enter()
+            .append('option')
+            .attr('value', function(d) {return d;})
+            .text(function(d) {return d;});
+        days.exit().remove();
+        
+        d3.select('#days')
+          .selectAll('option')
+          .filter(function(d) {return (d == '');})
+          .lower();
+          
+        if (selectDay*selectDir > 0)
+            d3.select('#day').property('value', json[selectDay*selectDir]);
+        if (selectDay*selectDir < 0)
+            d3.select('#day').property('value', json[json.length + selectDay*selectDir]);
+        if (selectDay != 0)
+            updatePrevNext();
+        if (selectDir == -1)
+            updateCache();
+        selectDay = 0;
+        
+        if (callPlot)
+            plot();
+    });
+}
+
+// Get previous option(s):
+function prevOption(d3Select, datum)
+{
+    if (datum == '')
+        return null;
+    
+    var p = d3Select.selectAll('option')
+                    .filter(function(d) {return d == datum;})
+                    .selectAll(function() {return [this.previousElementSibling];});
+    
+    if (p.empty() ||  (p.attr('value') == ''))
+        return null;
+    return p;
+}
+
+// Get next option(s):
+function nextOption(d3Select, datum)
+{
+    if (datum == '')
+        return null;
+   
+    var n = d3Select.selectAll('option')
+                    .filter(function(d) {return d == datum;})
+                    .selectAll(function() {return [this.nextElementSibling];});
+                    
+    if (n.empty())
+        return null;
+    return n;
+}
+
+// Update the states of previous and next buttons:
+function updatePrevNext()
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    var isFirst = false;
+    var isLast = false;
+    if ((year != '') && (month != '') && (day != '')) {
+        isFirst = (cache.firstDay !== undefined) && (year == cache.firstDay[0]) && (month == cache.firstDay[1]) && (day == cache.firstDay[2]);
+        isLast = (cache.lastDay !== undefined) && (year == cache.lastDay[0]) && (month == cache.lastDay[1]) && (day == cache.lastDay[2]);
+    } else if ((year != '') && (month != '')) {
+        isFirst = (cache.firstMonth !== undefined) && (year == cache.firstMonth[0]) && (month == cache.firstMonth[1]);
+        isLast = (cache.lastMonth !== undefined) && (year == cache.lastMonth[0]) && (month == cache.lastMonth[1]);
+    } else if (year != '') {
+        isFirst = (cache.firstYear !== undefined) && (year == cache.firstYear[0]);
+        isLast = (cache.lastYear !== undefined) && (year == cache.lastYear[0]);
+    }
+    
+    var prevDay = (year != '') && (month != '') ? prevOption(d3.select('#day'), day) : null;
+    var nextDay = (year != '') && (month != '') ? nextOption(d3.select('#day'), day) : null;
+    
+    var prevMonth = (year != '') ? prevOption(d3.select('#month'), month) : null;
+    var nextMonth = (year != '') ? nextOption(d3.select('#month'), month) : null;
+
+    var prevYear = prevOption(d3.select('#year'), year);
+    var nextYear = nextOption(d3.select('#year'), year);
+
+    d3.select('#prev').classed('disabled', isFirst || (!prevDay && !prevMonth && !prevYear));
+    d3.select('#next').classed('disabled', isLast || (!nextDay && !nextMonth && !nextYear));
+}
+
+// Plots data for previous day:
+function prevDayPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    if ((cache.firstDay !== undefined) && (year == cache.firstDay[0]) && (month == cache.firstDay[1]) && (day == cache.firstDay[2]))
+        return;
+    
+    var prevDay = prevOption(d3.select('#day'), day);
+    if (prevDay) {
+        d3.select('#day').property('value', prevDay.attr('value'));
+        updatePrevNext();
+        if (callPlot)
+            plot();
+    } else {
+        selectDay = -selectDir;
+        prevMonthPlot(callPlot);
+    }
+}
+
+// Plots data for previous month:
+function prevMonthPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    
+    if ((cache.firstMonth !== undefined) && (year == cache.firstMonth[0]) && (month == cache.firstMonth[1])) {
+        if (selectDay != 0) {
+            selectDir = -1;
+            nextDayPlot(callPlot);
+        }
+        return;
+    }
+    
+    var prevMonth = prevOption(d3.select('#month'), month);
+    if (prevMonth) {
+        d3.select('#month').property('value', prevMonth.attr('value'));
+        updatePrevNext();
+        updateDays(callPlot);
+    } else {
+        selectMonth = -selectDir;
+        prevYearPlot(callPlot);
+    }
+}
+
+// Plots data for previous year:
+function prevYearPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    
+    if ((cache.firstYear !== undefined) && (year == cache.firstYear[0])) {
+        if (selectDay != 0) {
+            selectDir = -1;
+            nextDayPlot(callPlot);
+        } else if (selectMonth != 0) {
+            selectDir = -1;
+            nextMonthPlot(callPlot);
+        }
+        return;
+    }
+    
+    var prevYear = prevOption(d3.select('#year'), year);
+    if (prevYear) {
+        d3.select('#year').property('value', prevYear.attr('value'));
+        updatePrevNext();
+        updateMonths(callPlot);
+    } else {
+        d3.select('#prev').classed('disabled', true);
+        selectDir = -1;
+        if (selectDay != 0)
+            nextDayPlot(callPlot);
+        else if (selectMonth != 0)
+            nextMonthPlot(callPlot);
+    }
+}
+
+// Plots data for previous year/month/day:
+function prevPlot()
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    if (day != '')
+        prevDayPlot(true);
+    else if (month != '')
+        prevMonthPlot(true);
+    else if (year != '')
+        prevYearPlot(true);
+}
+
+// Plots data for next day:
+function nextDayPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    if ((cache.lastDay !== undefined) && (year == cache.lastDay[0]) && (month == cache.lastDay[1]) && (day == cache.lastDay[2]))
+        return;
+    
+    var nextDay = nextOption(d3.select('#day'), day);
+    if (nextDay) {
+        d3.select('#day').property('value', nextDay.attr('value'));
+        updatePrevNext();
+        if (callPlot)
+            plot();
+    } else {
+        selectDay = selectDir;
+        nextMonthPlot(callPlot);
+    }
+}
+
+// Plots data for next month:
+function nextMonthPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    
+    if ((cache.lastMonth !== undefined) && (year == cache.lastMonth[0]) && (month == cache.lastMonth[1])) {
+        if (selectDay != 0) {
+            selectDir = -1;
+            prevDayPlot(callPlot);
+        }
+        return;
+    }
+    
+    var nextMonth = nextOption(d3.select('#month'), month);
+    if (nextMonth) {
+        d3.select('#month').property('value', nextMonth.attr('value'));
+        updatePrevNext();
+        updateDays(callPlot);
+    } else {
+        selectMonth = selectDir;
+        nextYearPlot(callPlot);
+    }
+}
+
+// Plots data for next year:
+function nextYearPlot(callPlot)
+{
+    var year = d3.select('#year').property('value');
+    var nextYear = nextOption(d3.select('#year'), year);
+    
+    if ((cache.lastYear !== undefined) && (year == cache.lastYear[0])) {
+        if (selectDay != 0) {
+            selectDir = -1;
+            prevDayPlot(callPlot);
+        } else if (selectMonth != 0) {
+            selectDir = -1;
+            prevMonthPlot(callPlot);
+        }
+        return;
+    }
+    
+    if (nextYear) {
+        d3.select('#year').property('value', nextYear.attr('value'));
+        updatePrevNext();
+        updateMonths(callPlot);
+    } else {
+        d3.select('#next').classed('disabled', true);
+        selectDir = -1;
+        if (selectDay != 0)
+            prevDayPlot(callPlot);
+        else if (selectMonth != 0)
+            prevMonthPlot(callPlot);
+    }
+}
+
+// Plots data for next year/month/day:
+function nextPlot()
+{
+    var year = d3.select('#year').property('value');
+    var month = d3.select('#month').property('value');
+    var day = d3.select('#day').property('value');
+    
+    if (day != '')
+        nextDayPlot(true);
+    else if (month != '')
+        nextMonthPlot(true);
+    else if (year != '')
+        nextYearPlot(true);
+}
+
+function exportCsv()
+{
+    var headers;
+    var data;
+
+    // Get plotted variable:   
+    var variable = d3.select('#var').property('value');
+    if (variable == '')
+        variable = 0;
+    var v = shortVars[variable];
+    
+    // Get sum function:
+    var sum = d3.select('#sum').property('value');
+    if (sum == '')
+        sum = 'sum';
+
+    // Date management:
+    var dateFormat = d3.timeFormat('%d/%m/%Y %H:%M');
+    var dateString = '_' + currentDay + '-' + currentMonth + '-' + currentYear;
+    if (currentYear == '') {
+        dateFormat = function(date) {return date;};
+        dateString = '';
+    } else if (currentMonth == '') {
+        dateFormat = function(date) {return ((date < 9) ? '0' : '') + (date + 1) + '/' + currentYear;};
+        dateString = '_' + currentYear;
+    } else if (currentDay == '') {
+        dateFormat = function(date) {return ((date < 10) ? '0' : '') + date + '/' + currentMonth + '/' + currentYear;};
+        dateString = '_' + currentMonth + '-' + currentYear;
+    }
+      
+    if (lines) {
+        // Transform line data to export:
+        data = lines.data();
+            
+        if (v.endsWith('dc')) {
+            if (sum == 'str') {
+                 headers = [
+                    ['Date'].concat(d3.merge(data[0][v].map(function(a, i) {return a.map(function(e) {return 'Onduleur ' + (i + 1);});}))),
+                    [''].concat(d3.merge(data[0][v].map(function(a) {return a.map(function(e, i) {return 'String ' + (i + 1);});})))
+                ];
+                data = d3.transpose([data[0].dates.map(dateFormat)].concat(d3.merge(data[0][v])))
+            } else if (sum == 'inv') {
+                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
+                data = d3.transpose([data[0].dates.map(dateFormat)].concat(data[0][v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});}))); 
+            } else {
+                headers = [['Date', 'Total']];
+                data = d3.transpose([data[0].dates.map(dateFormat), d3.transpose(data[0][v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});})).map(function(e) {return d3.sum(e);})]);
+            }
+        } else {
+            if (sum == 'sum') {
+                headers = [['Date', 'Total']];
+                data = d3.transpose([data[0].dates.map(dateFormat), d3.transpose(data[0][v]).map(function(a) {return d3.sum(a);})]);
+            } else {
+                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
+                data = d3.transpose([data[0].dates.map(dateFormat)].concat(data[0][v]));
+            }
+        }
+    }
+    
+    if (groups) {
+        // Transform bar data to export:
+        data = groups.data();
+        
+        if (v.endsWith('dc')) {
+            if (sum == 'str') {
+                headers = [
+                    ['Date'].concat(d3.merge(data[0][v].map(function(a, i) {return a.map(function(e) {return 'Onduleur ' + (i + 1);});}))),
+                    [''].concat(d3.merge(data[0][v].map(function(a) {return a.map(function(e, i) {return 'String ' + (i + 1);});})))
+                ];
+                data = data.map(function(e) {return [dateFormat(e.date), d3.sum(e[v], function(d) {return d3.sum(d);})];});
+            } else if (sum == 'inv') {
+                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
+                data = data.map(function(e) {return [dateFormat(e.date)].concat(e[v].map(function(d) {return d3.sum(d);}));});
+            } else {
+                headers = [['Date', 'Total']];
+                data = data.map(function(e) {return [dateFormat(e.date)].concat(d3.merge(e[v]));});
+            }
+        } else {
+            if (sum == 'sum') {
+                headers = [['Date', 'Total']];
+                data = data.map(function(e) {return [dateFormat(e.date), d3.sum(e[v])];});
+            } else {
+                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
+                data = data.map(function(e) {return [dateFormat(e.date)].concat(e[v]);});
+            }
+        }
+    } 
+    
+    if (!data)
+        return;
+     
+    // Create CSV from data:
+    var csv = new Blob([[
+        headers.map(function(line) {return line.join(',');}).join('\r\n'),
+        data.map(function(line) {return line.join(',');}).join('\r\n')
+    ].join('\r\n')], {type: 'text/csv;charset=utf-8'});
+    saveAs(csv, 'export_' + v + '_' + sum + dateString + '.csv');
+}
+
+
+// Events connections:
+d3.select('#var').on('change', function() {
+    updateSums();
+    draw();
+});
+d3.select('#sum').on('change', draw);
+
+d3.select('#year').on('change', function() {
+    updatePrevNext();
+    updateMonths();
+});
+d3.select('#month').on('change', function() {
+    updatePrevNext();
+    updateDays();
+});
+d3.select('#day').on('change', updatePrevNext);
+
+d3.select('#plot').on('click', plot);
+d3.select('#prev').on('click', prevPlot);
+d3.select('#today').on('click', function() {plot(true);});
+d3.select('#next').on('click', nextPlot);
+d3.select('#export').on('click', exportCsv);
+
+d3.select(window).on('resize', windowResize);
+windowResize();
+        </script>
+    </body>
+</html>
+ 
