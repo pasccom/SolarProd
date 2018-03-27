@@ -27,6 +27,9 @@ sed -e 's|src="js/d3.js"|src="https://d3js.org/d3.v4.min.js"|' \
 cp "prod/style.css" "$1/"
 cp -r "prod/img" "$1/"
 mkdir "$1/js"
+cp "prod/js/linedata.js" "$1/"
+cp "prod/js/histdata.js" "$1/"
+cp "prod/js/solardata.js" "$1/"
 
 # Get FileSaver.js from GitHub:
 if [ -f 'FileSaver-version.local' ]; then
