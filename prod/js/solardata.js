@@ -9,6 +9,10 @@
  */
 function pad(n, l, p)
 {
+    if (p == '')
+        throw new RangeError('p should not be empty');
+
+    n = '' + n + '';
     while (n.length < l)
         n = p + n;
     return n;
