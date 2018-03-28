@@ -52,6 +52,8 @@ the desired version inside. Currently, FileSaver version 1.3.4 is recommended.
 TESTING
 -------
 
+## End-to-end testing
+
 The repository inculdes an extensive end-to-end test suite, for the features listed
 [above](#features). The testing uses
 [Selenium WebDriver](https://www.seleniumhq.org/projects/webdriver/) to automate
@@ -81,6 +83,20 @@ python -m unittest -v [testsuite[.testcase[.testfixture]]]
 See [test.py](https://github.com/pasccom/SolarProd/blob/master/test.py) for a list of 
 test cases and test fixtures. Running all the test fixtures for version 1.0.0 takes 
 approximately *25min* on my PC.
+
+## Unit testing
+
+The repository includes unit test for Javascript objects and functions. Javascript
+unit testing uses [Jasmine](https://jasmine.github.io/), which allows to automatically
+run all the tests by opening `test/testrunner.html` in a web browser.
+
+The setup of the test environment should be done automatically when running
+[setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/setup_test.sh)
+as proposed in the previous section.
+
+If you want to use another version than the latest version of
+[Jasmine](https://jasmine.github.io/), create a `jasmine-version.local` file containing
+the desired version number.
 
 LICENSING INFORMATION
 ---------------------

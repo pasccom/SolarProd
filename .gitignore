@@ -3,6 +3,7 @@ env/
 exports/
 profiles/
 testdata/
+test/jasmine/
 
 # Python auto-generated files and folders:
 __pycache__/

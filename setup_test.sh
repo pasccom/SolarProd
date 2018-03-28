@@ -147,6 +147,43 @@ if [ -z "$ANS" ]; then
     rm "$GECKO_NAME"
 fi
 
+# Delete existing Jasmine files:
+ANS=
+if [ -d "$TEST_DIR/test/jasmine" ]; then
+    echo "Folder $TEST_DIR/test/jasmine already exists. Do you want to delete it (y/N)?"
+    while true; do
+        read ANS
+        if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
+            echo "OK, skipping"
+            ANS='skip'
+            break
+        fi
+        if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
+            rm -R "$TEST_DIR/test/jasmine"
+            ANS=
+            break
+        fi
+    done
+fi
+
+# Get Jasmine files:
+if [ -z "$ANS" ]; then
+    mkdir "$TEST_DIR/test/jasmine"
+    if [ -f 'jasmine-version.local' ]; then
+        JASMINE_VERSION=$(cat 'jasmine-version.local')
+    else
+        JASMINE_VERSION=$(curl "https://github.com/jasmine/jasmine/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/jasmine/jasmine/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
+    fi
+    rm "jasmine-standalone-$JASMINE_VERSION.zip" 2> /dev/null
+    wget "https://github.com/jasmine/jasmine/releases/download/v$JASMINE_VERSION/jasmine-standalone-$JASMINE_VERSION.zip"
+    mkdir "Jasmine"
+    cd "Jasmine"
+    mv "../jasmine-standalone-$JASMINE_VERSION.zip" .
+    unzip "jasmine-standalone-$JASMINE_VERSION.zip"
+    mv "lib/jasmine-$JASMINE_VERSION/"* "$TEST_DIR/test/jasmine"
+    cd ..
+    rm -R "Jasmine"
+fi
     
 # Deletes exisiting profiles:
 ANS=
