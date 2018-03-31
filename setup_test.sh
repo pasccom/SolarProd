@@ -16,14 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/>
 
-PWD=$(pwd)
+# Absolute path to folder containing script (and related files):
+SCRIPT_DIR="$(dirname "$0")"
+cd "$SCRIPT_DIR"
+SCRIPT_DIR="$PWD"
+cd - > /dev/null
 
+# Absolute path to test directory
 TEST_DIR="$PWD"
 if [ $# -ge 1 ]; then
     mkdir -p "$1"
     cd "$1"
-    TEST_DIR="$(pwd)"
-    cd "$PWD"
+    TEST_DIR="$PWD"
+    cd - > /dev/null
 fi
 
 # Directory where to write profiles (absolute path):
@@ -31,8 +36,8 @@ PROFILES_DIR="$TEST_DIR/profiles"
 if [ $# -ge 2 ]; then
     mkdir -p "$2"
     cd "$2"
-    PROFILES_DIR="$(pwd)"
-    cd "$PWD"
+    PROFILES_DIR="$PWD"
+    cd - > /dev/null
 fi
 
 # Download directory (absolute path):
@@ -41,7 +46,7 @@ if [ $# -ge 3 ]; then
     mkdir -p "$3"
     cd "$3"
     EXPORTS_DIR="$PWD"
-    cd "$PWD"
+    cd - > /dev/null
 elif [ ! -d "$EXPORTS_DIR" ]; then
     mkdir -p "$EXPORTS_DIR"
 fi
@@ -77,7 +82,7 @@ create_profile() {
     echo "user_pref(\"browser.download.folderList\", 2);" >> "$PROFILES_DIR/$1/prefs.js"
     
     # Set mimeTypes.rdf so that CSV files are automatically saved to disk:
-    cp "$(dirname $0)/mimeTypes.rdf" "$PROFILES_DIR/$1/"
+    cp "$SCRIPT_DIR/mimeTypes.rdf" "$PROFILES_DIR/$1/"
     
     # Change size:
     if [ $# -gt 1 ]; then
@@ -93,6 +98,23 @@ create_profile() {
 if check_spaces "PROFILES_DIR" $PROFILES_DIR; then
     exit 1
 fi
+
+# Ask user to check paths:
+ANS=
+echo "Test     directory: '$TEST_DIR'"
+echo "Exports  directory: '$EXPORTS_DIR'"
+echo "Profiles directory: '$PROFILES_DIR'"
+echo "Is this exact (Y/n)?"
+while true; do
+    read ANS
+    if [ -z "$ANS" -o "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
+        break
+    fi
+    if [ "$ANS" == 'n' -o "$ANS" == 'N' ]; then
+        echo "OK, quitting"
+        exit 0    
+    fi
+done
 
 # Delete old test environment:
 ANS=
@@ -124,8 +146,8 @@ fi
 
 # Get and install Gecko driver:
 if [ -z "$ANS" ]; then
-    if [ -f 'gecko-version.local' ]; then
-        GECKO_VERSION=$(cat 'gecko-version.local')
+    if [ -f "$SCRIPT_DIR/gecko-version.local" ]; then
+        GECKO_VERSION=$(cat "$SCRIPT_DIR/gecko-version.local")
     else
         GECKO_VERSION=$(curl "https://github.com/mozilla/geckodriver/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/mozilla/geckodriver/releases/tag/\(v[0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
     fi
@@ -169,8 +191,8 @@ fi
 # Get Jasmine files:
 if [ -z "$ANS" ]; then
     mkdir "$TEST_DIR/test/jasmine"
-    if [ -f 'jasmine-version.local' ]; then
-        JASMINE_VERSION=$(cat 'jasmine-version.local')
+    if [ -f "$SCRIPT_DIR/jasmine-version.local" ]; then
+        JASMINE_VERSION=$(cat "$SCRIPT_DIR/jasmine-version.local")
     else
         JASMINE_VERSION=$(curl "https://github.com/jasmine/jasmine/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/jasmine/jasmine/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
     fi
@@ -185,6 +207,32 @@ if [ -z "$ANS" ]; then
     rm -R "Jasmine"
 fi
     
+# Delete existing GenTest files:
+ANS=
+if [ -d "$TEST_DIR/test/gentest" ]; then
+    echo "Folder $TEST_DIR/test/gentest already exists. Do you want to delete it (y/N)?"
+    while true; do
+        read ANS
+        if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
+            echo "OK, skipping"
+            ANS='skip'
+            break
+        fi
+        if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
+            rm -R "$TEST_DIR/test/gentest"
+            ANS=
+            break
+        fi
+    done
+fi
+
+# Copy GenTest files:
+if [ -z "$ANS" ]; then
+    mkdir "$TEST_DIR/test/gentest"
+    cp "$SCRIPT_DIR/GenTest/jasmine/jasmine-gentest.js" "$TEST_DIR/test/gentest"
+    cp "$SCRIPT_DIR/GenTest/lib/"* "$TEST_DIR/test/gentest"
+fi
+
 # Deletes exisiting profiles:
 ANS=
 if [ $(ls "$PROFILES_DIR" | wc -l) -gt 0 ]; then
@@ -238,13 +286,13 @@ fi
 # Create test data:
 if [ -z "$ANS" ]; then
     printf "Extracting testdata ...\t\t\t\t\t\t\t"
-    tar -xzf "$(dirname $0)/testdata.tar.gz"
-    mv "$(dirname $0)/testdata" "$TEST_DIR" 2> /dev/null
+    tar -xzf "$SCRIPT_DIR/testdata.tar.gz"
+    mv "$SCRIOT_DIR/testdata" "$TEST_DIR" 2> /dev/null
     echo "DONE"
     printf "Setting up test environment ...\t\t\t\t\t\t"
-    cp -a "$(dirname $0)/prod/img" "$TEST_DIR/testdata/"
-    cp -a "$(dirname $0)/prod/js" "$TEST_DIR/testdata/"
-    cp -a "$(dirname $0)/prod/style.css" "$TEST_DIR/testdata/"
-    cp -a "$(dirname $0)/prod/index.html" "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/img" "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/js" "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/style.css" "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/index.html" "$TEST_DIR/testdata/"
     echo "DONE"
 fi

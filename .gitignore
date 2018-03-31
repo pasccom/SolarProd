@@ -4,6 +4,7 @@ exports/
 profiles/
 testdata/
 test/jasmine/
+test/gentest/
 
 # Python auto-generated files and folders:
 __pycache__/
