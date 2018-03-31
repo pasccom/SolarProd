@@ -1,57 +1,65 @@
+types.numericString = types.fmap(
+    (chars) => chars.join(''),
+    types.arrayOf(types.elements('0123456789'.split()))
+);
+
+types.lowercaseString = types.fmap(
+    (chars) => chars.join(''),
+    types.arrayOf(types.elements('abcdefghijklmnopqrstuvwxyz'.split()))
+);
+
+types.uppercaseString = types.fmap(
+    (chars) => chars.join(''),
+    types.arrayOf(types.elements('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split()))
+);
+
+types.alphaString = types.fmap(
+    (chars) => chars.join(''),
+    types.arrayOf(types.elements('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split()))
+);
+
+types.alphaNumericString = types.fmap(
+    (chars) => chars.join(''),
+    types.arrayOf(types.elements('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split()))
+);
+
 describe('Helpers ', function() {
     describe('pad() ', function() {
-        it('should return a string', function() {
-            expect(pad(0, 1, '0')).toBe('0');
-            expect(pad('0', 1, '0')).toBe('0');
+        it('should return a string', [
+            types.oneOf([types.int.nonNegative, types.string]),
+            types.int.nonNegative,
+            types.constantly('0'),
+        ], function(n, l, p) {
+            expect(typeof pad(n, l, p)).toBe('string');
         });
-        it('should return the number itself', function() {
-            expect(pad(1, 1, '0')).toBe('1');
-            expect(pad(11, 1, '0')).toBe('11');
-            expect(pad(11, 2, '0')).toBe('11');
-            expect(pad(111, 2, '0')).toBe('111');
+        it('should return a string of length larger or equal to l', [
+            types.oneOf([types.int.nonNegative, types.string]),
+            types.int.nonNegative,
+            types.elements(['0', ' ', ' 0']),
+        ], function(n, l, p) {
+            expect(pad(n, l, p).length).toBeGreaterThanOrEqual(l);
         });
-        it('should return a string of length l', function() {
-            expect(pad(1, 1, '0').length).toBe(1);
-            expect(pad(1, 2, '0').length).toBe(2);
-            expect(pad(1, 3, '0').length).toBe(3);
+        it('should start with p and end with n', [
+            types.oneOf([types.int.nonNegative, types.alphaNumericString]),
+            types.int.nonNegative,
+            types.elements(['0', ' ', ' 0']),
+        ], function(n, l, p) {
+            expect(pad(n, l, p)).toMatch('^(' + p + ')*' + n + '$');
         });
-        it('should return a string of length larger or equal to l', function() {
-            expect(pad(1, 1, '00').length).toBeGreaterThanOrEqual(1);
-            expect(pad(1, 2, '00').length).toBeGreaterThanOrEqual(2);
-            expect(pad(1, 3, '00').length).toBeGreaterThanOrEqual(3);
+
+        it('should be parsed as the initial int', [
+            types.int.nonNegative,
+            types.int.nonNegative,
+            types.constantly('0', ' ', '00', '  '),
+        ], function(n, l, p) {
+            expect(parseInt(pad(n, l, p))).toBe(n);
         });
-        it('should start with p and end with n', function() {
-            expect(pad(1, 1, '0')).toMatch('^0*1$');
-            expect(pad(1, 2, '0')).toMatch('^0*1$');
-            expect(pad(1, 3, '0')).toMatch('^0*1$');
-            expect(pad(11, 1, '0')).toMatch('^0*11$');
-            expect(pad(11, 2, '0')).toMatch('^0*11$');
-            expect(pad(11, 3, '0')).toMatch('^0*11$');
-            expect(pad(1, 1, ' ')).toMatch('^ *1$');
-            expect(pad(1, 2, ' ')).toMatch('^ *1$');
-            expect(pad(1, 3, ' ')).toMatch('^ *1$');
-            expect(pad(1, 1, '0 ')).toMatch('^(0 )*1$');
-            expect(pad(1, 2, '0 ')).toMatch('^(0 )*1$');
-            expect(pad(1, 3, '0 ')).toMatch('^(0 )*1$');
-        });
-        it('should be parsed as the initial int', function() {
-            expect(parseInt(pad(0, 1, '0'))).toBe(0);
-            expect(parseInt(pad(0, 2, '0'))).toBe(0);
-            expect(parseInt(pad(0, 3, '0'))).toBe(0);
-            expect(parseInt(pad(0, 1, ' '))).toBe(0);
-            expect(parseInt(pad(0, 2, ' '))).toBe(0);
-            expect(parseInt(pad(0, 3, ' '))).toBe(0);
-            expect(parseInt(pad(1, 1, '0'))).toBe(1);
-            expect(parseInt(pad(1, 2, '0'))).toBe(1);
-            expect(parseInt(pad(1, 3, '0'))).toBe(1);
-            expect(parseInt(pad(1, 1, ' '))).toBe(1);
-            expect(parseInt(pad(1, 2, ' '))).toBe(1);
-            expect(parseInt(pad(1, 3, ' '))).toBe(1);
-        });
-        it('should throw when called with empty string', function() {
-            expect(() => pad(0, 1, '')).toThrowError(RangeError, 'p should not be empty');
-            expect(() => pad(1, 1, '')).toThrowError(RangeError, 'p should not be empty');
-            expect(() => pad(0, 2, '')).toThrowError(RangeError, 'p should not be empty');
+        it('should throw when called with empty string', [
+            types.oneOf([types.int.nonNegative, types.string]),
+            types.int.nonNegative,
+            types.constantly(''),
+        ], function(n, l, p) {
+            expect(() => pad(n, l, p)).toThrowError(RangeError, 'p should not be empty');
         });
     });
 });
