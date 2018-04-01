@@ -1,11 +1,11 @@
-/* \brief Pad number to reach length
- * 
+/*!\brief Pad number to reach length
+ *
  * Pad the number n to the left using p until it has length l.
  * n is not truncated if it is longer than l.
  * \param n The number to pad
  * \param l The desired text length
  * \param p The character to use for padding
- * \return The number padded 
+ * \return The number padded
  */
 function pad(n, l, p)
 {
@@ -79,10 +79,15 @@ var SolarData = {
             if (this[0].dates)
                 date = d3.isoParse(this[0].dates[0]);
             
-            year = pad('' + date.getFullYear() + '', 4, '0');
-            month = pad('' + (date.getMonth() + 1) + '', 2, '0');
-            day = pad('' + date.getDay() + '', 2, '0');
+            year = date.getFullYear();
+            month = (date.getMonth() + 1);
+            day = date.getDay();
         }
+
+        // Ensure year, month and day are well padded:
+        year = (year == '') ? '' : pad(year, 4, '0');
+        month = (month == '') ? '' : pad(month, 2, '0');
+        day = (day == '') ? '' : pad(day, 2, '0');
         
         // Date of data as a string:
         this.dateString = [day, month, year].filter(item => item != '').join('-');
