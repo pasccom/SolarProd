@@ -287,7 +287,7 @@ fi
 if [ -z "$ANS" ]; then
     printf "Extracting testdata ...\t\t\t\t\t\t\t"
     tar -xzf "$SCRIPT_DIR/testdata.tar.gz"
-    mv "$SCRIOT_DIR/testdata" "$TEST_DIR" 2> /dev/null
+    mv "$SCRIPT_DIR/testdata" "$TEST_DIR" 2> /dev/null
     echo "DONE"
     printf "Setting up test environment ...\t\t\t\t\t\t"
     cp -a "$SCRIPT_DIR/prod/img" "$TEST_DIR/testdata/"
