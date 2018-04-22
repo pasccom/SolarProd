@@ -81,7 +81,7 @@ var SolarData = {
             
             year = date.getFullYear();
             month = (date.getMonth() + 1);
-            day = date.getDay();
+            day = date.getDate();
         }
 
         // Ensure year, month and day are well padded:
