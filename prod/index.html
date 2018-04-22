@@ -24,6 +24,7 @@
         <link rel="stylesheet" type="text/css" href="style.css" />
         <script src="js/d3.js" charset="utf-8"></script>
         <script src="js/FileSaver.js" charset="utf-8"></script>
+        <script src="js/locale.js" charset="utf-8"></script>
         <script src="js/solardata.js" charset="utf-8"></script>
         <script src="js/linedata.js" charset="utf-8"></script>
         <script src="js/histdata.js" charset="utf-8"></script>
@@ -66,20 +67,6 @@ var margins = {
     top: 20,
     bottom: 40,
 };
-
-// Locale format for dates:
-var locale = d3.timeFormatLocale({
-  dateTime: "%A %_d %B %Y à %X",
-  date: "%d/%m/%Y",
-  time: "%H:%M:%S",
-  periods: ["AM", "PM"],
-  days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
-  shortDays: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
-  months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
-  shortMonths: ["jan", "fev", "mar", "avr", "mai", "jun", "jul", "aou", "sep", "oct", "nov", "dec"]
-});
-var localeLongMonth = locale.format('%B');
-var localeShortMonth = locale.format('%b');
 
 // Day and month to select:
 var selectMonth = 0;
