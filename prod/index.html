@@ -185,14 +185,14 @@ function windowResize()
 // Customize the axes:
 function customizeAxis(selection, axis)
 {
-    // Add axis:
-    selection.call(axis);
-    
+    // Add axis and get axis domain:
+    var domain = selection.call(axis).select('.domain');
+
     // Remove last tick (even if not visble for marker):
-    var domain = selection.select('.domain');var d = domain.attr('d');
-        if (d.endsWith('0') || d.endsWith('6'))
-            d = d.slice(0, -2);
-        domain.attr('d', d);    
+    var d = domain.attr('d');
+    if (d.endsWith('0') || d.endsWith('6'))
+        d = d.slice(0, -2);
+    domain.attr('d', d);
     
     // Add/remove marker
     domain.attr('marker-end', (axis.tickSizeOuter() == 0) ? 'url(#arrowhead)' : null);
@@ -208,8 +208,7 @@ function customizeAxis(selection, axis)
 // Customize the grid (which is in fact an axis with long ticks):
 function customizeGrid(selection, grid)
 {
-    selection.call(grid);
-    selection.select('.domain').remove();
+    selection.call(grid).select('.domain').remove();
 }
 
 // Draw the axes (and the grid)
@@ -217,12 +216,12 @@ function drawAxes(variable, log1000Div)
 {
     // Draw axes and grid:
     axes[0].lower()
-           .call(function(s) {customizeGrid(s, data.yGrid);});
+           .call(customizeGrid, data.yGrid);
     axes[1].raise()
            .attr('transform', "translate(0, " + data.yScale(0) + ")")
-           .call(function(s) {customizeAxis(s, data.xAxis);});
+           .call(customizeAxis, data.xAxis);
     axes[2].raise()
-           .call(function(s) {customizeAxis(s, data.yAxis);});
+           .call(customizeAxis, data.yAxis);
     
     // Draw labels:
     labels[0].select('text').text(data.xLabel);
