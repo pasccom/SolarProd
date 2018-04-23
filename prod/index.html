@@ -172,11 +172,9 @@ function windowResize()
     
         svg.attr('viewBox', "0 0 " + w + " " + h);
     
-        data.xScale.range([0, w - margins.left - margins.right]);
-        data.yScale.range([h -  margins.top - margins.bottom, 0]);
-        
-        data.yGrid.tickSize(w - margins.left - margins.right);
-        
+        data.setXRange(w - margins.left - margins.right);
+        data.setYRange(h -  margins.top - margins.bottom);
+
         labels[0].attr('transform', "translate(" + ((w + margins.left - margins.right)/2) + "," + (h - 8) + ")");
         labels[1].attr('transform', "translate(20," + ((h + margins.top - margins.bottom)/2) + ")");
         
@@ -217,14 +215,6 @@ function customizeGrid(selection, grid)
 // Draw the axes (and the grid)
 function drawAxes(variable, log1000Div)
 {
-    // Adapt x axis tick labels:
-    if (data.type == SolarData.Type.YEAR) {
-        if (d3.max(data.xScale.range()) - d3.min(data.xScale.range()) >= 750)
-            data.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
-        else
-            data.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
-    }
-
     // Draw axes and grid:
     axes[0].lower()
            .call(function(s) {customizeGrid(s, data.yGrid);});

@@ -108,10 +108,32 @@ var SolarData = {
     {
         // Initialize scale ranges:
         if (window.data) {
-            this.xScale.range(window.data.xScale.range());
-            this.yScale.range(window.data.yScale.range());
-            this.yGrid.tickSize(window.data.yGrid.tickSize());
+            this.setXRange(window.data.xScale.range());
+            this.setYRange(window.data.yScale.range());
         }
+    },
+    setXRange: function(w)
+    {
+        if (Array.isArray(w))
+            w = w[1];
+
+        this.xScale.range([0, w]);
+        this.yGrid.tickSize(w);
+
+        // Adapt X axis tick labels:
+        if (this.type == SolarData.Type.YEAR) {
+            if (w >= 750)
+                this.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
+            else
+                this.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
+        }
+    },
+    setYRange: function(h)
+    {
+        if (Array.isArray(h))
+            h = h[0];
+
+        this.yScale.range([h, 0]);
     },
     create: function(data, year, month, day)
     {
