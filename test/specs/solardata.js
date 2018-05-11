@@ -72,8 +72,10 @@ describe('SolarData', function() {
     generators.dayString = GenTest.types.fmap((day) => pad(day, 2, '0'), generators.dayNumber);
     generators.day = GenTest.types.oneOf([generators.dayNumber, generators.dayString]);
 
-    generators.histData = GenTest.types.nonEmptyArrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}));
-    generators.lineData = GenTest.types.shape({dates: GenTest.types.nonEmptyArrayOf(GenTest.types.date('%Y-%m-%d %H:%M'))});
+    generators.histData = GenTest.types.arrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}), 1);
+    generators.emptyHistData = GenTest.types.arrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}), null, 0);
+    generators.lineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), 2)});
+    generators.emptyLineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), null, 1)});
     generators.data = GenTest.types.oneOf([generators.histData, generators.lineData]);
 
     generators.any = GenTest.types.oneOf([
@@ -99,6 +101,35 @@ describe('SolarData', function() {
         ]),
     ])
 
+    describe('prefix', function() {
+        it('should return "p"', function() {
+            expect(SolarData.prefix(-4)).toBe('p');
+        });
+        it('should return "n"', function() {
+            expect(SolarData.prefix(-3)).toBe('n');
+        });
+        it('should return "µ"', function() {
+            expect(SolarData.prefix(-2)).toBe('µ');
+        });
+        it('should return "m"', function() {
+            expect(SolarData.prefix(-1)).toBe('m');
+        });
+        it('should return ""', function() {
+            expect(SolarData.prefix(0)).toBe('');
+        });
+        it('should return "k"', function() {
+            expect(SolarData.prefix(1)).toBe('k');
+        });
+        it('should return "M"', function() {
+            expect(SolarData.prefix(2)).toBe('M');
+        });
+        it('should return "G"', function() {
+            expect(SolarData.prefix(3)).toBe('G');
+        });
+        it('should return "T"', function() {
+            expect(SolarData.prefix(4)).toBe('T');
+        });
+    });
     describe('type', function() {
         it('should be of type ALL', function() {
             var solarData = SolarData.create([], '', '', '');
@@ -130,6 +161,64 @@ describe('SolarData', function() {
         ], function(data) {
             var solarData = SolarData.create(data);
             expect(solarData.type).toBe(SolarData.Type.DAY);
+        });
+    });
+    describe('isEmpty', function() {
+        it('should be empty', function() {
+            var solarData = SolarData.create([], '', '', '');
+            expect(solarData.isEmpty()).toBeTruthy();
+        });
+        it('should be empty', [
+            generators.year,
+        ], function(year) {
+            var solarData = SolarData.create([], year, '', '');
+            expect(solarData.isEmpty()).toBeTruthy();
+        });
+        it('should be empty', [
+            generators.year,
+            generators.month,
+        ], function(year, month) {
+            var solarData = SolarData.create([], year, month, '');
+            expect(solarData.isEmpty()).toBeTruthy();
+        });
+        it('should be empty', [
+            generators.emptyLineData,
+            generators.year,
+            generators.month,
+            generators.day,
+        ], function(data, year, month, day) {
+            var solarData = SolarData.create(data, year, month, day);
+            expect(solarData.isEmpty()).toBeTruthy();
+        });
+        it('should be non-empty', [
+            generators.histData,
+        ],function(data) {
+            var solarData = SolarData.create(data, '', '', '');
+            expect(solarData.isEmpty()).toBeFalsy();
+        });
+        it('should be non-empty', [
+            generators.histData,
+            generators.year,
+        ], function(data, year) {
+            var solarData = SolarData.create(data, year, '', '');
+            expect(solarData.isEmpty()).toBeFalsy();
+        });
+        it('should be non-empty', [
+            generators.histData,
+            generators.year,
+            generators.month,
+        ], function(data, year, month) {
+            var solarData = SolarData.create(data, year, month, '');
+            expect(solarData.isEmpty()).toBeFalsy();
+        });
+        it('should be non-empty', [
+            generators.lineData,
+            generators.year,
+            generators.month,
+            generators.day,
+        ], function(data, year, month, day) {
+            var solarData = SolarData.create(data, year, month, day);
+            expect(solarData.isEmpty()).toBeFalsy();
         });
     });
     describe('xLabel', function() {

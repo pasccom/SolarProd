@@ -22,7 +22,15 @@ var SolarData = {
     shortVars:  ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp'],
     longVars:   ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température'],
     units:      ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C'],
-    
+
+    prefixes:   ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'],
+    minPrefix: -4,
+    prefix: function(log1000Div) {
+        return this.prefixes[-this.minPrefix + log1000Div];
+    },
+
+    isEmpty: () => true,
+
     init: function(year, month, day)
     {   
         // Type:
