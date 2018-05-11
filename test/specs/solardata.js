@@ -74,8 +74,8 @@ describe('SolarData', function() {
 
     generators.histData = GenTest.types.arrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}), 1);
     generators.emptyHistData = GenTest.types.arrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}), null, 0);
-    generators.lineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), 2)});
-    generators.emptyLineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), null, 1)});
+    generators.lineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), 3)});
+    generators.emptyLineData = GenTest.types.shape({dates: GenTest.types.arrayOf(GenTest.types.date('%Y-%m-%d %H:%M'), null, 2)});
     generators.data = GenTest.types.oneOf([generators.histData, generators.lineData]);
 
     generators.any = GenTest.types.oneOf([
@@ -757,27 +757,35 @@ describe('SolarData', function() {
             generators.any,
             GenTest.types.int.nonNegative,
         ], function(ymd, w) {
-               var solarData1 = SolarData.create([], ...ymd);
-               solarData1.setXRange(w);
-               expect(solarData1.xScale.range()).toEqual([0, w]);
-               expect(solarData1.yGrid.tickSize()).toEqual(w);
+            var solarData1 = SolarData.create([], ...ymd);
+            expect(solarData1.xRange(w)).toEqual([0, w]);
+            expect(solarData1.xRange()).toEqual([0, w]);
+            expect(solarData1.xRange(null)).toEqual([0, w]);
+            expect(solarData1.xScale.range()).toEqual([0, w]);
+            expect(solarData1.yGrid.tickSize()).toEqual(w);
 
-               var solarData2 = SolarData.create([], ...ymd);
-               solarData2.setXRange([0, w]);
-               expect(solarData2.xScale.range()).toEqual([0, w]);
-               expect(solarData2.yGrid.tickSize()).toEqual(w);
+            var solarData2 = SolarData.create([], ...ymd);
+            expect(solarData2.xRange([0, w])).toEqual([0, w]);
+            expect(solarData2.xRange()).toEqual([0, w]);
+            expect(solarData2.xRange(null)).toEqual([0, w]);
+            expect(solarData2.xScale.range()).toEqual([0, w]);
+            expect(solarData2.yGrid.tickSize()).toEqual(w);
         });
         it('should set X range and Y grid', [
             generators.data,
             GenTest.types.int.nonNegative,
         ], function(data, w) {
             var solarData1 = SolarData.create(data);
-            solarData1.setXRange(w);
+            expect(solarData1.xRange(w)).toEqual([0, w]);
+            expect(solarData1.xRange()).toEqual([0, w]);
+            expect(solarData1.xRange(null)).toEqual([0, w]);
             expect(solarData1.xScale.range()).toEqual([0, w]);
             expect(solarData1.yGrid.tickSize()).toEqual(w);
 
             var solarData2 = SolarData.create(data);
-            solarData2.setXRange([0, w]);
+            expect(solarData2.xRange([0, w])).toEqual([0, w]);
+            expect(solarData2.xRange()).toEqual([0, w]);
+            expect(solarData2.xRange(null)).toEqual([0, w]);
             expect(solarData2.xScale.range()).toEqual([0, w]);
             expect(solarData2.yGrid.tickSize()).toEqual(w);
         });
@@ -787,12 +795,16 @@ describe('SolarData', function() {
             generators.monthNumber,
         ], function(year, w, m) {
             var solarData1 = SolarData.create([], year, '', '');
-            solarData1.setXRange(w);
+            expect(solarData1.xRange(w)).toEqual([0, w]);
+            expect(solarData1.xRange()).toEqual([0, w]);
+            expect(solarData1.xRange(null)).toEqual([0, w]);
             var tickFormat = solarData1.xAxis.tickFormat();
             expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m)) + '.');
 
             var solarData2 = SolarData.create([], year, '', '');
-            solarData2.setXRange(w);
+            expect(solarData2.xRange([0, w])).toEqual([0, w]);
+            expect(solarData2.xRange()).toEqual([0, w]);
+            expect(solarData2.xRange(null)).toEqual([0, w]);
             var tickFormat = solarData2.xAxis.tickFormat();
             expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m)) + '.');
         });
@@ -802,40 +814,52 @@ describe('SolarData', function() {
             generators.monthNumber,
         ], function(year, w, m) {
             var solarData1 = SolarData.create([], year, '', '');
-            solarData1.setXRange(w);
+            expect(solarData1.xRange(w)).toEqual([0, w]);
+            expect(solarData1.xRange()).toEqual([0, w]);
+            expect(solarData1.xRange(null)).toEqual([0, w]);
             var tickFormat = solarData1.xAxis.tickFormat();
             expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m)));
 
             var solarData2 = SolarData.create([], year, '', '');
-            solarData2.setXRange(w);
+            expect(solarData2.xRange([0, w])).toEqual([0, w]);
+            expect(solarData2.xRange()).toEqual([0, w]);
+            expect(solarData2.xRange(null)).toEqual([0, w]);
             var tickFormat = solarData2.xAxis.tickFormat();
             expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m)));
         });
     });
-    describe('set Y range', function() {
+    fdescribe('set Y range', function() {
         it('should set Y range', [
             generators.any,
-            GenTest.types.int.nonNegative,
+            GenTest.types.int.positive,
         ], function(ymd, h) {
-               var solarData1 = SolarData.create([], ...ymd);
-               solarData1.setYRange(h);
-               expect(solarData1.yScale.range()).toEqual([h, 0]);
+            var solarData1 = SolarData.create([], ...ymd);
+            expect(solarData1.yRange(h)).toEqual([h, 0]);
+            expect(solarData1.yRange()).toEqual([h, 0]);
+            expect(solarData1.yRange(null)).toEqual([h, 0]);
+            expect(solarData1.yScale.range()).toEqual([h, 0]);
 
-               var solarData2 = SolarData.create([], ...ymd);
-               solarData2.setYRange(h);
-               expect(solarData2.yScale.range()).toEqual([h, 0]);
+            var solarData2 = SolarData.create([], ...ymd);
+            expect(solarData2.yRange([h, 0])).toEqual([h, 0]);
+            expect(solarData2.yRange()).toEqual([h, 0]);
+            expect(solarData2.yRange(null)).toEqual([h, 0]);
+            expect(solarData2.yScale.range()).toEqual([h, 0]);
         });
         it('should set Y range', [
             generators.data,
-            GenTest.types.int.nonNegative,
+            GenTest.types.int.positive,
         ], function(data, h) {
-               var solarData1 = SolarData.create(data);
-               solarData1.setYRange(h);
-               expect(solarData1.yScale.range()).toEqual([h, 0]);
+            var solarData1 = SolarData.create(data);
+            expect(solarData1.yRange(h)).toEqual([h, 0]);
+            expect(solarData1.yRange()).toEqual([h, 0]);
+            expect(solarData1.yRange(null)).toEqual([h, 0]);
+            expect(solarData1.yScale.range()).toEqual([h, 0]);
 
-               var solarData2 = SolarData.create(data);
-               solarData2.setYRange(h);
-               expect(solarData2.yScale.range()).toEqual([h, 0]);
+            var solarData2 = SolarData.create(data);
+            expect(solarData2.yRange([h, 0])).toEqual([h, 0]);
+            expect(solarData2.yRange()).toEqual([h, 0]);
+            expect(solarData2.yRange(null)).toEqual([h, 0]);
+            expect(solarData2.yScale.range()).toEqual([h, 0]);
         });
     });
 });
