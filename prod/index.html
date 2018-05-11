@@ -28,6 +28,10 @@
         <script src="js/solardata.js" charset="utf-8"></script>
         <script src="js/linedata.js" charset="utf-8"></script>
         <script src="js/histdata.js" charset="utf-8"></script>
+        <script src="js/solarplot.js" charset="utf-8"></script>
+        <script src="js/lineplot.js" charset="utf-8"></script>
+        <script src="js/histplot.js" charset="utf-8"></script>
+        <script src="js/solarchart.js" charset="utf-8"></script>
     </head>
     <body>
         <div>
@@ -51,7 +55,6 @@
                 <img id="export" class="button disabled" src="img/csv.png" alt="Export CSV" title="Export CSV" />
             </div>
         </div>
-        <svg class="framed" id="chart" preserveAspectRatio="xMidYMid meet"></svg><div class="framed" id="legend"></div>
         <script>
 // Disables selects:
 d3.select('#day').attr('disabled', true);
@@ -59,14 +62,6 @@ d3.select('#month').attr('disabled', true);
 d3.select('#year').attr('disabled', true);
 d3.select('#var').attr('disabled', true);
 d3.select('#sum').attr('disabled', true);
-        
-// Margins around the chart:        
-var margins = {
-    left: 60,
-    right: 20,
-    top: 20,
-    bottom: 40,
-};
 
 // Day and month to select:
 var selectMonth = 0;
@@ -82,150 +77,24 @@ var sums = {
     str:    'Par string',
 };
 
-// Unit prefixes:
-var minPrefix = -4;
-var prefixes = ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'];
-
 var data = SolarData.create([], '', '', '');
-              
-// Useful DOM elements:
-var svg = d3.select('#chart');
-var legend = d3.select('#legend');
+var chart = new SolarChart(d3.select('body'),/*d3.select('#chart'), */data);
+var legend = chart.legendRoot;
 
-var chart = svg.append('g')
-               .attr('transform', "translate(" + margins.left + "," + margins.top + ")");
-var groups = null;
-var lines = null;                   
-var axes = [
-    chart.append('g')
-         .classed('grid', true),
-    chart.append('g')
-         .classed('axis', true)
-         .attr('id', 'xaxis'),
-    chart.append('g')
-         .classed('axis', true)
-         .attr('id', 'yaxis'),
-];  
-var labels = [
-    svg.append('g')
-       .classed('label', true),
-    svg.append('g')
-       .classed('label', true),
-];
-labels[0].append('text');
-labels[1].append('text').attr('transform', 'rotate(-90)');
-
-// Setup marker:
-svg.append('marker').lower()
-   .attr('id', 'arrowhead')
-   .attr('viewBox', "0 0 10 10")
-   .attr('refX', '0')
-   .attr('refY', '5') 
-   .attr('markerUnits', 'strokeWidth')
-   .attr('markerWidth', '16')
-   .attr('markerHeight', '8')
-   .attr('preserveAspectRatio', 'none')
-   .attr('orient', 'auto')
-   .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z')
-                  .style('fill', '#000000');
-
-// Resizes the container and the scales          
-var resizeTimer = null;
-
+// Window resize event:
 function windowResize()
 {   
-    // Legend width between 175px and 250px
-    var lw = 175 + 75*(window.innerWidth - 24 - 700)/(1000 - 700);
-    if (lw > 250)
-        lw = 250;
-    if (lw < 175)
-        lw = 0;
-        
     // Compute toolbar total width (currently 403):
     //var tw = 20;
     //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
-      
+
     // Plot width and height:
-    var w = window.innerWidth - lw - (8*(lw != 0)) - 18;
+    var w = window.innerWidth - 18;
     var h = window.innerHeight - 56;
     if (window.innerWidth < 403)
         h -= 38;
-    svg.attr('width', w)
-       .attr('height', h);
-    
-    // Manages legend:
-    if (lw == 0) {
-        legend.style('display', 'none');
-    } else {
-        legend.style('display', 'inline-block')
-              .style('width', (lw - 10) + 'px')
-              .style('height', h + 'px')
-              .style('margin-left', '8px');
-    }
 
-    
-    // Update plot only after some time:
-    if (resizeTimer)
-        clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
-        resizeTimer = null;
-    
-        svg.attr('viewBox', "0 0 " + w + " " + h);
-    
-        data.setXRange(w - margins.left - margins.right);
-        data.setYRange(h -  margins.top - margins.bottom);
-
-        labels[0].attr('transform', "translate(" + ((w + margins.left - margins.right)/2) + "," + (h - 8) + ")");
-        labels[1].attr('transform', "translate(20," + ((h + margins.top - margins.bottom)/2) + ")");
-        
-        draw();
-    }, 100);
-}
-
-// Customize the axes:
-function customizeAxis(selection, axis)
-{
-    // Add axis and get axis domain:
-    var domain = selection.call(axis).select('.domain');
-
-    // Remove last tick (even if not visble for marker):
-    var d = domain.attr('d');
-    if (d.endsWith('0') || d.endsWith('6'))
-        d = d.slice(0, -2);
-    domain.attr('d', d);
-    
-    // Add/remove marker
-    domain.attr('marker-end', (axis.tickSizeOuter() == 0) ? 'url(#arrowhead)' : null);
-        
-    // Move ticks to the right so that they are at band boundaries:
-    if (axis.tickSizeOuter() != 0) {
-        var ticks = selection.selectAll('.tick').select('line');
-        ticks.attr('x1', data.xScale.bandwidth()*(1 + data.xScale.padding())/2);
-        ticks.attr('x2', data.xScale.bandwidth()*(1 + data.xScale.padding())/2);
-    }
-}
-
-// Customize the grid (which is in fact an axis with long ticks):
-function customizeGrid(selection, grid)
-{
-    selection.call(grid).select('.domain').remove();
-}
-
-// Draw the axes (and the grid)
-function drawAxes(variable, log1000Div)
-{
-    // Draw axes and grid:
-    axes[0].lower()
-           .call(customizeGrid, data.yGrid);
-    axes[1].raise()
-           .attr('transform', "translate(0, " + data.yScale(0) + ")")
-           .call(customizeAxis, data.xAxis);
-    axes[2].raise()
-           .call(customizeAxis, data.yAxis);
-    
-    // Draw labels:
-    labels[0].select('text').text(data.xLabel);
-    labels[1].select('text').text(SolarData.longVars[variable] + ' (' + prefixes[-minPrefix + log1000Div] + SolarData.units[variable] + ')');
+    chart.resize(w, h);
 }
 
 // Update visibility in legend so that it matches the visility of the element:
@@ -252,13 +121,13 @@ function updateVisibility()
 function changeVisiblilty(d)
 {
     var selection;
-    if (groups) {
+    if (chart.plot.groups !== undefined) {
         var group;
         var elem;
         
         // Get group number for current element:
-        groups.filter(function(d, i) {return i == 0;})
-              .selectAll('g').each(function(e, i) {
+        chart.plot.groups.filter(function(d, i) {return i == 0;})
+                         .selectAll('g').each(function(e, i) {
             d3.select(this).selectAll('rect').each(function(e, j) {
                 var element = this;
                 if ((d[0] === undefined) && (d == element))
@@ -268,15 +137,15 @@ function changeVisiblilty(d)
             });
         });
         // Get element number for current element (if it is an element):
-        groups.filter(function(d, i) {return i == 0;})
-              .selectAll('g').selectAll('rect').each(function(e, i) {
+        chart.plot.groups.filter(function(d, i) {return i == 0;})
+                         .selectAll('g').selectAll('rect').each(function(e, i) {
             if (this == d)
                 elem = i;
         });
         console.log('group:', group, 'elem:', elem);
         
         // Get all element at position elem in group group:
-        selection = groups.selectAll('g').filter(function(e, i) {return (i == group);});
+        selection = chart.plot.groups.selectAll('g').filter(function(e, i) {return (i == group);});
         selection = selection.selectAll('rect').filter(function(e, i) {return (elem === undefined ? true : (i == elem));});
     } else {
         selection = (d[0] === undefined) ? d3.select(d) : d3.selectAll(d);
@@ -303,33 +172,10 @@ function drawLegend(data)
     legend.selectAll('*').remove();
     legend.append('h4').text('Légende');
     
-    // Get d3 selection:
-    var getD3 = function(d) {
-        if (d === undefined)
-            return data;
-        else if (d[0] === undefined)
-            return d3.select(d);
-        else
-            return d3.select(d[0]);
-    };
-    
     // Functions for styling legend items:
-    if (lines != null) {
-        var style = function(selection) {
-            selection.classed('legenditem', true);
-            selection.style('color', function(d) {return getD3(d).style('stroke');});
-            selection.style('opacity', function(d) {return getD3(d).style('stroke-opacity');});
-        };
-    } else if (groups != null) {
-        var style = function(selection) {
-            selection.classed('legenditem', true);
-            selection.style('color', function(d) {return getD3(d).style('fill');});
-            selection.style('background-color', function(d) {return getD3(d).style('fill');});
-            selection.style('opacity', function(d) {return getD3(d).style('fill-opacity');});
-        };
-    } else {
+    var style = chart.plot.legendStyle;
+    if (style === null)
         return;
-    }
         
     // Creates legend (using lists)
     if (sum == 'sum') {
@@ -370,241 +216,6 @@ function drawLegend(data)
         
         updateVisibility();
     }
-}
-
-// Draws the chart/plot:
-function draw()
-{
-    if (data.type == SolarData.Type.DAY)
-        drawLines();
-    else
-        drawHist();
-}
-
-// Draw a plot using polyline curves:
-function drawLines()
-{
-    // Ensure we are in line mode:
-    if (groups)
-        groups.remove();
-    groups = null;
-
-    if (!lines)
-        lines = chart.selectAll('g.nonexistent');
-    lines = lines.data(data);
-    lines.exit().remove();
-    lines = lines.enter().append('g').merge(lines);
-
-    if (data[0].dates.length <= 2) {
-        hideAxes();
-        lines.selectAll('*').remove();
-        return;
-    }
-    
-    // Get plotted variable:   
-    var variable = d3.select('#var').property('value');
-    if (variable == '')
-        variable = 0;
-    var v = SolarData.shortVars[variable];
-    
-    // Get sum function:
-    var sum = d3.select('#sum').property('value');
-    if (sum == '')
-        sum = 'sum';
-    
-    // Groups of lines (by inverter):
-    var linesGroups = lines.selectAll('g').data(function(d) {
-        if (v.endsWith('dc')) {
-            if (sum == 'str')
-                return d[v].map(function(a) {return {
-                    dates: d.dates,
-                    data: a,
-                };});
-            else if (sum == 'inv')
-                return d[v].map(function(a) {return {
-                    dates: d.dates,
-                    data: d3.transpose(a).map(function(e) {return d3.sum(e);}),
-                };});
-            else
-                return [{
-                    dates: d.dates,
-                    data: d[v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});}),
-                }];
-        } else {
-            if (sum == 'sum')
-                return [{
-                    dates: d.dates,
-                    data: d3.transpose(d[v]).map(function(a) {return d3.sum(a);}),
-                }];
-            else
-                return d[v].map(function(a) {return {
-                    dates: d.dates,
-                    data: a,
-                };});
-        }
-    });
-    linesGroups.exit().remove();
-    linesGroups = linesGroups.enter().append('g').merge(linesGroups);
-    linesGroups.attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size());});
-    
-    // Paths (by string):
-    var paths = linesGroups.selectAll('path').data(function(d) { 
-        if (v.endsWith('dc')) {
-            if (sum == 'str')
-                return d.data.map(function(a) {return d3.zip(d.dates, a);});
-            else if (sum == 'inv')
-                return [d3.zip(d.dates, d.data)];
-            else
-                return [d3.zip(d.dates, d3.transpose(d.data).map(function(e) {return d3.sum(e);}))];
-        } else {
-            return [d3.zip(d.dates, d.data)];
-        }
-    });
-    paths.exit().remove();
-    paths = paths.enter().append('path').classed('line', true).merge(paths);
-    
-    // Compute unit divider:
-    var maxData = d3.max(paths.data(), function(a) {return d3.max(a, function(d) {return d[1];});});
-    var div = 1;
-    var log1000Div = 0;
-    while (maxData/div >= 1000) {
-        div *= 1000;
-        log1000Div += 1;
-    }
-    while (maxData/div < 1) {
-        div /= 1000;
-        log1000Div -= 1;
-    }
-    
-    // Set scale domains:
-    data.yScale.domain([0, maxData/div]);
-    
-    // Draws lines:
-    var line = d3.line().x(function(d) {return data.xScale(d[0]);})
-                        .y(function(d) {return data.yScale(d[1]/div);});
-    paths.attr('d', line)
-         .attr('stroke-opacity', function(d, i) {return 0.9 - 0.7*i*linesGroups.size()/paths.size();});
-    
-    // Draw axes and legend:
-    drawAxes(variable, log1000Div);
-    drawLegend(paths);
-}
-
-// Set the attributes correctly (draw the chart)
-function drawHist()
-{
-    // Ensure we are in group mode:
-    if (lines)
-        lines.remove();
-    lines = null;
-
-    if (!groups)
-        groups = chart.selectAll('g.nonexistent');
-    groups = groups.data(data);
-    groups.exit().remove();
-    groups = groups.enter().append('g').merge(groups);
-    
-    if (data.length == 0) {
-        hideAxes();
-        groups.remove();
-        return;
-    }
-       
-    // Get plotted variable:   
-    var variable = d3.select('#var').property('value');
-    if (variable == '')
-        variable = 0;
-    var v = SolarData.shortVars[variable];
-    
-    // Get sum function:
-    var sum = d3.select('#sum').property('value');
-    if (sum == '')
-        sum = 'sum';
-    maxFun = function(a) {return d3.max(a, function(d) {return d3.max(d);});};
-    if (v.endsWith('dc')) {
-        if (sum == 'sum') {
-            sumFun = function(a) {return [[d3.sum(a, function(d) {return d3.sum(d);})]];};
-            groupsFun = function(d) {return 1;};
-            barsFun = function(d) {return 1;};
-        } else if (sum == 'inv') {
-            sumFun = function(a) {return [a.map(function(d) {return d3.sum(d);})];};
-            groupsFun = function(d) {return d[v].length;};
-            barsFun = function(d) {return 1;};
-        } else {
-            sumFun = function(a) {return a;};
-            groupsFun = function(d) {return d.length;};
-            barsFun = function(d) {return d3.max(d[v], function(a) {return a.length});};
-        }
-    } else {
-        if (sum == 'sum') {
-            sumFun = function(a) {return [[d3.sum(a)]];};
-            groupsFun = function(d) {return 1;};
-            barsFun = function(d) {return 1;};
-        } else {
-            sumFun = function(a) {return a.map(function(e) {return [e];});};
-            groupsFun = function(d) {return d[v].length;};
-            barsFun = function(d) {return 1;};
-        }
-    }
-
-    // Compute unit divider:
-    var maxData = d3.max(data, function(d) {return maxFun(sumFun(d[v]));});
-    var div = 1;
-    var log1000Div = 0;
-    while (maxData/div >= 1000) {
-        div *= 1000;
-        log1000Div += 1;
-    }
-    while (maxData/div < 1) {
-        div /= 1000;
-        log1000Div -= 1;
-    }
-    
-    // Set scales padding/domain:
-    data.xScale.padding((sum == 'sum') ? 0 : 0.1);
-    data.yScale.domain([0, maxData/div]);
-    
-    // Manages subGroups:
-    var nGroups = d3.max(data, groupsFun);
-    var subGroups = groups.selectAll('g');
-    subGroups = subGroups.data(function(d) {return sumFun(d[v]);});          
-    subGroups.exit().remove();
-    subGroups = subGroups.enter().append('g').merge(subGroups);
-    subGroups.attr('transform', function(d, i) {return "translate(" + (data.xScale.bandwidth()*i/nGroups) + ",0)";})
-             .attr('fill', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);})
-             .attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);});
-    
-    // Manages bars:
-    var nBars = d3.max(data, barsFun);
-    var bars = subGroups.selectAll('rect');
-    bars = bars.data(function(d) {return d;});
-    bars.style('display', 'initial');
-    bars.exit().remove();
-    bars = bars.enter().append('rect').classed('bar', true).merge(bars);
-    
-    // Draw bars:
-    bars.attr('x', function(d, i) {return data.xScale.bandwidth()*i/nGroups/nBars;})
-        .attr('y', function(d) {return data.yScale(d/div);})
-        .attr('width', 0.98*data.xScale.bandwidth()/nGroups/nBars)
-        .attr('height', function(d) {return data.yScale(0) - data.yScale(d/div);})
-        .attr('fill-opacity', function(d, i) {return 0.25 + 0.5*i/nBars;});
-        
-    // Places groups:
-    groups.attr('transform', function(d) {return "translate(" + (data.xScale(d.date) + 0.01*data.xScale.bandwidth()/nGroups/nBars) + ",0)";});
-    
-    // Draw axes and legend:    
-    drawAxes(variable, log1000Div);
-    drawLegend(groups.filter(function(d, i) {return i == 0;}).selectAll('g').selectAll('rect'));
-}
-
-// Removes the current axes:
-function hideAxes() {
-    labels[0].select('text').text('');
-    labels[1].select('text').text('');
-    
-    axes[0].selectAll('*').remove();
-    axes[1].selectAll('*').remove();
-    axes[2].selectAll('*').remove();
 }
 
 // Fetch data:
@@ -658,9 +269,8 @@ function plot(today) {
             data = SolarData.create(json);
         else
             data = SolarData.create(json, year, month, day);
-        // Update variables and draw:
         updateVariables();
-        draw();
+        chart.setData(data);
         
         // Activate export:
         d3.select('#export').classed('disabled', false);
@@ -1174,7 +784,7 @@ function exportCsv()
     if (sum == '')
         sum = 'sum';
       
-    if (lines) {
+    if (chart.plot.data.type == SolarData.Type.DAY) {
         // Transform line data to export:
         data = window.data;
         dateString = data.dateString;
@@ -1203,9 +813,7 @@ function exportCsv()
                 data = d3.transpose([data[0].dates.map(dateFormat)].concat(data[0][v]));
             }
         }
-    }
-    
-    if (groups) {
+    } else if (chart.plot.data.type !== undefined) {
         // Transform bar data to export:
         data = window.data;
         dateString = data.dateString;
@@ -1234,10 +842,9 @@ function exportCsv()
                 data = data.map(function(e) {return [dateFormat(e.date)].concat(e[v]);});
             }
         }
-    } 
-    
-    if (!data)
+    } else {
         return;
+    }
      
     // Create CSV from data:
     var csv = new Blob([[
@@ -1254,9 +861,11 @@ function exportCsv()
 // Events connections:
 d3.select('#var').on('change', function() {
     updateSums();
-    draw();
+    chart.draw();
 });
-d3.select('#sum').on('change', draw);
+d3.select('#sum').on('change', function() {
+    chart.draw();
+});
 
 d3.select('#year').on('change', function() {
     updatePrevNext();
