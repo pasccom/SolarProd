@@ -64,6 +64,7 @@ select {
 #legend {
     padding-left: 4px;
     padding-right: 4px;
+    overflow: auto;
 }
 
 #legend h4 {
