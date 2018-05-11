@@ -395,6 +395,8 @@ class LayoutTest(TestCase):
         legend = self.browser.find_element_by_id('legend')
         self.assertEqual(legend.size['width'], 250)
         self.assertEqual(legend.size['height'], size[1] - 54)
+        self.browser.close()
+        self.browser = None
     
     @testData([
         {'size': (1024, 768)},
@@ -433,6 +435,8 @@ class LayoutTest(TestCase):
         chart = self.browser.find_element_by_id('chart')
         self.assertEqual(chart.size['width'], size[0] - 16)
         self.assertEqual(chart.size['height'], size[1] - 92)
+        self.browser.close()
+        self.browser = None
 
 class SelectTest(BrowserTestCase):
     def testYears(self):
