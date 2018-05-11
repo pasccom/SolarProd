@@ -12,7 +12,5 @@ function HistData(year, month, day) {
     
     // X axis
     this.xAxis.scale(this.xScale);
-    
-    this.initRanges();
 }
 HistData.prototype = SolarData;

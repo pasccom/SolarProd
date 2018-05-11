@@ -51,9 +51,14 @@ SolarChart.prototype = {
     },
     // Change data (and update plot):
     setData: function(data) {
+        var ow = null;
+        var oh = null;
         // Remove old plot:
-        if (this.plot !== undefined)
+        if (this.plot !== undefined) {
+            ow = this.plot.width();
+            oh = this.plot.height();
             this.plot.remove();
+        }
         // Create new plot:
         if (data.isEmpty())
             this.plot = new EmptyPlot(this.plotRoot, data);
@@ -61,6 +66,8 @@ SolarChart.prototype = {
             this.plot = new LinePlot(this.plotRoot, data);
         else
             this.plot = new HistPlot(this.plotRoot, data);
+        // Resize new plot to old plot size:
+        this.plot.resize(ow, oh);
         // Draw new plot:
         this.draw();
     },

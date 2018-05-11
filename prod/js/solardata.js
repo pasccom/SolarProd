@@ -112,36 +112,36 @@ var SolarData = {
         // Grid
         this.yGrid = d3.axisRight().scale(this.yScale);
     },
-    initRanges: function()
+    xRange: function(w)
     {
-        // Initialize scale ranges:
-        if (window.data) {
-            this.setXRange(window.data.xScale.range());
-            this.setYRange(window.data.yScale.range());
+        if ((arguments.length > 0) && w) {
+            if (Array.isArray(w))
+                w = w[1];
+
+            this.xScale.range([0, w]);
+            this.yGrid.tickSize(w);
+
+            // Adapt X axis tick labels:
+            if (this.type == SolarData.Type.YEAR) {
+                if (w >= 750)
+                    this.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
+                else
+                    this.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
+            }
         }
+
+        return this.xScale.range();
     },
-    setXRange: function(w)
+    yRange: function(h)
     {
-        if (Array.isArray(w))
-            w = w[1];
+        if ((arguments.length > 0) && h) {
+            if (Array.isArray(h))
+                h = h[0];
 
-        this.xScale.range([0, w]);
-        this.yGrid.tickSize(w);
-
-        // Adapt X axis tick labels:
-        if (this.type == SolarData.Type.YEAR) {
-            if (w >= 750)
-                this.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
-            else
-                this.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
+            this.yScale.range([h, 0]);
         }
-    },
-    setYRange: function(h)
-    {
-        if (Array.isArray(h))
-            h = h[0];
 
-        this.yScale.range([h, 0]);
+        return this.yScale.range();
     },
     create: function(data, year, month, day)
     {
@@ -170,6 +170,5 @@ var SolarData = {
 function EmptyData(year, month, day)
 {
     this.init(year, month, day);
-    this.initRanges();
 }
 EmptyData.prototype = SolarData;

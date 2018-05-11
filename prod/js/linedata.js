@@ -14,7 +14,5 @@ function LineData(year, month, day) {
     this.xAxis.tickSizeOuter(0);
     this.xAxis.ticks(d3.timeHour.every(1))
     this.xAxis.tickFormat(locale.format('%_H'));
-    
-    this.initRanges();
 }
 LineData.prototype = SolarData;

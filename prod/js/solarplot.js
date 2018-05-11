@@ -7,8 +7,16 @@ var SolarPlot = {
     },
     // Plot resize event:
     resize: function(w, h) {
-        this.data.setXRange(w);
-        this.data.setYRange(h);
+        this.data.xRange(w);
+        this.data.yRange(h);
+    },
+    // Plot width:
+    width: function() {
+        return this.data.xRange();
+    },
+    // Plot height:
+    height: function() {
+        return this.data.yRange();
     },
     // Get d3 selection:
     getD3: function(d) {
