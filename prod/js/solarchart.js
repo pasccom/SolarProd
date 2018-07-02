@@ -57,6 +57,8 @@ SolarChart.prototype = {
         if (this.plot !== undefined) {
             ow = this.plot.width();
             oh = this.plot.height();
+            data.variable(this.plot.data.variable());
+            data.sum(this.plot.data.sum());
             this.plot.remove();
         }
         // Create new plot:
@@ -112,12 +114,7 @@ SolarChart.prototype = {
     // Draw the axes (and the grid)
     draw: function()
     {
-        // Get plotted variable:
-        var variable = d3.select('#var').property('value');
-        if (variable == '')
-            variable = 0;
-
-        if (!this.plot.draw(variable)) {
+        if (!this.plot.draw()) {
             this.hide();
             return false;
         }
@@ -130,7 +127,7 @@ SolarChart.prototype = {
 
         // Draw labels:
         this.xLabel.select('text').text(this.plot.data.xLabel);
-        this.yLabel.select('text').text(SolarData.longVars[variable] + ' (' + SolarData.prefix(this.plot.log1000Div) + SolarData.units[variable] + ')'); // TODO yLabel should be a data function as xLabel
+        this.yLabel.select('text').text(this.plot.data.yLabel());
 
         return true;
     },
@@ -160,8 +157,8 @@ SolarChart.prototype = {
         // Move ticks to the right so that they are at band boundaries:
         if (axis.tickSizeOuter() != 0) {
             var ticks = selection.selectAll('.tick').select('line');
-            ticks.attr('x1', this.plot.data.xScale.bandwidth()*(1 + this.plot.data.xScale.padding())/2);
-            ticks.attr('x2', this.plot.data.xScale.bandwidth()*(1 + this.plot.data.xScale.padding())/2);
+            ticks.attr('x1', this.plot.data.xTickCenter());
+            ticks.attr('x2', this.plot.data.xTickCenter());
         }
     },
 }

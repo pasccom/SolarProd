@@ -19,17 +19,84 @@ function pad(n, l, p)
 }
 
 var SolarData = {
+    // Variables:
     shortVars:  ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp'],
     longVars:   ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température'],
     units:      ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C'],
 
+    // Sums:
+    sums: {
+        sum:    'Total',
+        inv:    'Par onduleur',
+        str:    'Par string',
+    },
+
     prefixes:   ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'],
     minPrefix: -4,
-    prefix: function(log1000Div) {
+    prefix: function(log1000Div)
+    {
         return this.prefixes[-this.minPrefix + log1000Div];
+    },
+    divider: function(maxData)
+    {
+        var div = 1;
+        this.log1000Div = 0;
+
+        while (maxData/div >= 1000) {
+            div *= 1000;
+            this.log1000Div += 1;
+        }
+        while (maxData/div < 1) {
+            div /= 1000;
+            this.log1000Div -= 1;
+        }
+
+        return div;
     },
 
     isEmpty: () => true,
+
+    variable: function(v) {
+        if (arguments.length > 0) {
+            v = Number.parseInt(v);
+            if (this.variables.includes(v) && (this.var !== v)) {
+                this.var = v;
+
+                switch (this.shortVars[v]) {
+                case 'uac':
+                case 'temp':
+                    this.sums = ['inv'];
+                    break;
+                case 'pdc':
+                    this.sums = ['sum', 'inv', 'str'];
+                    break;
+                case 'udc':
+                    this.sums = ['str'];
+                    break;
+                case 'nrj':
+                case 'pwr':
+                case 'pac':
+                    this.sums = ['sum', 'inv'];
+                    break;
+                default:
+                    console.warn('Unknown variable: ' + this.shortVars[this.var]);
+                }
+
+                if ((this.summation == null) || !this.sums.includes(this.summation))
+                    this.summation = this.sums[0];
+            }
+        }
+
+        return this.var;
+    },
+    sum: function(s) {
+        if (arguments.length > 0) {
+            if (this.sums.includes(s))
+                this.summation = s;
+        }
+
+        return this.summation;
+    },
 
     init: function(year, month, day)
     {   
@@ -48,7 +115,14 @@ var SolarData = {
             this.variables = Object.keys(this[0]).filter((k) => !k.startsWith('date'))
                                                  .map((k) => SolarData.shortVars.indexOf(k))
                                                  .sort();
-                                             
+
+        // Available sums:
+        this.sums = [];
+
+        // Current variable and summation:
+        this.var = null;
+        this.summation = null;
+
         // X label:
         if (year == '')
             this.xLabel = 'Année';
@@ -112,6 +186,11 @@ var SolarData = {
         // Grid
         this.yGrid = d3.axisRight().scale(this.yScale);
     },
+
+    yLabel: function()
+    {
+        return SolarData.longVars[this.var] + ' (' + SolarData.prefix(this.log1000Div) + SolarData.units[this.var] + ')';
+    },
     xRange: function(w)
     {
         if ((arguments.length > 0) && w) {
@@ -142,6 +221,10 @@ var SolarData = {
         }
 
         return this.yScale.range();
+    },
+    xTickCenter: function()
+    {
+        return this.xScale.step()/2;//*(1 + this.xScale.padding())/2;
     },
     create: function(data, year, month, day)
     {

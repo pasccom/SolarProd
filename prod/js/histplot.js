@@ -25,22 +25,15 @@ function HistPlot(root, data) {
         this.groups = this.groups.enter().append('g').merge(this.groups);
 
         // Get plotted variable:
-        var variable = d3.select('#var').property('value');
-        if (variable == '')
-            variable = 0;
-        var v = SolarData.shortVars[variable];
+        var v = SolarData.shortVars[data.variable()];
 
-        // Get sum function:
-        var sum = d3.select('#sum').property('value');
-        if (sum == '')
-            sum = 'sum';
         maxFun = function(a) {return d3.max(a, function(d) {return d3.max(d);});};
         if (v.endsWith('dc')) {
-            if (sum == 'sum') {
+            if (data.sum() == 'sum') {
                 sumFun = function(a) {return [[d3.sum(a, function(d) {return d3.sum(d);})]];};
                 groupsFun = function(d) {return 1;};
                 barsFun = function(d) {return 1;};
-            } else if (sum == 'inv') {
+            } else if (data.sum() == 'inv') {
                 sumFun = function(a) {return [a.map(function(d) {return d3.sum(d);})];};
                 groupsFun = function(d) {return d[v].length;};
                 barsFun = function(d) {return 1;};
@@ -50,7 +43,7 @@ function HistPlot(root, data) {
                 barsFun = function(d) {return d3.max(d[v], function(a) {return a.length});};
             }
         } else {
-            if (sum == 'sum') {
+            if (data.sum() == 'sum') {
                 sumFun = function(a) {return [[d3.sum(a)]];};
                 groupsFun = function(d) {return 1;};
                 barsFun = function(d) {return 1;};
@@ -61,21 +54,13 @@ function HistPlot(root, data) {
             }
         }
 
-        // Compute unit divider (TODO to be moved in data):
+        // Compute unit divider:
         var maxData = d3.max(data, function(d) {return maxFun(sumFun(d[v]));});
-        var div = 1;
-        this.log1000Div = 0;
-        while (maxData/div >= 1000) {
-            div *= 1000;
-            this.log1000Div += 1;
-        }
-        while (maxData/div < 1) {
-            div /= 1000;
-            this.log1000Div -= 1;
-        }
+        var div = data.divider(maxData);
 
         // Set scales padding/domain:
-        data.xScale.padding((sum == 'sum') ? 0 : 0.1);
+        //data.xScale.padding((data.sum() == 'sum') ? 0 : 0.1);
+        data.xScale.padding((data.sum() == 'sum') ? 0 : 0.1);
         data.yScale.domain([0, maxData/div]);
 
         // Manages subGroups:

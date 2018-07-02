@@ -70,13 +70,6 @@ var selectDir = 1;
 // Cache for first/last day, month and year:
 var cache = {};
 
-// Sums:
-var sums = {
-    sum:    'Total',
-    inv:    'Par onduleur',
-    str:    'Par string',
-};
-
 var data = SolarData.create([], '', '', '');
 var chart = new SolarChart(d3.select('body'),/*d3.select('#chart'), */data);
 var legend = chart.legendRoot;
@@ -161,10 +154,10 @@ function changeVisiblilty(d)
 }
 
 // Draw the legend:
-function drawLegend(data)
+function drawLegend(paths)
 {
-    var sum = d3.select('#sum').property('value');
-    if (sum == '')
+    var sum = data.sum();
+    if (sum == null)
         sum = 'sum';
         
     if (!legend)
@@ -183,7 +176,7 @@ function drawLegend(data)
         legend.append('span').text(' Total');
     } else {
         var inv = legend.append('ul').selectAll('li')
-                                     .data(data._groups);
+                                     .data(paths._groups);
         inv = inv.enter().append('li');
         inv.append('span').style('background', 'white');
         
@@ -281,59 +274,38 @@ function plot(today) {
 function updateVariables()
 {
     // Adds the new variables using a data join:
-    var variable = d3.select('#var').property('value');
     var vars = d3.select('#var')
                  .attr('disabled', null)
                  .selectAll('option')
-                 .data(data.variables, function(d) {return d;});
+                 .data(data.variables, (d) => d);
     vars.enter()
         .append('option')
-        .attr('value', function(d) {return d;})
-        .text(function(d) {return SolarData.longVars[d];});
+        .attr('value', (d) => d)
+        .text((d) => SolarData.longVars[d]);
     vars.exit().remove();
     vars.order();
     
     // Updates sums if needed:
-    if (d3.select('#var').property('value') != variable)
-        updateSums(true);
+    if (d3.select('#var').property('value') != data.variable()) {
+        data.variable(d3.select('#var').property('value'));
+        updateSums();
+    }
 }
 
 // Updates the sum selector:
 function updateSums()
 {
-    // Available sums by variables:
-    var variable = SolarData.shortVars[d3.select('#var').property('value')];
-    switch (variable) {
-    case 'uac':
-    case 'temp':
-        keys = ['inv'];
-        break;
-    case 'pdc':
-        keys = ['sum', 'inv', 'str'];
-        break;
-    case 'udc':
-        keys = ['str'];
-        break;
-    default:
-        console.warn('Unknown variable: ' + variable);
-    case 'nrj':
-    case 'pwr':
-    case 'pac':
-        keys = ['sum', 'inv'];
-        break;
-    }
-    
     // Adds the new sums using a data join:
-    var sum = d3.select('#sum')
-                .attr('disabled', (keys.length < 2) ? true : null)
-                .selectAll('option')
-                .data(keys, function(d) {return d;});
-    sum.enter()
-       .append('option')
-       .attr('value', function(d) {return d;})
-       .text(function(d) {return sums[d];});
-    sum.exit().remove();
-    sum.order();
+    var sums = d3.select('#sum')
+                 .attr('disabled', (data.sums.length < 2) ? true : null)
+                 .selectAll('option')
+                 .data(data.sums, (d) => d);
+    sums.enter()
+        .append('option')
+        .attr('value', (d) => d)
+        .text((d) => SolarData.sums[d]);
+    sums.exit().remove();
+    sums.order();
 }
 
 // Get cache:
@@ -769,24 +741,23 @@ function nextPlot()
 function exportCsv()
 {
     var headers;
-    var data;
+    var data = window.data;
     var dateFormat;
     var dateString;
 
     // Get plotted variable:   
-    var variable = d3.select('#var').property('value');
-    if (variable == '')
+    var variable = data.variable();
+    if (variable == null)
         variable = 0;
     var v = SolarData.shortVars[variable];
     
     // Get sum function:
-    var sum = d3.select('#sum').property('value');
-    if (sum == '')
+    var sum = data.sum();
+    if (sum == null)
         sum = 'sum';
       
     if (chart.plot.data.type == SolarData.Type.DAY) {
         // Transform line data to export:
-        data = window.data;
         dateString = data.dateString;
         dateFormat = data.dateFormatter;
             
@@ -815,7 +786,6 @@ function exportCsv()
         }
     } else if (chart.plot.data.type !== undefined) {
         // Transform bar data to export:
-        data = window.data;
         dateString = data.dateString;
         dateFormat = data.dateFormatter;
         
@@ -860,10 +830,12 @@ function exportCsv()
 
 // Events connections:
 d3.select('#var').on('change', function() {
+    data.variable(d3.select(this).property('value'));
     updateSums();
     chart.draw();
 });
 d3.select('#sum').on('change', function() {
+    data.sum(d3.select(this).property('value'));
     chart.draw();
 });
 

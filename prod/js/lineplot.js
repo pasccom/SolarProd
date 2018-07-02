@@ -24,25 +24,17 @@ function LinePlot(root, data) {
         this.lines = this.lines.enter().append('g').merge(this.lines);
 
         // Get plotted variable:
-        var variable = d3.select('#var').property('value');
-        if (variable == '')
-            variable = 0;
-        var v = SolarData.shortVars[variable];
-
-        // Get sum function:
-        var sum = d3.select('#sum').property('value');
-        if (sum == '')
-            sum = 'sum';
+        var v = SolarData.shortVars[data.variable()];
 
         // Groups of lines (by inverter):
         var linesGroups = this.lines.selectAll('g').data(function(d) {
             if (v.endsWith('dc')) {
-                if (sum == 'str')
+                if (data.sum() == 'str')
                     return d[v].map(function(a) {return {
                         dates: d.dates,
                         data: a,
                     };});
-                else if (sum == 'inv')
+                else if (data.sum() == 'inv')
                     return d[v].map(function(a) {return {
                         dates: d.dates,
                         data: d3.transpose(a).map(function(e) {return d3.sum(e);}),
@@ -53,7 +45,7 @@ function LinePlot(root, data) {
                         data: d[v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});}),
                     }];
             } else {
-                if (sum == 'sum')
+                if (data.sum() == 'sum')
                     return [{
                         dates: d.dates,
                         data: d3.transpose(d[v]).map(function(a) {return d3.sum(a);}),
@@ -72,9 +64,9 @@ function LinePlot(root, data) {
         // Paths (by string):
         var paths = linesGroups.selectAll('path').data(function(d) {
             if (v.endsWith('dc')) {
-                if (sum == 'str')
+                if (data.sum() == 'str')
                     return d.data.map(function(a) {return d3.zip(d.dates, a);});
-                else if (sum == 'inv')
+                else if (data.sum() == 'inv')
                     return [d3.zip(d.dates, d.data)];
                 else
                     return [d3.zip(d.dates, d3.transpose(d.data).map(function(e) {return d3.sum(e);}))];
@@ -85,18 +77,9 @@ function LinePlot(root, data) {
         paths.exit().remove();
         paths = paths.enter().append('path').classed('line', true).merge(paths);
 
-        // Compute unit divider (TODO to be moved in data):
+        // Compute unit divider:
         var maxData = d3.max(paths.data(), function(a) {return d3.max(a, function(d) {return d[1];});});
-        var div = 1;
-        this.log1000Div = 0;
-        while (maxData/div >= 1000) {
-            div *= 1000;
-            this.log1000Div += 1;
-        }
-        while (maxData/div < 1) {
-            div /= 1000;
-            this.log1000Div -= 1;
-        }
+        var div = data.divider(maxData);
 
         // Set scale domains:
         data.yScale.domain([0, maxData/div]);
