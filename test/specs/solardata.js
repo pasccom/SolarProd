@@ -16,6 +16,20 @@ function dateEqualityTester(date1, date2) {
     }
 }
 
+function setEqualityTester(set1, set2) {
+    if ((set1 instanceof Array) && (set2 instanceof Array)) {
+        for (s1 of set1) {
+            if (!set2.includes(s1))
+                return false;
+        }
+        for (s2 of set2) {
+            if (!set1.includes(s2))
+                return false
+        }
+        return true;
+    }
+}
+
 describe('Helpers ', function() {
     describe('pad() ', function() {
         it('should return a string', [
@@ -28,14 +42,14 @@ describe('Helpers ', function() {
         it('should return a string of length larger or equal to l', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string]),
             GenTest.types.int.nonNegative,
-            GenTest.types.elements(['0', ' ', ' 0']),
+            GenTest.types.elementOf(['0', ' ', ' 0']),
         ], function(n, l, p) {
             expect(pad(n, l, p).length).toBeGreaterThanOrEqual(l);
         });
         it('should start with p and end with n', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string.alphanumeric]),
             GenTest.types.int.nonNegative,
-            GenTest.types.elements(['0', ' ', ' 0']),
+            GenTest.types.elementOf(['0', ' ', ' 0']),
         ], function(n, l, p) {
             expect(pad(n, l, p)).toMatch('^(' + p + ')*' + n + '$');
         });
@@ -130,6 +144,18 @@ describe('SolarData', function() {
             expect(SolarData.prefix(4)).toBe('T');
         });
     });
+    describe('divider', function() {
+        it('should return previous power of 1000', [GenTest.types.float(-15, 15)], function(N) {
+            var powN = Math.pow(10, N);
+            var log1000Div = Math.floor(N/3);
+            var powD = Math.pow(1000, log1000Div);
+
+            var solarData = SolarData.create([], '', '', '');
+            expect(solarData.divider(powN)).toBeCloseTo(powD);
+            expect(solarData.log1000Div).toBe(log1000Div);
+        });
+    });
+
     describe('type', function() {
         it('should be of type ALL', function() {
             var solarData = SolarData.create([], '', '', '');
@@ -755,7 +781,7 @@ describe('SolarData', function() {
     describe('set X range', function() {
         it('should set X range and Y grid', [
             generators.any,
-            GenTest.types.int.nonNegative,
+            GenTest.types.int.positive,
         ], function(ymd, w) {
             var solarData1 = SolarData.create([], ...ymd);
             expect(solarData1.xRange(w)).toEqual([0, w]);
@@ -773,7 +799,7 @@ describe('SolarData', function() {
         });
         it('should set X range and Y grid', [
             generators.data,
-            GenTest.types.int.nonNegative,
+            GenTest.types.int.positive,
         ], function(data, w) {
             var solarData1 = SolarData.create(data);
             expect(solarData1.xRange(w)).toEqual([0, w]);
@@ -828,7 +854,7 @@ describe('SolarData', function() {
             expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m)));
         });
     });
-    fdescribe('set Y range', function() {
+    describe('set Y range', function() {
         it('should set Y range', [
             generators.any,
             GenTest.types.int.positive,
@@ -860,6 +886,368 @@ describe('SolarData', function() {
             expect(solarData2.yRange()).toEqual([h, 0]);
             expect(solarData2.yRange(null)).toEqual([h, 0]);
             expect(solarData2.yScale.range()).toEqual([h, 0]);
+        });
+    });
+
+    var createDate = function(year, month, day) {
+        year = pad(year, '0', 4);
+        if (year === '')
+            year = 2017;
+        month = pad(month, '0', 2);
+        if (month === '')
+            month = 12;
+        day = pad(day, '0', 2);
+        if (day === '')
+            day = 28;
+        return year + '-' + month + '-' + day;
+    }
+
+    describe('variables', function() {
+        it('should return available variables', [
+            generators.any,
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
+        ], function(ymd, vars) {
+            var datum = {date: createDate(...ymd)};
+            for (const v of vars)
+                datum[v] = [];
+            console.log(datum);
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variables).toEqual(vars.map((v) => SolarData.shortVars.indexOf(v)));
+        });
+    });
+    describe('variable', function() {
+        it('should set variable', [
+            generators.any,
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
+            GenTest.types.elementOf(SolarData.shortVars),
+        ], function(ymd, vars, setVar) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            for (const v of vars)
+                datum[v] = [];
+            console.log(datum);
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable()).toBe(null);
+            expect(solarData.variable(setVar)).toBe(null);
+            expect(solarData.variable(SolarData.shortVars.indexOf(setVar))).toEqual(SolarData.shortVars.indexOf(setVar));
+        });
+        it('should not set variable', [
+            generators.any,
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
+            GenTest.types.elementOf(SolarData.shortVars),
+        ],function(ymd, vars, setVar) {
+            var datum = {date: createDate(...ymd)};
+            for (const v of vars)
+                if (v != setVar)
+                    datum[v] = [];
+            console.log(datum);
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable()).toBe(null);
+            expect(solarData.variable(setVar)).toBe(null);
+            expect(solarData.variable(SolarData.shortVars.indexOf(setVar))).not.toEqual(SolarData.shortVars.indexOf(setVar));
+            expect(solarData.variable()).toBe(null);
+        });
+    });
+    describe('yLabel', function() {
+        it('Should return y label text with p multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(0.000000000001, 0.000000000999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(0.000000000001);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (p' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with n multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(0.000000001, 0.000000999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(0.000000001);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (n' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with µ multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(0.000001, 0.000999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(0.000001);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (µ' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with m multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(0.001, 0.999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(0.001);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (m' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text without multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(1, 999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(1);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with k multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(1000, 999999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(1000);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (k' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with M multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(1000000, 999999999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(1000000);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (M' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with G multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(1000000000, 999999999999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(1000000000);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (G' + SolarData.units[v] + ')');
+        });
+        it('Should return y label text with T multiplier', [
+            generators.any,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.float(1000000000000, 999999999999999),
+        ], function(ymd, setVar, maxData) {
+            var datum = {date: createDate(...ymd)};
+            datum[setVar] = [];
+            var v = SolarData.shortVars.indexOf(setVar);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(v)).toEqual(v);
+            expect(solarData.divider(maxData)).toBeCloseTo(1000000000000);
+            expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (T' + SolarData.units[v] + ')');
+        });
+    });
+    describe('sums', function() {
+        it('should return ["sum", "inv"] (nrj,pwr,pac)', [
+            generators.any,
+            GenTest.types.elementOf(['nrj', 'pwr', 'pac']),
+        ], function(ymd, selectedVar) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sums).toEqual(['sum', 'inv']);
+        });
+        it('should return ["sum", "inv", "str"] (pdc)',  [
+            generators.any,
+            GenTest.types.constantly('pdc'),
+        ], function(ymd, selectedVar) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sums).toEqual(['sum', 'inv', 'str']);
+        });
+        it('should return ["inv"] (uac, temp)', [
+            generators.any,
+            GenTest.types.elementOf(['uac', 'temp']),
+        ], function(ymd, selectedVar) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sums).toEqual(['inv']);
+        });
+        it('should return ["str"] (udc)',  [
+            generators.any,
+            GenTest.types.constantly('udc'),
+        ], function(ymd, selectedVar) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sums).toEqual(['str']);
+        });
+    });
+    describe('sum', function() {
+        it('should set sum (nrj, pwr, pac)', [
+            generators.any,
+            GenTest.types.elementOf(['nrj', 'pwr', 'pac']),
+            GenTest.types.elementOf(['sum', 'inv']),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('sum');
+            expect(solarData.sum(selectedSum)).toEqual(selectedSum);
+        });
+        it('should set sum (pdc)', [
+            generators.any,
+            GenTest.types.constantly('pdc'),
+            GenTest.types.elementOf(['sum', 'inv', 'str']),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('sum');
+            expect(solarData.sum(selectedSum)).toEqual(selectedSum);
+        });
+        it('should set sum (uac, temp)', [
+            generators.any,
+            GenTest.types.elementOf(['uac', 'temp']),
+            GenTest.types.constantly('inv'),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('inv');
+            expect(solarData.sum(selectedSum)).toEqual(selectedSum);
+        });
+        it('should set sum (udc)', [
+            generators.any,
+            GenTest.types.constantly('udc'),
+            GenTest.types.constantly('str'),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('str');
+            expect(solarData.sum(selectedSum)).toEqual(selectedSum);
+        });
+
+        it('should not set sum (nrj, pwr, pac)', [
+            generators.any,
+            GenTest.types.elementOf(['nrj', 'pwr', 'pac']),
+            GenTest.types.constantly('str'),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('sum');
+            expect(solarData.sum(selectedSum)).not.toEqual(selectedSum);
+            expect(solarData.sum()).toBe('sum');
+        });
+        it('should not set sum (uac, temp)', [
+            generators.any,
+            GenTest.types.elementOf(['uac', 'temp']),
+            GenTest.types.elementOf(['sum', 'str']),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('inv');
+            expect(solarData.sum(selectedSum)).not.toEqual(selectedSum);
+            expect(solarData.sum()).toBe('inv');
+        });
+        it('should not set sum (udc)', [
+            generators.any,
+            GenTest.types.constantly('udc'),
+            GenTest.types.elementOf(['sum', 'inv']),
+        ], function(ymd, selectedVar, selectedSum) {
+            var datum = {date: createDate(...ymd)};
+            datum[selectedVar] = [];
+
+            jasmine.addCustomEqualityTester(setEqualityTester);
+
+            var solarData = SolarData.create([datum], ...ymd);
+            expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
+            expect(solarData.sum()).toBe('str');
+            expect(solarData.sum(selectedSum)).not.toEqual(selectedSum);
+            expect(solarData.sum()).toBe('str');
         });
     });
 });
