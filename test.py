@@ -385,7 +385,7 @@ class LayoutTest(TestCase):
             self.browser.close()
             self.browser = None
     
-    @testData([{'size': (1200, 900)}])
+    @testData([{'size': (1200, 694)}])
     def testVeryLargeSize(self, size):
         self.setUpBrowser(size)
         
@@ -399,8 +399,8 @@ class LayoutTest(TestCase):
         self.browser = None
     
     @testData([
-        {'size': (1024, 768)},
-        {'size': (1023, 768)},
+        {'size': (1024, 694)},
+        {'size': (1023, 694)},
         {'size': (724, 500) },
     ])
     def testLargeSizes(self, size):
@@ -1511,7 +1511,7 @@ class ChartTest(BrowserTestCase):
         else:
             return list(map(lambda x, y: x + y - self.lineWidth / 2, offsets, tickPos))
     
-    def initMapFunction(self, axis, centered=False, padding=0):
+    def initMapFunction(self, axis, centered=False, extraPadding=0):
         ticks = self.getTickPositions(axis, centered)
         tickLabels = self.getTickLabels(axis)
         
@@ -1519,7 +1519,7 @@ class ChartTest(BrowserTestCase):
         im, xm = min(enumerate(ticks), key=lambda t: t[0])
         
         if centered:
-            setattr(self, axis[0] + 'Map', lambda x: tickLabels[max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm))))] + 1 + im + (x - xm) * (iM - im) / (xM - xm) - max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm)))) - padding)
+            setattr(self, axis[0] + 'Map', lambda x: tickLabels[max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm))))] + 1 + im + (x - xm) * (iM - im) / (xM - xm) - max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm)))) - extraPadding)
         else:
             setattr(self, axis[0] + 'Map', lambda x: tickLabels[im] + (x - xm) * (tickLabels[iM] - tickLabels[im]) / (xM - xm))
         
@@ -1779,7 +1779,7 @@ class ChartTest(BrowserTestCase):
         self.selectSum(agg)
         
         if (agg != 'sum'):
-            self.initMapFunction('xaxis', True, 0.005)
+            self.initMapFunction('xaxis', True)
         else:
             self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
@@ -1896,7 +1896,7 @@ class ChartTest(BrowserTestCase):
         self.selectSum(agg)
         
         if (agg != 'sum'):
-            self.initMapFunction('xaxis', True, 0.005)
+            self.initMapFunction('xaxis', True)
         else:
             self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')

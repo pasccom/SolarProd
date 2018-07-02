@@ -87,7 +87,7 @@ create_profile() {
     # Change size:
     if [ $# -gt 1 ]; then
         W=$(expr $2 + 0)
-        H=$(expr $3 + 71)
+        H=$(expr $3 + 74)
         echo "{\"chrome://browser/content/browser.xul\":{\"main-window\":{\"screenX\":\"1366\",\"screenY\":\"0\",\"width\":\"$W\",\"height\":\"$H\",\"sizemode\":\"normal\"}}}" > "$PROFILES_DIR/$1/xulstore.json"
     fi
     
@@ -255,9 +255,9 @@ fi
 # Create new profiles:
 if [ -z "$ANS" ]; then
     create_profile "test"
-    create_profile "1200x900" 1200 900
-    create_profile "1024x768" 1024 768
-    create_profile "1023x768" 1023 768
+    create_profile "1200x694" 1200 694
+    create_profile "1024x694" 1024 694
+    create_profile "1023x694" 1023 694
     create_profile  "724x500"  724 500
     create_profile  "723x500"  723 500
     create_profile  "403x200"  403 200
