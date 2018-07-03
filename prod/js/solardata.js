@@ -110,13 +110,8 @@ var SolarData = {
         else
             this.type = SolarData.Type.DAY;
         
-        // Available variables:
-        if (this[0])
-            this.variables = Object.keys(this[0]).filter((k) => !k.startsWith('date'))
-                                                 .map((k) => SolarData.shortVars.indexOf(k))
-                                                 .sort();
-
-        // Available sums:
+        // Available variables and sums:
+        this.variables = [];
         this.sums = [];
 
         // Current variable and summation:

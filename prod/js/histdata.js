@@ -9,6 +9,12 @@ function HistData(year, month, day) {
 
     this.init(year, month, day);
     
+    // Available variables:
+    if (this[0])
+        this.variables = Object.keys(this[0]).filter((k) => !k.startsWith('date'))
+                                                .map((k) => SolarData.shortVars.indexOf(k))
+                                                .sort();
+
     // Parse dates:
     this.forEach((d) => {d.date = this.dateParser(d.date);});
 
