@@ -152,19 +152,6 @@ var SolarData = {
             this.dateFormatter = ((date) => pad('' + date + '', 2, '0') + '/' + pad(month, 2, '0') + '/' + pad(year, 4, '0'));
         else
             this.dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
-        
-        // Ensure year, month and day are defined:
-        if ((year === undefined) && (month === undefined) && (day === undefined)) {
-            var date;
-            if (this[0].date)
-                date = d3.isoParse(this[0].date);
-            if (this[0].dates)
-                date = d3.isoParse(this[0].dates[0]);
-            
-            year = date.getFullYear();
-            month = (date.getMonth() + 1);
-            day = date.getDate();
-        }
 
         // Ensure year, month and day are well padded:
         year = (year == '') ? '' : pad(year, 4, '0');
@@ -224,7 +211,7 @@ var SolarData = {
     },
     xTickCenter: function()
     {
-        return this.xScale.step()/2;//*(1 + this.xScale.padding())/2;
+        return this.xScale.step()/2;
     },
     create: function(data, year, month, day)
     {

@@ -1,4 +1,13 @@
 function LineData(year, month, day) {
+    // Ensure year, month and day are defined:
+    if ((year === undefined) && (month === undefined) && (day === undefined)) {
+        var date = d3.isoParse(this[0].dates[0]);
+
+        year = date.getFullYear();
+        month = (date.getMonth() + 1);
+        day = date.getDate();
+    }
+
     this.init(year, month, day);
     
     // Parse dates:
