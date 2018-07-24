@@ -37,21 +37,19 @@ var SolarData = {
     {
         return this.prefixes[-this.minPrefix + log1000Div];
     },
-    divider: function(maxData)
+    updateDivider: function(maxData)
     {
-        var div = 1;
+        this.div = 1;
         this.log1000Div = 0;
 
-        while (maxData/div >= 1000) {
-            div *= 1000;
+        while (maxData/this.div >= 1000) {
+            this.div *= 1000;
             this.log1000Div += 1;
         }
-        while (maxData/div < 1) {
-            div /= 1000;
+        while (maxData/this.div < 1) {
+            this.div /= 1000;
             this.log1000Div -= 1;
         }
-
-        return div;
     },
 
     isEmpty: () => true,
@@ -59,31 +57,32 @@ var SolarData = {
     variable: function(v) {
         if (arguments.length > 0) {
             v = Number.parseInt(v);
-            if (this.variables.includes(v) && (this.var !== v)) {
+            if (this.validVariables.includes(v) && (this.var !== v)) {
                 this.var = v;
 
                 switch (this.shortVars[v]) {
                 case 'uac':
                 case 'temp':
-                    this.sums = ['inv'];
+                    this.validSums = ['inv'];
                     break;
                 case 'pdc':
-                    this.sums = ['sum', 'inv', 'str'];
+                    this.validSums = ['sum', 'inv', 'str'];
                     break;
                 case 'udc':
-                    this.sums = ['str'];
+                    this.validSums = ['str'];
                     break;
                 case 'nrj':
                 case 'pwr':
                 case 'pac':
-                    this.sums = ['sum', 'inv'];
+                    this.validSums = ['sum', 'inv'];
                     break;
                 default:
                     console.warn('Unknown variable: ' + this.shortVars[this.var]);
                 }
 
-                if ((this.summation == null) || !this.sums.includes(this.summation))
-                    this.summation = this.sums[0];
+                if ((this.summation == null) || !this.validSums.includes(this.summation))
+                    this.summation = this.validSums[0];
+                this.update();
             }
         }
 
@@ -91,15 +90,25 @@ var SolarData = {
     },
     sum: function(s) {
         if (arguments.length > 0) {
-            if (this.sums.includes(s))
+            if (this.validSums.includes(s)) {
                 this.summation = s;
+                this.update();
+            }
         }
 
         return this.summation;
     },
+    exportFilename: function() {
+        var dateString = this.dateString;
+        if (dateString != '')
+            dateString = '_' + dateString;
+        return 'export_' + SolarData.shortVars[this.var] + '_' + this.summation + dateString + '.csv';
+    },
 
     init: function(year, month, day)
-    {   
+    {
+        this.length = 0;
+
         // Type:
         if (year == '')
             this.type = SolarData.Type.ALL;
@@ -111,8 +120,8 @@ var SolarData = {
             this.type = SolarData.Type.DAY;
         
         // Available variables and sums:
-        this.variables = [];
-        this.sums = [];
+        this.validVariables = [];
+        this.validSums = [];
 
         // Current variable and summation:
         this.var = null;
@@ -210,19 +219,13 @@ var SolarData = {
     },
     create: function(data, year, month, day)
     {
-        // Ensure SolarData inherits an Array:
-        if (Array.isArray(data))
-            Object.setPrototypeOf(SolarData, data);
-        else
-            Object.setPrototypeOf(SolarData, [data]);
-        
         // Return appropriate child object instance:
         if (!Array.isArray(data))
-            return new LineData(year, month, day);
+            return new LineData(data, year, month, day);
         else if (data.length > 0)
-            return new HistData(year, month, day);
+            return new HistData(data, year, month, day);
         else
-            return new EmptyData(year, month, day)
+            return new EmptyData(data, year, month, day)
     },
     Type: {
         ALL:   'ALL',
@@ -232,8 +235,12 @@ var SolarData = {
     },
 }
 
-function EmptyData(year, month, day)
+Object.setPrototypeOf(SolarData, Array.prototype);
+
+function EmptyData(data, year, month, day)
 {
     this.init(year, month, day);
+    this.export = function() {return null};
+    this.update = function() {};
 }
 EmptyData.prototype = SolarData;

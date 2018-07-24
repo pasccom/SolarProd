@@ -151,7 +151,8 @@ describe('SolarData', function() {
             var powD = Math.pow(1000, log1000Div);
 
             var solarData = SolarData.create([], '', '', '');
-            expect(solarData.divider(powN)).toBeCloseTo(powD);
+            solarData.updateDivider(powN);
+            expect(solarData.div).toBeCloseTo(powD);
             expect(solarData.log1000Div).toBe(log1000Div);
         });
     });
@@ -345,7 +346,7 @@ describe('SolarData', function() {
             expect(parsedDate).toEqual(date);
         });
     });
-    describe('dateParser', function() {
+    describe('dateFormatter', function() {
         it('should return "%Y"', [
             GenTest.types.choose(1900, 9999)
         ], function(year) {
@@ -444,15 +445,85 @@ describe('SolarData', function() {
             generators.lineData,
         ], function(data) {
             var solarData = SolarData.create(data);
-            var date = new Date(data.dates[0])
+            var date = new Date(data.dates[0]);
             expect(solarData.dateString).toBe(pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0'));
         });
         it('should be "%d-%m-%Y"', [
             generators.histData,
         ], function(data) {
             var solarData = SolarData.create(data);
-            var date = new Date(data[0].date)
+            var date = new Date(data[0].date);
             expect(solarData.dateString).toBe(pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0'));
+        });
+    });
+    describe('exportFilename', function() {
+        it('should be "export_var_sum.csv"', [
+            generators.year,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+        ], function(y, v, s) {
+            var data = [{date: pad(y, 4, '0') + '-12-31'}];
+            data[0][v] = [];
+            var solarData = SolarData.create(data, '', '', '');
+            expect(solarData.variable(SolarData.shortVars.indexOf(v))).toBe(SolarData.shortVars.indexOf(v));
+            if (solarData.sum(s) != s)
+                s = solarData.sum();
+            expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '.csv');
+        });
+        it('should be "export_var_sum_%Y.csv"', [
+            generators.year,
+            generators.month,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+        ], function(y, m, v, s) {
+            var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-28'}];
+            data[0][v] = [];
+            var solarData = SolarData.create(data, y, '', '');
+            expect(solarData.variable(SolarData.shortVars.indexOf(v))).toBe(SolarData.shortVars.indexOf(v));
+            if (solarData.sum(s) != s)
+                s = solarData.sum();
+            expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(y, 4, '0') + '.csv');
+        });
+        it('should be "export_var_sum_%m-%Y.csv"', [
+            generators.year,
+            generators.month,
+            generators.day,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+        ], function(y, m, d, v, s) {
+            var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-' + pad(d, 2, '0')}];
+            data[0][v] = [];
+            var solarData = SolarData.create(data, y, m, '');
+            expect(solarData.variable(SolarData.shortVars.indexOf(v))).toBe(SolarData.shortVars.indexOf(v));
+            if (solarData.sum(s) != s)
+                s = solarData.sum();
+            expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(m, 2, '0') + '-' + pad(y, 4, '0') + '.csv');
+        });
+        it('should be "export_var_sum_%d-%m-%Y.csv"', [
+            generators.lineData,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+        ], function(data, v, s) {
+            data[v] = data.dates.map(() => Math.round(1000*Math.random()));
+            var solarData = SolarData.create(data);
+            expect(solarData.variable(SolarData.shortVars.indexOf(v))).toBe(SolarData.shortVars.indexOf(v));
+            if (solarData.sum(s) != s)
+                s = solarData.sum();
+            var date = new Date(data.dates[0]);
+            expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0') + '.csv');
+        });
+        it('should be "export_var_sum_%d-%m-%Y.csv"', [
+            generators.histData,
+            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+        ], function(data, v, s) {
+            data.forEach((d) => {d[v] = [];})
+            var solarData = SolarData.create(data);
+            expect(solarData.variable(SolarData.shortVars.indexOf(v))).toBe(SolarData.shortVars.indexOf(v));
+            if (solarData.sum(s) != s)
+                s = solarData.sum();
+            var date = new Date(data[0].date);
+            expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0') + '.csv');
         });
     });
     describe('axes and scales', function() {
@@ -519,13 +590,22 @@ describe('SolarData', function() {
             }
 
             var data = [];
-            for (var y = minYear; y <= maxYear; y++)
-                data.push({date: pad(y, 4, '0') + '-12-31'});
+            var expectedData = [];
+            for (var y = minYear; y <= maxYear; y++) {
+                var nrj = Math.round(1000*Math.random());
+                data.push({date: pad(y, 4, '0') + '-12-31', nrj: [nrj]});
+                expectedData.push(nrj);
+            }
 
             var solarData = SolarData.create(data, '', '', '');
+            expect(solarData.variable(0)).toBe(0);
+            expect(solarData.sum('sum')).toBe('sum');
+
             expect(solarData.length).toBe(maxYear - minYear + 1);
-            for (var y = 0; y < solarData.length; y++)
+            for (var y = 0; y < solarData.length; y++) {
                 expect(solarData[y].date).toBe(minYear + y);
+                expect(solarData[y].data).toBe(expectedData[y]);
+            }
         });
         it('should be months', [
             generators.year,
@@ -539,13 +619,22 @@ describe('SolarData', function() {
             }
 
             var data = [];
-            for (var m = minMonth; m <= maxMonth; m++)
-                data.push({date: pad(year, 4, '0') + '-' + pad(m, 2, '0') + '-28'});
+            var expectedData = [];
+            for (var m = minMonth; m <= maxMonth; m++) {
+                var nrj = Math.round(1000*Math.random());
+                data.push({date: pad(year, 4, '0') + '-' + pad(m, 2, '0') + '-28', nrj: [nrj]});
+                expectedData.push(nrj);
+            }
 
             var solarData = SolarData.create(data, year, '', '');
+            expect(solarData.variable(0)).toBe(0);
+            expect(solarData.sum('sum')).toBe('sum');
+
             expect(solarData.length).toBe(maxMonth - minMonth + 1);
-            for (var m = 0; m < solarData.length; m++)
+            for (var m = 0; m < solarData.length; m++) {
                 expect(solarData[m].date).toBe(minMonth + m - 1);
+                expect(solarData[m].data).toBe(expectedData[m]);
+            }
         });
         it('should be days', [
             generators.year,
@@ -560,13 +649,22 @@ describe('SolarData', function() {
             }
 
             var data = [];
-            for (var d = minDay; d <= maxDay; d++)
-                data.push({date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(d, 2, '0')});
+            var expectedData = [];
+            for (var d = minDay; d <= maxDay; d++) {
+                var nrj = Math.round(1000*Math.random());
+                data.push({date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(d, 2, '0'), nrj: [nrj]});
+                expectedData.push(nrj);
+            }
 
             var solarData = SolarData.create(data, year, month, '');
+            expect(solarData.variable(0)).toBe(0);
+            expect(solarData.sum('sum')).toBe('sum');
+
             expect(solarData.length).toBe(maxDay - minDay + 1);
-            for (var d = 0; d < solarData.length; d++)
+            for (var d = 0; d < solarData.length; d++) {
                 expect(solarData[d].date).toBe(minDay + d);
+                expect(solarData[d].data).toBe(expectedData[d]);
+            }
         });
         it('should be dates', [
             generators.year,
@@ -591,19 +689,26 @@ describe('SolarData', function() {
             }
 
             var dates = [];
-            var expectedDates = [];
+            var expectedX = [];
+            var expectedY = [];
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
                 dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
-                expectedDates.push(new Date(year, month - 1, day, h, m));
+                expectedX.push(new Date(year, month - 1, day, h, m));
+                expectedY.push(Math.round(1000*Math.random()));
             }
 
-            var solarData = SolarData.create({dates: dates}, year, month, day);
+            var solarData = SolarData.create({dates: dates, nrj: expectedY}, year, month, day);
+            expect(solarData.variable(0)).toBe(0);
+            expect(solarData.sum('sum')).toBe('sum');
+
             expect(solarData.length).toBe(1);
-            expect(solarData[0].dates.length).toBe(expectedDates.length);
-            for (var i = 0; i < solarData.length; i++)
-                expect(solarData[0].dates[i]).toEqual(expectedDates[i]);
+            expect(solarData[0].x.length).toBe(expectedX.length);
+            for (var i = 0; i < solarData[0].x.length; i++) {
+                expect(solarData[0].x[i]).toEqual(expectedX[i]);
+                expect(solarData[0].y[i]).toEqual(expectedY[i]);
+            }
         });
         it('should be dates (today)', [
             generators.year,
@@ -628,19 +733,26 @@ describe('SolarData', function() {
             }
 
             var dates = [];
-            var expectedDates = [];
+            var expectedX = [];
+            var expectedY = [];
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
                 dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
-                expectedDates.push(new Date(year, month - 1, day, h, m));
+                expectedX.push(new Date(year, month - 1, day, h, m));
+                expectedY.push(Math.round(1000*Math.random()));
             }
 
-            var solarData = SolarData.create({dates: dates});
+            var solarData = SolarData.create({dates: dates, nrj: expectedY});
+            expect(solarData.variable(0)).toBe(0);
+            expect(solarData.sum('sum')).toBe('sum');
+
             expect(solarData.length).toBe(1);
-            expect(solarData[0].dates.length).toBe(expectedDates.length);
-            for (var i = 0; i < solarData.length; i++)
-                expect(solarData[0].dates[i]).toEqual(expectedDates[i]);
+            expect(solarData[0].x.length).toBe(expectedX.length);
+            for (var i = 0; i < solarData[0].x.length; i++) {
+                expect(solarData[0].x[i]).toEqual(expectedX[i]);
+                expect(solarData[0].y[i]).toEqual(expectedY[i]);
+            }
         });
     });
     describe('X domain', function() {
@@ -915,7 +1027,7 @@ describe('SolarData', function() {
             jasmine.addCustomEqualityTester(setEqualityTester);
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variables).toEqual(vars.map((v) => SolarData.shortVars.indexOf(v)));
+            expect(solarData.validVariables).toEqual(vars.map((v) => SolarData.shortVars.indexOf(v)));
         });
     });
     describe('variable', function() {
@@ -969,7 +1081,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(0.000000000001);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(0.000000000001);
+            expect(solarData.log1000Div).toBe(-4);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (p' + SolarData.units[v] + ')');
         });
         it('Should return y label text with n multiplier', [
@@ -983,7 +1097,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(0.000000001);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(0.000000001);
+            expect(solarData.log1000Div).toBe(-3);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (n' + SolarData.units[v] + ')');
         });
         it('Should return y label text with µ multiplier', [
@@ -997,7 +1113,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(0.000001);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(0.000001);
+            expect(solarData.log1000Div).toBe(-2);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (µ' + SolarData.units[v] + ')');
         });
         it('Should return y label text with m multiplier', [
@@ -1011,7 +1129,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(0.001);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(0.001);
+            expect(solarData.log1000Div).toBe(-1);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (m' + SolarData.units[v] + ')');
         });
         it('Should return y label text without multiplier', [
@@ -1025,7 +1145,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(1);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(1);
+            expect(solarData.log1000Div).toBe(0);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (' + SolarData.units[v] + ')');
         });
         it('Should return y label text with k multiplier', [
@@ -1039,7 +1161,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(1000);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(1000);
+            expect(solarData.log1000Div).toBe(1);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (k' + SolarData.units[v] + ')');
         });
         it('Should return y label text with M multiplier', [
@@ -1053,7 +1177,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(1000000);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(1000000);
+            expect(solarData.log1000Div).toBe(2);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (M' + SolarData.units[v] + ')');
         });
         it('Should return y label text with G multiplier', [
@@ -1067,7 +1193,9 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(1000000000);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(1000000000);
+            expect(solarData.log1000Div).toBe(3);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (G' + SolarData.units[v] + ')');
         });
         it('Should return y label text with T multiplier', [
@@ -1081,11 +1209,13 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(v)).toEqual(v);
-            expect(solarData.divider(maxData)).toBeCloseTo(1000000000000);
+            solarData.updateDivider(maxData)
+            expect(solarData.div).toBeCloseTo(1000000000000);
+            expect(solarData.log1000Div).toBe(4);
             expect(solarData.yLabel()).toBe(SolarData.longVars[v] + ' (T' + SolarData.units[v] + ')');
         });
     });
-    describe('sums', function() {
+    describe('validSums', function() {
         it('should return ["sum", "inv"] (nrj,pwr,pac)', [
             generators.any,
             GenTest.types.elementOf(['nrj', 'pwr', 'pac']),
@@ -1097,7 +1227,7 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
-            expect(solarData.sums).toEqual(['sum', 'inv']);
+            expect(solarData.validSums).toEqual(['sum', 'inv']);
         });
         it('should return ["sum", "inv", "str"] (pdc)',  [
             generators.any,
@@ -1110,7 +1240,7 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
-            expect(solarData.sums).toEqual(['sum', 'inv', 'str']);
+            expect(solarData.validSums).toEqual(['sum', 'inv', 'str']);
         });
         it('should return ["inv"] (uac, temp)', [
             generators.any,
@@ -1123,7 +1253,7 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
-            expect(solarData.sums).toEqual(['inv']);
+            expect(solarData.validSums).toEqual(['inv']);
         });
         it('should return ["str"] (udc)',  [
             generators.any,
@@ -1136,7 +1266,7 @@ describe('SolarData', function() {
 
             var solarData = SolarData.create([datum], ...ymd);
             expect(solarData.variable(SolarData.shortVars.indexOf(selectedVar))).toEqual(SolarData.shortVars.indexOf(selectedVar));
-            expect(solarData.sums).toEqual(['str']);
+            expect(solarData.validSums).toEqual(['str']);
         });
     });
     describe('sum', function() {
@@ -1248,6 +1378,289 @@ describe('SolarData', function() {
             expect(solarData.sum()).toBe('str');
             expect(solarData.sum(selectedSum)).not.toEqual(selectedSum);
             expect(solarData.sum()).toBe('str');
+        });
+    });
+    describe('export', function() {
+        describe('histData', function() {
+            it('1 column data, summed', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random())]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters data, summed', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0] + data[0].pdc[1]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters data, by inverter', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0], data[0].pdc[1]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('inv')).toBe('inv');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Onduleur 1', 'Onduleur 2']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, summed', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1] + data[0].pdc[1][0] + data[0].pdc[1][1]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, by inverter', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1], data[0].pdc[1][0] + data[0].pdc[1][1]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('inv')).toBe('inv');
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Onduleur 1', 'Onduleur 2']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, by string', [
+                generators.yearNumber,
+                generators.yearNumber,
+            ], function(minYear, maxYear) {
+                if (minYear > maxYear) {
+                    var tmp = minYear;
+                    minYear = maxYear;
+                    maxYear = tmp;
+                }
+
+                var data = [];
+                var expectedData = [];
+                for (var y = maxYear; y >= minYear; y--) {
+                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0], data[0].pdc[0][1], data[0].pdc[1][0], data[0].pdc[1][1]]);
+                }
+
+                var solarData = SolarData.create(data, '', '', '');
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('str')).toBe('str');
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([
+                    ['Date', 'Onduleur 1', 'Onduleur 1', 'Onduleur 2', 'Onduleur 2'],
+                    ['', 'String 1', 'String 2', 'String 1', 'String 2'],
+                ]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+        });
+        describe('line data', function() {
+            it('1 column data, summed', [generators.lineData], function(data) {
+                data.pdc = [[]];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters data, summed', [generators.lineData], function(data) {
+                data.pdc = [[], []];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0] + data.pdc[1][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters data, by inverter', [generators.lineData], function(data) {
+                data.pdc = [[], []];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0], data.pdc[1][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('inv')).toBe('inv');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Onduleur 1', 'Onduleur 2']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, summed', [generators.lineData], function(data) {
+                data.pdc = [[[], []], [[], []]];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[0][1].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][1].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0][0] + data.pdc[0][1][0] + data.pdc[1][0][0] + data.pdc[1][1][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('sum')).toBe('sum');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Total']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, by inverter', [generators.lineData], function(data) {
+                data.pdc = [[[], []], [[], []]];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[0][1].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][1].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0][0] + data.pdc[0][1][0], data.pdc[1][0][0] + data.pdc[1][1][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('inv')).toBe('inv');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([['Date', 'Onduleur 1', 'Onduleur 2']]);
+                expect(exportData.data).toEqual(expectedData);
+            });
+            it('2 inverters, 2 strings data, by string', [generators.lineData], function(data) {
+                data.pdc = [[[], []], [[], []]];
+                var expectedData = [];
+                var dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
+                for (var i = 1; i <= data.dates.length; i++) {
+                    data.pdc[0][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[0][1].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][0].unshift(Math.round(1000*Math.random()));
+                    data.pdc[1][1].unshift(Math.round(1000*Math.random()));
+                    expectedData.unshift([dateFormatter(d3.isoParse(data.dates[data.dates.length - i])), data.pdc[0][0][0], data.pdc[0][1][0], data.pdc[1][0][0], data.pdc[1][1][0]]);
+                }
+
+                var solarData = SolarData.create(data);
+                expect(solarData.variable(SolarData.shortVars.indexOf('pdc'))).toBe(SolarData.shortVars.indexOf('pdc'));
+                expect(solarData.sum('str')).toBe('str');
+
+                var exportData = solarData.export();
+                console.log(exportData);
+                expect(exportData.headers).toEqual([
+                    ['Date', 'Onduleur 1', 'Onduleur 1', 'Onduleur 2', 'Onduleur 2'],
+                    ['', 'String 1', 'String 2', 'String 1', 'String 2'],
+                ]);
+                expect(exportData.data).toEqual(expectedData);
+            });
         });
     });
 });

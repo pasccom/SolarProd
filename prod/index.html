@@ -277,7 +277,7 @@ function updateVariables()
     var vars = d3.select('#var')
                  .attr('disabled', null)
                  .selectAll('option')
-                 .data(data.variables, (d) => d);
+                 .data(data.validVariables, (d) => d);
     vars.enter()
         .append('option')
         .attr('value', (d) => d)
@@ -297,9 +297,9 @@ function updateSums()
 {
     // Adds the new sums using a data join:
     var sums = d3.select('#sum')
-                 .attr('disabled', (data.sums.length < 2) ? true : null)
+                 .attr('disabled', (data.validSums.length < 2) ? true : null)
                  .selectAll('option')
-                 .data(data.sums, (d) => d);
+                 .data(data.validSums, (d) => d);
     sums.enter()
         .append('option')
         .attr('value', (d) => d)
@@ -740,91 +740,16 @@ function nextPlot()
 
 function exportCsv()
 {
-    var headers;
-    var data = window.data;
-    var dateFormat;
-    var dateString;
-
-    // Get plotted variable:   
-    var variable = data.variable();
-    if (variable == null)
-        variable = 0;
-    var v = SolarData.shortVars[variable];
-    
-    // Get sum function:
-    var sum = data.sum();
-    if (sum == null)
-        sum = 'sum';
-      
-    if (chart.plot.data.type == SolarData.Type.DAY) {
-        // Transform line data to export:
-        dateString = data.dateString;
-        dateFormat = data.dateFormatter;
-            
-        if (v.endsWith('dc')) {
-            if (sum == 'str') {
-                 headers = [
-                    ['Date'].concat(d3.merge(data[0][v].map(function(a, i) {return a.map(function(e) {return 'Onduleur ' + (i + 1);});}))),
-                    [''].concat(d3.merge(data[0][v].map(function(a) {return a.map(function(e, i) {return 'String ' + (i + 1);});})))
-                ];
-                data = d3.transpose([data[0].dates.map(dateFormat)].concat(d3.merge(data[0][v])))
-            } else if (sum == 'inv') {
-                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
-                data = d3.transpose([data[0].dates.map(dateFormat)].concat(data[0][v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});}))); 
-            } else {
-                headers = [['Date', 'Total']];
-                data = d3.transpose([data[0].dates.map(dateFormat), d3.transpose(data[0][v].map(function(a) {return d3.transpose(a).map(function(e) {return d3.sum(e);});})).map(function(e) {return d3.sum(e);})]);
-            }
-        } else {
-            if (sum == 'sum') {
-                headers = [['Date', 'Total']];
-                data = d3.transpose([data[0].dates.map(dateFormat), d3.transpose(data[0][v]).map(function(a) {return d3.sum(a);})]);
-            } else {
-                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
-                data = d3.transpose([data[0].dates.map(dateFormat)].concat(data[0][v]));
-            }
-        }
-    } else if (chart.plot.data.type !== undefined) {
-        // Transform bar data to export:
-        dateString = data.dateString;
-        dateFormat = data.dateFormatter;
-        
-        if (v.endsWith('dc')) {
-            if (sum == 'str') {
-                headers = [
-                    ['Date'].concat(d3.merge(data[0][v].map(function(a, i) {return a.map(function(e) {return 'Onduleur ' + (i + 1);});}))),
-                    [''].concat(d3.merge(data[0][v].map(function(a) {return a.map(function(e, i) {return 'String ' + (i + 1);});})))
-                ];
-                data = data.map(function(e) {return [dateFormat(e.date), d3.sum(e[v], function(d) {return d3.sum(d);})];});
-            } else if (sum == 'inv') {
-                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
-                data = data.map(function(e) {return [dateFormat(e.date)].concat(e[v].map(function(d) {return d3.sum(d);}));});
-            } else {
-                headers = [['Date', 'Total']];
-                data = data.map(function(e) {return [dateFormat(e.date)].concat(d3.merge(e[v]));});
-            }
-        } else {
-            if (sum == 'sum') {
-                headers = [['Date', 'Total']];
-                data = data.map(function(e) {return [dateFormat(e.date), d3.sum(e[v])];});
-            } else {
-                headers = [['Date'].concat(data[0][v].map(function(a, i) {return 'Onduleur ' + (i + 1);}))];
-                data = data.map(function(e) {return [dateFormat(e.date)].concat(e[v]);});
-            }
-        }
-    } else {
+    var exportData = data.export();
+    if (!exportData)
         return;
-    }
-     
+
     // Create CSV from data:
     var csv = new Blob([[
-        headers.map(function(line) {return line.join(',');}).join('\r\n'),
-        data.map(function(line) {return line.join(',');}).join('\r\n')
+        exportData.headers.map((line) => line.join(',')).join('\r\n'),
+        exportData.data.map((line) => line.join(',')).join('\r\n')
     ].join('\r\n')], {type: 'text/csv;charset=utf-8'});
-    if (dateString == '')
-        saveAs(csv, 'export_' + v + '_' + sum + '.csv');
-    else
-        saveAs(csv, 'export_' + v + '_' + sum + '_' + dateString + '.csv');
+    saveAs(csv, data.exportFilename());
 }
 
 
