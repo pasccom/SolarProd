@@ -621,7 +621,7 @@ class ExportTest(BrowserTestCase):
                         header2 = [int(h[7:]) - 1 for h in row[1:]]
                         continue
                 else:
-                    raise ValueError('Invalid summation: {}'.format(agg))
+                    raise ValueError('Invalid aggregation: {}'.format(agg))
                 # Parse data:
                 csvDates += [row[0]]
                 for j, datum in enumerate(row[1:]):

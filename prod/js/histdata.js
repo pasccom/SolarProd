@@ -58,14 +58,14 @@ function HistData(data, year, month, day) {
         var exportData = {headers: []};
 
         var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= sums.indexOf(this.summation); s++)
-            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], sums.indexOf(this.summation), s))); // TODO should be this.summation
+        for (var s = 0; s <= sums.indexOf(this.agg); s++)
+            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], sums.indexOf(this.agg), s))); // TODO should be this.agg
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
         exportData.data = data.map((d) => {
-            var e = recSum(d[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
+            var e = recSum(d[this.var], sums.indexOf(this.agg)); // TODO should be this.agg.
             return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e));
         });
 
@@ -91,7 +91,7 @@ function HistData(data, year, month, day) {
         if (this.var !== null) {
             for (var i = 0; i < data.length; i++) {
                 var d = data[i][this.var];
-                d = recSum(d, sums.indexOf(this.summation)); // TODO should be this.summation.
+                d = recSum(d, sums.indexOf(this.agg)); // TODO should be this.agg.
                 this[i] = {date: data[i].date, data: d};
             }
             this.length = data.length;
@@ -102,7 +102,7 @@ function HistData(data, year, month, day) {
         // Set scales padding/domain:
         var maxData = d3.max(this, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? d3.max(a) : a) : d.data);
         this.updateDivider(maxData)
-        this.xScale.padding((this.summation == 'sum') ? 0 : 0.1);
+        this.xScale.padding((this.agg == 'sum') ? 0 : 0.1);
         this.yScale.domain([0, maxData/this.div]);
     };
     this.update();

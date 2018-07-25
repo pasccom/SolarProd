@@ -66,46 +66,46 @@ var SolarData = {
                 switch (v) {
                 case 'uac':
                 case 'temp':
-                    this.validSums = ['inv'];
+                    this.validAggs = ['inv'];
                     break;
                 case 'pdc':
-                    this.validSums = ['sum', 'inv', 'str'];
+                    this.validAggs = ['sum', 'inv', 'str'];
                     break;
                 case 'udc':
-                    this.validSums = ['str'];
+                    this.validAggs = ['str'];
                     break;
                 case 'nrj':
                 case 'pwr':
                 case 'pac':
-                    this.validSums = ['sum', 'inv'];
+                    this.validAggs = ['sum', 'inv'];
                     break;
                 default:
                     console.warn('Unknown variable: ' + this.var);
                 }
 
-                if ((this.summation == null) || !this.validSums.includes(this.summation))
-                    this.summation = this.validSums[0];
+                if ((this.agg == null) || !this.validAggs.includes(this.agg))
+                    this.agg = this.validAggs[0];
                 this.update();
             }
         }
 
         return this.var;
     },
-    sum: function(s) {
+    aggregation: function(s) {
         if (arguments.length > 0) {
-            if (this.validSums.includes(s)) {
-                this.summation = s;
+            if (this.validAggs.includes(s)) {
+                this.agg = s;
                 this.update();
             }
         }
 
-        return this.summation;
+        return this.agg;
     },
     exportFilename: function() {
         var dateString = this.dateString;
         if (dateString != '')
             dateString = '_' + dateString;
-        return 'export_' + this.var + '_' + this.summation + dateString + '.csv';
+        return 'export_' + this.var + '_' + this.agg + dateString + '.csv';
     },
 
     init: function(year, month, day)
@@ -124,11 +124,11 @@ var SolarData = {
         
         // Available variables and sums:
         this.validVars = [];
-        this.validSums = [];
+        this.validAggs = [];
 
-        // Current variable and summation:
+        // Current variable and aggregation:
         this.var = null;
-        this.summation = null;
+        this.agg = null;
 
         // X label:
         if (year == '')

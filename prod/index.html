@@ -156,7 +156,7 @@ function changeVisiblilty(d)
 // Draw the legend:
 function drawLegend(paths)
 {
-    var sum = data.sum();
+    var sum = data.aggregation();
     if (sum == null)
         sum = 'sum';
         
@@ -297,9 +297,9 @@ function updateSums()
 {
     // Adds the new sums using a data join:
     var sums = d3.select('#sum')
-                 .attr('disabled', (data.validSums.length < 2) ? true : null)
+                 .attr('disabled', (data.validAggs.length < 2) ? true : null)
                  .selectAll('option')
-                 .data(data.validSums, (d) => d);
+                 .data(data.validAggs, (d) => d);
     sums.enter()
         .append('option')
         .attr('value', (d) => d)
@@ -760,7 +760,7 @@ d3.select('#var').on('change', function() {
     chart.draw();
 });
 d3.select('#sum').on('change', function() {
-    data.sum(d3.select(this).property('value'));
+    data.aggregation(d3.select(this).property('value'));
     chart.draw();
 });
 

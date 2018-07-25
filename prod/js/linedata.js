@@ -62,13 +62,13 @@ function LineData(data, year, month, day) {
         var exportData = {headers: []};
 
         var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= sums.indexOf(this.summation); s++)
-            exportData.headers.push([''].concat(recFormat(data[this.var], null, formats[s], sums.indexOf(this.summation), s)));
+        for (var s = 0; s <= sums.indexOf(this.agg); s++)
+            exportData.headers.push([''].concat(recFormat(data[this.var], null, formats[s], sums.indexOf(this.agg), s)));
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
-        var d = recSum(data[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
+        var d = recSum(data[this.var], sums.indexOf(this.agg)); // TODO should be this.agg.
         exportData.data = d3.transpose([data.dates.map(this.dateFormatter)].concat(!Array.isArray(d[0]) ? [d] : !Array.isArray(d[0][0]) ? d : d3.merge(d)));
 
         return exportData;
@@ -92,7 +92,7 @@ function LineData(data, year, month, day) {
 
         if (this.var !== null) {
             this.length = 1;
-            var d = recSum(data[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
+            var d = recSum(data[this.var], sums.indexOf(this.agg)); // TODO should be this.agg.
             this[0] = {x: data.dates, y: d};
 
             // Set scale domains:

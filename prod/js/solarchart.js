@@ -58,7 +58,7 @@ SolarChart.prototype = {
             ow = this.plot.width();
             oh = this.plot.height();
             data.variable(this.plot.data.variable());
-            data.sum(this.plot.data.sum());
+            data.aggregation(this.plot.data.aggregation());
             this.plot.remove();
         }
         // Create new plot:
