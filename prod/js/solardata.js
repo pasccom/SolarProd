@@ -60,7 +60,7 @@ var SolarData = {
 
     variable: function(v) {
         if (arguments.length > 0) {
-            if (this.validVariables.includes(v) && (this.var != v)) {
+            if (this.validVars.includes(v) && (this.var != v)) {
                 this.var = v;
 
                 switch (v) {
@@ -123,7 +123,7 @@ var SolarData = {
             this.type = SolarData.Type.DAY;
         
         // Available variables and sums:
-        this.validVariables = [];
+        this.validVars = [];
         this.validSums = [];
 
         // Current variable and summation:

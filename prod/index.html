@@ -277,7 +277,7 @@ function updateVariables()
     var vars = d3.select('#var')
                  .attr('disabled', null)
                  .selectAll('option')
-                 .data(data.validVariables, (d) => d);
+                 .data(data.validVars, (d) => d);
     vars.enter()
         .append('option')
         .attr('value', (d) => d)

@@ -11,8 +11,8 @@ function LineData(data, year, month, day) {
     this.init(year, month, day);
     
     // Available variables:
-    this.validVariables = Object.keys(data).filter((k) => (k != 'dates'))
-                                           .sort((v1, v2) => SolarData.shortVars.indexOf(v1) - SolarData.shortVars.indexOf(v2));
+    this.validVars = Object.keys(data).filter((k) => (k != 'dates'))
+                                      .sort((v1, v2) => SolarData.shortVars.indexOf(v1) - SolarData.shortVars.indexOf(v2));
 
     // Parse dates:
     data.dates = data.dates.map(this.dateParser);

@@ -1027,7 +1027,7 @@ describe('SolarData', function() {
             jasmine.addCustomEqualityTester(setEqualityTester);
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.validVariables).toEqual(vars);
+            expect(solarData.validVars).toEqual(vars);
         });
     });
     describe('variable', function() {
