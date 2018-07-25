@@ -23,6 +23,10 @@ var SolarData = {
     shortVars:  ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp'],
     longVars:   ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température'],
     units:      ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C'],
+    variableName: function(v)
+    {
+        return SolarData.longVars[SolarData.shortVars.indexOf(v)];
+    },
 
     // Sums:
     sums: {
@@ -56,11 +60,10 @@ var SolarData = {
 
     variable: function(v) {
         if (arguments.length > 0) {
-            v = Number.parseInt(v);
-            if (this.validVariables.includes(v) && (this.var !== v)) {
+            if (this.validVariables.includes(v) && (this.var != v)) {
                 this.var = v;
 
-                switch (this.shortVars[v]) {
+                switch (v) {
                 case 'uac':
                 case 'temp':
                     this.validSums = ['inv'];
@@ -77,7 +80,7 @@ var SolarData = {
                     this.validSums = ['sum', 'inv'];
                     break;
                 default:
-                    console.warn('Unknown variable: ' + this.shortVars[this.var]);
+                    console.warn('Unknown variable: ' + this.var);
                 }
 
                 if ((this.summation == null) || !this.validSums.includes(this.summation))
@@ -102,7 +105,7 @@ var SolarData = {
         var dateString = this.dateString;
         if (dateString != '')
             dateString = '_' + dateString;
-        return 'export_' + SolarData.shortVars[this.var] + '_' + this.summation + dateString + '.csv';
+        return 'export_' + this.var + '_' + this.summation + dateString + '.csv';
     },
 
     init: function(year, month, day)
@@ -180,7 +183,8 @@ var SolarData = {
 
     yLabel: function()
     {
-        return SolarData.longVars[this.var] + ' (' + SolarData.prefix(this.log1000Div) + SolarData.units[this.var] + ')';
+        var v = SolarData.shortVars.indexOf(this.var);
+        return SolarData.longVars[v] + ' (' + SolarData.prefix(this.log1000Div) + SolarData.units[v] + ')';
     },
     xRange: function(w)
     {

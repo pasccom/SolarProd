@@ -281,7 +281,7 @@ function updateVariables()
     vars.enter()
         .append('option')
         .attr('value', (d) => d)
-        .text((d) => SolarData.longVars[d]);
+        .text(SolarData.variableName);
     vars.exit().remove();
     vars.order();
     

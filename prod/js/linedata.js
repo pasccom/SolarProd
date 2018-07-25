@@ -12,8 +12,7 @@ function LineData(data, year, month, day) {
     
     // Available variables:
     this.validVariables = Object.keys(data).filter((k) => (k != 'dates'))
-                                           .map((k) => SolarData.shortVars.indexOf(k))
-                                           .sort();
+                                           .sort((v1, v2) => SolarData.shortVars.indexOf(v1) - SolarData.shortVars.indexOf(v2));
 
     // Parse dates:
     data.dates = data.dates.map(this.dateParser);
@@ -64,13 +63,12 @@ function LineData(data, year, month, day) {
 
         var formats = ['Total', 'Onduleur ', 'String '];
         for (var s = 0; s <= sums.indexOf(this.summation); s++)
-            exportData.headers.push([''].concat(recFormat(data[SolarData.shortVars[this.var]], null, formats[s], sums.indexOf(this.summation), s))); // TODO should be this.var
+            exportData.headers.push([''].concat(recFormat(data[this.var], null, formats[s], sums.indexOf(this.summation), s)));
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
-        var d = data[SolarData.shortVars[this.var]]; // TODO should be this.var
-        d = recSum(d, sums.indexOf(this.summation)); // TODO should be this.summation.
+        var d = recSum(data[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
         exportData.data = d3.transpose([data.dates.map(this.dateFormatter)].concat(!Array.isArray(d[0]) ? [d] : !Array.isArray(d[0][0]) ? d : d3.merge(d)));
 
         return exportData;
@@ -94,8 +92,7 @@ function LineData(data, year, month, day) {
 
         if (this.var !== null) {
             this.length = 1;
-            var d = data[SolarData.shortVars[this.var]]; // TODO should be this.var
-            d = recSum(d, sums.indexOf(this.summation)); // TODO should be this.summation.
+            var d = recSum(data[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
             this[0] = {x: data.dates, y: d};
 
             // Set scale domains:

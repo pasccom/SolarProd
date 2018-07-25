@@ -242,9 +242,9 @@ class BrowserTestCase(TestCase):
     
     def selectVar(self, var):
         try:
-            self.selectOption('var', self.longVar(var), str(self.__class__.shortVars.index(var)))
+            self.selectOption('var', self.longVar(var), var)
         except (ValueError):
-            self.selectOption('var', var, str(self.__class__.longVars.index(var)))
+            self.selectOption('var', var, self.__class__.shortVars[self.__class__.longVars.index(var)])
      
     def selectSum(self, agg):
         self.selectOption('sum', self.__class__.sumNames[agg], agg)

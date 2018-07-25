@@ -12,8 +12,7 @@ function HistData(data, year, month, day) {
     // Available variables:
     if (data[0])
         this.validVariables = Object.keys(data[0]).filter((k) => (k != 'date'))
-                                                  .map((k) => SolarData.shortVars.indexOf(k))
-                                                  .sort();
+                                                  .sort((v1, v2) => SolarData.shortVars.indexOf(v1) - SolarData.shortVars.indexOf(v2));
 
     // Parse dates:
     data.forEach((d) => {d.date = this.dateParser(d.date);});
@@ -60,14 +59,13 @@ function HistData(data, year, month, day) {
 
         var formats = ['Total', 'Onduleur ', 'String '];
         for (var s = 0; s <= sums.indexOf(this.summation); s++)
-            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][SolarData.shortVars[this.var]], null, formats[s], sums.indexOf(this.summation), s))); // TODO should be this.var
+            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], sums.indexOf(this.summation), s))); // TODO should be this.summation
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
         exportData.data = data.map((d) => {
-            var e = d[SolarData.shortVars[this.var]]; // TODO should be this.var
-            e = recSum(e, sums.indexOf(this.summation)); // TODO should be this.summation.
+            var e = recSum(d[this.var], sums.indexOf(this.summation)); // TODO should be this.summation.
             return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e));
         });
 
@@ -92,7 +90,7 @@ function HistData(data, year, month, day) {
             delete this[i];
         if (this.var !== null) {
             for (var i = 0; i < data.length; i++) {
-                var d = data[i][SolarData.shortVars[this.var]]; // TODO should be this.var
+                var d = data[i][this.var];
                 d = recSum(d, sums.indexOf(this.summation)); // TODO should be this.summation.
                 this[i] = {date: data[i].date, data: d};
             }
