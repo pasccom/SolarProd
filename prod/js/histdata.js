@@ -12,7 +12,8 @@ function HistData(data, year, month, day) {
     // Available variables:
     if (data[0])
         this.validVars = Object.keys(data[0]).filter((k) => (k != 'date'))
-                                             .sort((v1, v2) => SolarData.shortVars.indexOf(v1) - SolarData.shortVars.indexOf(v2));
+                                             .sort((v1, v2) => SolarData.vars.findIndex((e) => (e.code == v1)) -
+                                                               SolarData.vars.findIndex((e) => (e.code == v2)));
 
     // Parse dates:
     data.forEach((d) => {d.date = this.dateParser(d.date);});

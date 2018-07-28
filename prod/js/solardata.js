@@ -20,12 +20,22 @@ function pad(n, l, p)
 
 var SolarData = {
     // Variables:
-    shortVars:  ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp'],
-    longVars:   ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température'],
-    units:      ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C'],
+    vars: [
+        {code: 'nrj',  name: 'Énergie',      unit: 'Wh'},
+        {code: 'pwr',  name: 'Puissance',    unit: 'W' },
+        {code: 'pac',  name: 'Puissance AC', unit: 'W' },
+        {code: 'uac',  name: 'Tension AC',   unit: 'V' },
+        {code: 'pdc',  name: 'Puissance DC', unit: 'W' },
+        {code: 'udc',  name: 'Tension DC',   unit: 'V' },
+        {code: 'temp', name: 'Température',  unit: '°C'},
+    ],
     variableName: function(v)
     {
-        return SolarData.longVars[SolarData.shortVars.indexOf(v)];
+        return SolarData.vars.find((e) => (e.code == v)).name;
+    },
+    variableUnit: function(v)
+    {
+        return SolarData.vars.find((e) => (e.code == v)).unit;
     },
 
     // Aggregation methods:
@@ -187,8 +197,7 @@ var SolarData = {
 
     yLabel: function()
     {
-        var v = SolarData.shortVars.indexOf(this.var);
-        return SolarData.longVars[v] + ' (' + SolarData.prefix(this.log1000Div) + SolarData.units[v] + ')';
+        return SolarData.variableName(this.var) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variableUnit(this.var) + ')';
     },
     xRange: function(w)
     {

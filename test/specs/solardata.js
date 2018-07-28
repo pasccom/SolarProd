@@ -459,7 +459,7 @@ describe('SolarData', function() {
     describe('exportFilename', function() {
         it('should be "export_var_sum.csv"', [
             generators.year,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
             GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, v, s) {
             var data = [{date: pad(y, 4, '0') + '-12-31'}];
@@ -473,7 +473,7 @@ describe('SolarData', function() {
         it('should be "export_var_sum_%Y.csv"', [
             generators.year,
             generators.month,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
             GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, m, v, s) {
             var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-28'}];
@@ -488,7 +488,7 @@ describe('SolarData', function() {
             generators.year,
             generators.month,
             generators.day,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
             GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, m, d, v, s) {
             var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-' + pad(d, 2, '0')}];
@@ -501,7 +501,7 @@ describe('SolarData', function() {
         });
         it('should be "export_var_sum_%d-%m-%Y.csv"', [
             generators.lineData,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
             GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(data, v, s) {
             data[v] = data.dates.map(() => Math.round(1000*Math.random()));
@@ -514,7 +514,7 @@ describe('SolarData', function() {
         });
         it('should be "export_var_sum_%d-%m-%Y.csv"', [
             generators.histData,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
             GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(data, v, s) {
             data.forEach((d) => {d[v] = [];})
@@ -1040,7 +1040,7 @@ describe('SolarData', function() {
     describe('validVars', function() {
         it('should return available variables', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
         ], function(ymd, vars) {
             var datum = {date: createDate(...ymd)};
             for (const v of vars)
@@ -1056,8 +1056,8 @@ describe('SolarData', function() {
     describe('variable', function() {
         it('should set variable', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
         ], function(ymd, vars, setVar) {
             var datum = {date: createDate(...ymd)};
             datum[setVar] = [];
@@ -1073,8 +1073,8 @@ describe('SolarData', function() {
         });
         it('should not set variable', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.shortVars), 1),
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
+            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
         ],function(ymd, vars, setVar) {
             var datum = {date: createDate(...ymd)};
             for (const v of vars)
@@ -1093,138 +1093,138 @@ describe('SolarData', function() {
     describe('yLabel', function() {
         it('Should return y label text with p multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(0.000000000001, 0.000000000999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(0.000000000001);
             expect(solarData.log1000Div).toBe(-4);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (p' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (p' + varData.unit + ')');
         });
         it('Should return y label text with n multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(0.000000001, 0.000000999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(0.000000001);
             expect(solarData.log1000Div).toBe(-3);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (n' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (n' + varData.unit + ')');
         });
         it('Should return y label text with µ multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(0.000001, 0.000999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(0.000001);
             expect(solarData.log1000Div).toBe(-2);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (µ' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (µ' + varData.unit + ')');
         });
         it('Should return y label text with m multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(0.001, 0.999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(0.001);
             expect(solarData.log1000Div).toBe(-1);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (m' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (m' + varData.unit + ')');
         });
         it('Should return y label text without multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(1, 999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(1);
             expect(solarData.log1000Div).toBe(0);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (' + varData.unit + ')');
         });
         it('Should return y label text with k multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(1000, 999999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(1000);
             expect(solarData.log1000Div).toBe(1);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (k' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (k' + varData.unit + ')');
         });
         it('Should return y label text with M multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(1000000, 999999999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(1000000);
             expect(solarData.log1000Div).toBe(2);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (M' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (M' + varData.unit + ')');
         });
         it('Should return y label text with G multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(1000000000, 999999999999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(1000000000);
             expect(solarData.log1000Div).toBe(3);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (G' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (G' + varData.unit + ')');
         });
         it('Should return y label text with T multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.shortVars),
+            GenTest.types.elementOf(SolarData.vars),
             GenTest.types.float(1000000000000, 999999999999999),
-        ], function(ymd, setVar, maxData) {
+        ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[setVar] = [];
+            datum[varData.code] = [];
 
             var solarData = SolarData.create([datum], ...ymd);
-            expect(solarData.variable(setVar)).toEqual(setVar);
+            expect(solarData.variable(varData.code)).toEqual(varData.code);
             solarData.updateDivider(maxData)
             expect(solarData.div).toBeCloseTo(1000000000000);
             expect(solarData.log1000Div).toBe(4);
-            expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (T' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+            expect(solarData.yLabel()).toBe(varData.name + ' (T' + varData.unit + ')');
         });
     });
 
