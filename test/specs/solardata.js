@@ -460,7 +460,7 @@ describe('SolarData', function() {
         it('should be "export_var_sum.csv"', [
             generators.year,
             GenTest.types.elementOf(SolarData.shortVars),
-            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, v, s) {
             var data = [{date: pad(y, 4, '0') + '-12-31'}];
             data[0][v] = [];
@@ -474,7 +474,7 @@ describe('SolarData', function() {
             generators.year,
             generators.month,
             GenTest.types.elementOf(SolarData.shortVars),
-            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, m, v, s) {
             var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-28'}];
             data[0][v] = [];
@@ -489,7 +489,7 @@ describe('SolarData', function() {
             generators.month,
             generators.day,
             GenTest.types.elementOf(SolarData.shortVars),
-            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(y, m, d, v, s) {
             var data = [{date: pad(y, 4, '0') + '-' + pad(m, 2, '0') + '-' + pad(d, 2, '0')}];
             data[0][v] = [];
@@ -502,7 +502,7 @@ describe('SolarData', function() {
         it('should be "export_var_sum_%d-%m-%Y.csv"', [
             generators.lineData,
             GenTest.types.elementOf(SolarData.shortVars),
-            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(data, v, s) {
             data[v] = data.dates.map(() => Math.round(1000*Math.random()));
             var solarData = SolarData.create(data);
@@ -515,7 +515,7 @@ describe('SolarData', function() {
         it('should be "export_var_sum_%d-%m-%Y.csv"', [
             generators.histData,
             GenTest.types.elementOf(SolarData.shortVars),
-            GenTest.types.elementOf(Object.keys(SolarData.sums)),
+            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
         ], function(data, v, s) {
             data.forEach((d) => {d[v] = [];})
             var solarData = SolarData.create(data);
@@ -1014,6 +1014,29 @@ describe('SolarData', function() {
         return year + '-' + month + '-' + day;
     }
 
+    describe('variableName', function() {
+        it('should return "Énergie"', function() {
+            expect(SolarData.variableName('nrj')).toBe('Énergie');
+        });
+        it('should return "Puissance"', function() {
+            expect(SolarData.variableName('pwr')).toBe('Puissance');
+        });
+        it('should return "Puissance AC"', function() {
+            expect(SolarData.variableName('pac')).toBe('Puissance AC');
+        });
+        it('should return "Puissance DC"', function() {
+            expect(SolarData.variableName('pdc')).toBe('Puissance DC');
+        });
+        it('should return "Tension AC"', function() {
+            expect(SolarData.variableName('uac')).toBe('Tension AC');
+        });
+        it('should return "Tension DC"', function() {
+            expect(SolarData.variableName('udc')).toBe('Tension DC');
+        });
+        it('should return "Température"', function() {
+            expect(SolarData.variableName('temp')).toBe('Température');
+        });
+    });
     describe('validVars', function() {
         it('should return available variables', [
             generators.any,
@@ -1202,6 +1225,18 @@ describe('SolarData', function() {
             expect(solarData.div).toBeCloseTo(1000000000000);
             expect(solarData.log1000Div).toBe(4);
             expect(solarData.yLabel()).toBe(SolarData.longVars[SolarData.shortVars.indexOf(setVar)] + ' (T' + SolarData.units[SolarData.shortVars.indexOf(setVar)] + ')');
+        });
+    });
+
+    describe('aggregationName', function() {
+        it('should return "Total"', function() {
+            expect(SolarData.aggregationName('sum')).toBe('Total');
+        });
+        it('should return "Par onduleur"', function() {
+            expect(SolarData.aggregationName('inv')).toBe('Par onduleur');
+        });
+        it('should return "Par string"', function() {
+            expect(SolarData.aggregationName('str')).toBe('Par string');
         });
     });
     describe('validAggs', function() {
