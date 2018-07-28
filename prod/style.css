@@ -95,9 +95,13 @@ select {
              ". . . . . . . . . . . . . . . . . . . . ";
 }
 
+#legend .label {
+    background-color: background;
+}
+
 #legend .input {
     padding-left: 4px;
-    background: white;
+    background-color: background;
     float: right;
 }
 

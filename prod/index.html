@@ -178,7 +178,7 @@ function drawLegend(paths)
         var inv = legend.append('ul').selectAll('li')
                                      .data(paths._groups);
         inv = inv.enter().append('li');
-        inv.append('span').style('background', 'white');
+        inv.append('span').classed('label', true);
         
         if (sum == 'str') {
             inv.select('span').append('span').text(function(d, i) {return 'Onduleur ' + (i + 1);});
@@ -190,7 +190,7 @@ function drawLegend(paths)
             var str = inv.append('ul').selectAll('li')
                                       .data(function(d) {return d;});
             str = str.enter().append('li');
-            str.append('span').style('background', 'white');
+            str.append('span').classed('label', true);
             
             str.select('span').append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
             str.select('span').append('span').text(function(d, i) {return ' String ' + (i + 1);});
