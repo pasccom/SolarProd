@@ -1037,6 +1037,20 @@ describe('SolarData', function() {
             expect(SolarData.variableName('temp')).toBe('Température');
         });
     });
+    describe('variableUnit', function() {
+        it('should return "Wh"', function() {
+            expect(SolarData.variableUnit('nrj')).toBe('Wh');
+        });
+        it('should return "W"', [GenTest.types.elementOf(['pwr', 'pac', 'pdc'])], function(v) {
+            expect(SolarData.variableUnit(v)).toBe('W');
+        });
+        it('should return "V"', [GenTest.types.elementOf(['uac', 'udc'])], function(v) {
+            expect(SolarData.variableUnit(v)).toBe('V');
+        });
+        it('should return "°C"', function() {
+            expect(SolarData.variableUnit('temp')).toBe('°C');
+        });
+    });
     describe('validVars', function() {
         it('should return available variables', [
             generators.any,
