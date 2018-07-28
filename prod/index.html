@@ -303,7 +303,7 @@ function updateSums()
     sums.enter()
         .append('option')
         .attr('value', (d) => d)
-        .text((d) => SolarData.sums[d]);
+        .text(SolarData.aggregationName);
     sums.exit().remove();
     sums.order();
 }

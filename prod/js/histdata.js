@@ -52,20 +52,18 @@ function HistData(data, year, month, day) {
                 return e;
         }
 
-        // TODO to move away
-        var sums = ['sum', 'inv', 'str'];
-
         var exportData = {headers: []};
 
+        // TODO to be moved
         var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= sums.indexOf(this.agg); s++)
-            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], sums.indexOf(this.agg), s))); // TODO should be this.agg
+        for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
+            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s))); // TODO should be this.agg
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
         exportData.data = data.map((d) => {
-            var e = recSum(d[this.var], sums.indexOf(this.agg)); // TODO should be this.agg.
+            var e = recSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
             return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e));
         });
 
@@ -83,15 +81,12 @@ function HistData(data, year, month, day) {
                 return e;
         }
 
-        // TODO to move away
-        var sums = ['sum', 'inv', 'str'];
-
         for (var i = 0; i < this.length; i++)
             delete this[i];
         if (this.var !== null) {
             for (var i = 0; i < data.length; i++) {
                 var d = data[i][this.var];
-                d = recSum(d, sums.indexOf(this.agg)); // TODO should be this.agg.
+                d = recSum(d, this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
                 this[i] = {date: data[i].date, data: d};
             }
             this.length = data.length;

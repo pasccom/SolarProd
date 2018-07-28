@@ -28,11 +28,15 @@ var SolarData = {
         return SolarData.longVars[SolarData.shortVars.indexOf(v)];
     },
 
-    // Sums:
-    sums: {
-        sum:    'Total',
-        inv:    'Par onduleur',
-        str:    'Par string',
+    // Aggregation methods:
+    aggregations: [
+        {code: 'sum', name: 'Total'},
+        {code: 'inv', name: 'Par onduleur'},
+        {code: 'str', name: 'Par string'},
+    ],
+    aggregationName: function(a)
+    {
+        return SolarData.aggregations.find((e) => (e.code == a)).name;
     },
 
     prefixes:   ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'],
