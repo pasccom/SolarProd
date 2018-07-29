@@ -30,21 +30,20 @@ function HistData(data, year, month, day) {
     this.export = function() {
         return {headers: this.headLines(data[0][this.var]),
                 data: data.map((d) => {
-                    var e = this.aggSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+                    var e = this.aggregate(d[this.var]);
                     return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e)); // TODO define merge
                 }),
         };
     }
 
     this.update = function() {
-
-
+        // Clear existing indexes:
         for (var i = 0; i < this.length; i++)
             delete this[i];
         if (this.var !== null) {
+            // Create new indexes:
             for (var i = 0; i < data.length; i++) {
-                var d = data[i][this.var];
-                d = this.aggSum(d, this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+                d = this.aggregate(data[i][this.var]);
                 this[i] = {date: data[i].date, data: d};
             }
             this.length = data.length;

@@ -33,7 +33,7 @@ function LineData(data, year, month, day) {
     this.sumArray = (a) => d3.transpose(a).map((d) => d3.sum(d));
 
     this.export = function() {
-        var d = this.aggSum(data[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+        var d = this.aggregate(data[this.var]);
 
         return {headers: this.headLines(data[this.var]),
                 data: d3.transpose([data.dates.map(this.dateFormatter)].concat(!Array.isArray(d[0]) ? [d] : !Array.isArray(d[0][0]) ? d : d3.merge(d))), // TODO define merge
@@ -42,8 +42,9 @@ function LineData(data, year, month, day) {
 
     this.update = function() {
         if (this.var !== null) {
+            // Update index:
             this.length = 1;
-            var d = this.aggSum(data[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+            var d = this.aggregate(data[this.var]);
             this[0] = {x: data.dates, y: d};
 
             // Set scale domains:

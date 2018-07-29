@@ -117,6 +117,10 @@ var SolarData = {
 
         return this.agg;
     },
+    aggregate: function(datum)
+    {
+        return this.aggSum(datum, this.aggregations.findIndex((a) => (a.code == this.agg)));
+    },
     aggSum: function(e, s)
     {
         if (!e || !this.isArray(e))
