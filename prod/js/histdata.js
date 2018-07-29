@@ -28,22 +28,12 @@ function HistData(data, year, month, day) {
     this.xAxis.scale(this.xScale);
 
     this.export = function() {
-        var exportData = {headers: []};
-
-        // TODO to be moved
-        var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
-            exportData.headers.push([s == 0 ? 'Date' : ''].concat(this.headLine(data[0][this.var], null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s))); // TODO should be this.agg
-        if (exportData.headers.length > 1)
-            exportData.headers.shift();
-        exportData.headers[0][0] = 'Date';
-
-        exportData.data = data.map((d) => {
-            var e = this.aggSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
-            return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e));
-        });
-
-        return exportData;
+        return {headers: this.headLines(data[0][this.var]),
+                data: data.map((d) => {
+                    var e = this.aggSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+                    return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e)); // TODO define merge
+                }),
+        };
     }
 
     this.update = function() {

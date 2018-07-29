@@ -128,6 +128,20 @@ var SolarData = {
         else
             return e;
     },
+    headLines: function(datum)
+    {
+        var headers = [];
+
+        var formats = ['Total', 'Onduleur ', 'String '];
+        for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
+            headers.push([''].concat(this.headLine(datum, null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s)));
+
+        if (headers.length > 1)
+            headers.shift();
+        headers[0][0] = 'Date';
+
+        return headers;
+    },
     headLine: function(e, i, f, s, l)
     {
         if (l == 0)

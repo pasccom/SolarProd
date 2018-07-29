@@ -33,20 +33,11 @@ function LineData(data, year, month, day) {
     this.sumArray = (a) => d3.transpose(a).map((d) => d3.sum(d));
 
     this.export = function() {
-        var exportData = {headers: []};
-
-        // TODO to be moved:
-        var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
-            exportData.headers.push([''].concat(this.headLine(data[this.var], null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s)));
-        if (exportData.headers.length > 1)
-            exportData.headers.shift();
-        exportData.headers[0][0] = 'Date';
-
         var d = this.aggSum(data[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
-        exportData.data = d3.transpose([data.dates.map(this.dateFormatter)].concat(!Array.isArray(d[0]) ? [d] : !Array.isArray(d[0][0]) ? d : d3.merge(d)));
 
-        return exportData;
+        return {headers: this.headLines(data[this.var]),
+                data: d3.transpose([data.dates.map(this.dateFormatter)].concat(!Array.isArray(d[0]) ? [d] : !Array.isArray(d[0][0]) ? d : d3.merge(d))), // TODO define merge
+        };
     }
 
     this.update = function() {
