@@ -28,43 +28,18 @@ function HistData(data, year, month, day) {
     this.xAxis.scale(this.xScale);
 
     this.export = function() {
-        var recSum = function(e, s)
-        {
-            if (Array.isArray(e) && (s <= 0))
-                return d3.sum(e, (d) => recSum(d, s - 1));
-            else if (Array.isArray(e))
-                return e.map((d) => recSum(d, s - 1));
-            else
-                return e;
-        }
-
-        var recFormat = function(e, i, f, s, l)
-        {
-            if (l == 0)
-                f = f + ((i !== null) ? (i + 1) : '');
-
-            if ((s == 0) || !e || !Array.isArray(e))
-                return f;
-
-            e = e.map((d, j) => recFormat(d, j, f, s - 1, l - 1));
-            if (Array.isArray(e[0]))
-                return d3.merge(e);
-            else
-                return e;
-        }
-
         var exportData = {headers: []};
 
         // TODO to be moved
         var formats = ['Total', 'Onduleur ', 'String '];
         for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
-            exportData.headers.push([s == 0 ? 'Date' : ''].concat(recFormat(data[0][this.var], null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s))); // TODO should be this.agg
+            exportData.headers.push([s == 0 ? 'Date' : ''].concat(this.headLine(data[0][this.var], null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s))); // TODO should be this.agg
         if (exportData.headers.length > 1)
             exportData.headers.shift();
         exportData.headers[0][0] = 'Date';
 
         exportData.data = data.map((d) => {
-            var e = recSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+            var e = this.aggSum(d[this.var], this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
             return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e));
         });
 
@@ -72,22 +47,14 @@ function HistData(data, year, month, day) {
     }
 
     this.update = function() {
-        var recSum = function(e, s)
-        {
-            if (Array.isArray(e) && (s <= 0))
-                return d3.sum(e, (d) => recSum(d, s - 1));
-            else if (Array.isArray(e))
-                return e.map((d) => recSum(d, s - 1));
-            else
-                return e;
-        }
+
 
         for (var i = 0; i < this.length; i++)
             delete this[i];
         if (this.var !== null) {
             for (var i = 0; i < data.length; i++) {
                 var d = data[i][this.var];
-                d = recSum(d, this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
+                d = this.aggSum(d, this.aggregations.findIndex((a) => (a.code == this.agg))); // TODO should be this.agg.
                 this[i] = {date: data[i].date, data: d};
             }
             this.length = data.length;

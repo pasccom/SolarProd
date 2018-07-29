@@ -71,6 +71,8 @@ var SolarData = {
     },
 
     isEmpty: () => true,
+    isArray: Array.isArray,
+    sumArray: d3.sum,
 
     variable: function(v) {
         if (arguments.length > 0) {
@@ -115,11 +117,30 @@ var SolarData = {
 
         return this.agg;
     },
-    exportFilename: function() {
-        var dateString = this.dateString;
-        if (dateString != '')
-            dateString = '_' + dateString;
-        return 'export_' + this.var + '_' + this.agg + dateString + '.csv';
+    aggSum: function(e, s)
+    {
+        if (!e || !this.isArray(e))
+            return e;
+
+        e = e.map((d) => this.aggSum(d, s - 1));
+        if (s <= 0)
+            return this.sumArray(e);
+        else
+            return e;
+    },
+    headLine: function(e, i, f, s, l)
+    {
+        if (l == 0)
+            f = f + ((i !== null) ? (i + 1) : '');
+
+        if ((s == 0) || !e || !this.isArray(e))
+            return f;
+
+        e = e.map((d, j) => this.headLine(d, j, f, s - 1, l - 1));
+        if (Array.isArray(e[0]))
+            return d3.merge(e);
+        else
+            return e;
     },
 
     init: function(year, month, day)
@@ -195,6 +216,12 @@ var SolarData = {
         this.yGrid = d3.axisRight().scale(this.yScale);
     },
 
+    exportFilename: function() {
+        var dateString = this.dateString;
+        if (dateString != '')
+            dateString = '_' + dateString;
+        return 'export_' + this.var + '_' + this.agg + dateString + '.csv';
+    },
     yLabel: function()
     {
         return SolarData.variableName(this.var) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variableUnit(this.var) + ')';
