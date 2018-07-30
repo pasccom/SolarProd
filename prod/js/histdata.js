@@ -29,12 +29,9 @@ function HistData(data, year, month, day) {
 
     this.export = function() {
         return {headers: this.headLines(data[0][this.var]),
-                data: data.map((d) => {
-                    var e = this.aggregate(d[this.var]);
-                    return [this.dateFormatter(d.date)].concat(!Array.isArray(e) ? [e] : !Array.isArray(e[0]) ? e : d3.merge(e)); // TODO define merge
-                }),
+                data: data.map((d) =>  [this.dateFormatter(d.date)].concat(this.merge(this.aggregate(d[this.var])))),
         };
-    }
+    };
 
     this.update = function() {
         // Clear existing indexes:
@@ -42,14 +39,13 @@ function HistData(data, year, month, day) {
             delete this[i];
         if (this.var !== null) {
             // Create new indexes:
-            for (var i = 0; i < data.length; i++) {
-                d = this.aggregate(data[i][this.var]);
-                this[i] = {date: data[i].date, data: d};
-            }
+            for (var i = 0; i < data.length; i++)
+                this[i] = {date: data[i].date, data: this.aggregate(data[i][this.var])};
             this.length = data.length;
 
             // Set scales padding/domain:
-            var maxData = d3.max(this, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? d3.max(a) : a) : d.data);
+            //var maxData = d3.max(this, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? d3.max(a) : a) : d.data);
+            var maxData = d3.max(this, (d) => recMax(d.data));
             this.updateDivider(maxData)
             this.xScale.padding((this.agg == 'sum') ? 0 : 0.1);
             this.yScale.domain([0, maxData/this.div]);

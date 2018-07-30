@@ -18,6 +18,22 @@ function pad(n, l, p)
     return n;
 }
 
+function recMin(a)
+{
+    if (!Array.isArray(a))
+        return a;
+    else
+        return d3.min(a, recMin);
+}
+
+function recMax(a)
+{
+    if (!Array.isArray(a))
+        return a;
+    else
+        return d3.max(a, recMax);
+}
+
 var SolarData = {
     // Variables:
     vars: [
@@ -159,6 +175,13 @@ var SolarData = {
             return d3.merge(e);
         else
             return e;
+    },
+    merge: function(a)
+    {
+        if (!this.isArray(a))
+            return [a];
+        else
+            return d3.merge(a.map((e) => this.merge(e)));
     },
 
     init: function(year, month, day)
