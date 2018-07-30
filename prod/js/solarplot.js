@@ -29,9 +29,8 @@ var SolarPlot = {
     },
 }
 
-function EmptyPlot(root, data)
+function EmptyPlot()
 {
-    this.init(root, data);
     this.legendStyle = null;
     this.remove = () => {};
     this.draw = () => false;

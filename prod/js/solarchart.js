@@ -63,11 +63,12 @@ SolarChart.prototype = {
         }
         // Create new plot:
         if (data.isEmpty())
-            this.plot = new EmptyPlot(this.plotRoot, data);
+            this.plot = new EmptyPlot();
         else if (data.type == SolarData.Type.DAY)
-            this.plot = new LinePlot(this.plotRoot, data);
+            this.plot = new LinePlot();
         else
-            this.plot = new HistPlot(this.plotRoot, data);
+            this.plot = new HistPlot();
+        this.plot.init(this.plotRoot, data);
         // Resize new plot to old plot size:
         this.plot.resize(ow, oh);
         // Draw new plot:

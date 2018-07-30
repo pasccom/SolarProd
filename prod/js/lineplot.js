@@ -1,5 +1,4 @@
-function LinePlot(root, data) {
-    this.init(root, data);
+function LinePlot() {
     this.lines = undefined;
 
     this.legendStyle = (function(selection) {
@@ -20,7 +19,7 @@ function LinePlot(root, data) {
         // Manages all lines:
         if (this.lines === undefined)
             this.lines = chart.plotRoot.selectAll('g.nonexistent');
-        this.lines = this.lines.data(data);
+        this.lines = this.lines.data(this.data);
         this.lines.exit().remove();
         this.lines = this.lines.enter().append('g').merge(this.lines);
 
@@ -28,7 +27,7 @@ function LinePlot(root, data) {
         var linesGroups = this.lines.selectAll('g').data((d) => Array.isArray(d.y[0]) ? d.y.map((a) => {return {x: d.x, y: a};}) : [d]);
         linesGroups.exit().remove();
         linesGroups = linesGroups.enter().append('g').merge(linesGroups);
-        linesGroups.attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size());});
+        linesGroups.attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size()));
 
         // Manages individual lines (by string):
         var paths = linesGroups.selectAll('path').data((d) => Array.isArray(d.y[0]) ? d.y.map((a) => a.map((e, i) => {return {x: d.x[i], y:e};}))
@@ -37,10 +36,10 @@ function LinePlot(root, data) {
         paths = paths.enter().append('path').classed('line', true).merge(paths);
 
         // Draws lines:
-        var line = d3.line().x(function(d) {return data.xScale(d.x);})
-                            .y(function(d) {return data.yScale(d.y/data.div);});
+        var line = d3.line().x((d) => this.data.xScale(d.x))
+                            .y((d) => this.data.yScale(d.y/this.data.div));
         paths.attr('d', line)
-             .attr('stroke-opacity', function(d, i) {return 0.9 - 0.7*i*linesGroups.size()/paths.size();});
+             .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()));
 
         // Draw axes and legend:
         this.legendData = paths;

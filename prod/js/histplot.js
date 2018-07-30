@@ -1,5 +1,4 @@
-function HistPlot(root, data) {
-    this.init(root, data);
+function HistPlot() {
     this.groups = undefined;
 
     this.legendStyle = (function(selection) {
@@ -21,22 +20,22 @@ function HistPlot(root, data) {
         // Manages groups:
         if (this.groups === undefined)
             this.groups = this.root.selectAll('g.nonexistent');
-        this.groups = this.groups.data(data);
+        this.groups = this.groups.data(this.data);
         this.groups.exit().remove();
         this.groups = this.groups.enter().append('g').merge(this.groups);
 
         // Manages subGroups:
-        var nGroups = d3.max(data, (d) => Array.isArray(d.data) ? d.data.length : 1); // TODO move
+        var nGroups = d3.max(this.data, (d) => Array.isArray(d.data) ? d.data.length : 1); // TODO move
         var subGroups = this.groups.selectAll('g');
         subGroups = subGroups.data((d) => Array.isArray(d.data) ? d.data : [d.data]);
         subGroups.exit().remove();
         subGroups = subGroups.enter().append('g').merge(subGroups);
-        subGroups.attr('transform', function(d, i) {return "translate(" + (data.xScale.bandwidth()*i/nGroups) + ",0)";})
-                .attr('fill', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);})
-                .attr('stroke', function(d, i) {return d3.interpolateInferno(0.9 - 0.45*i/nGroups);});
+        subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"))
+                .attr('fill', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups))
+                .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups));
 
         // Manages bars:
-        var nBars = d3.max(data, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? a.length : 1) : 1); // TODO move
+        var nBars = d3.max(this.data, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? a.length : 1) : 1); // TODO move
         var bars = subGroups.selectAll('rect');
         bars = bars.data((d) => Array.isArray(d) ? d : [d]);
         bars.style('display', 'initial');
@@ -44,18 +43,18 @@ function HistPlot(root, data) {
         bars = bars.enter().append('rect').classed('bar', true).merge(bars);
 
         // Draw bars:
-        bars.attr('x', function(d, i) {return data.xScale.bandwidth()*i/nGroups/nBars;})
-            .attr('y', function(d) {return data.yScale(d/data.div);})
-            .attr('width', 0.98*data.xScale.bandwidth()/nGroups/nBars)
-            .attr('height', function(d) {return data.yScale(0) - data.yScale(d/data.div);})
-            .attr('fill-opacity', function(d, i) {return 0.25 + 0.5*i/nBars;});
+        bars.attr('x', (d, i) => this.data.xScale.bandwidth()*i/nGroups/nBars)
+            .attr('y', (d) => this.data.yScale(d/this.data.div))
+            .attr('width', 0.98*this.data.xScale.bandwidth()/nGroups/nBars)
+            .attr('height', (d) => (this.data.yScale(0) - this.data.yScale(d/this.data.div)))
+            .attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars));
 
         // Places groups:
-        this.groups.attr('transform', function(d) {return "translate(" + (data.xScale(d.date) + 0.01*data.xScale.bandwidth()/nGroups/nBars) + ",0)";});
+        this.groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.date) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
         // Draw axes and legend:
-        this.legendData = this.groups.filter(function(d, i) {return i == 0;}).selectAll('g').selectAll('rect');
-        drawLegend(this.groups.filter(function(d, i) {return i == 0;}).selectAll('g').selectAll('rect'));
+        this.legendData = this.groups.filter((d, i) => (i == 0)).selectAll('g').selectAll('rect');
+        drawLegend(this.groups.filter((d, i) => (i == 0)).selectAll('g').selectAll('rect'));
 
         return true;
     };
