@@ -152,9 +152,10 @@ var SolarData = {
     {
         var headers = [];
 
+        var agg = this.aggregations.findIndex((a) => (a.code == this.agg));
         var formats = ['Total', 'Onduleur ', 'String '];
-        for (var s = 0; s <= this.aggregations.findIndex((a) => (a.code == this.agg)); s++)
-            headers.push([''].concat(this.headLine(datum, null, formats[s], this.aggregations.findIndex((a) => (a.code == this.agg)), s)));
+        for (var l = 0; l <= agg; l++)
+            headers.push([''].concat(this.headLine(datum, null, formats[l], agg, l)));
 
         if (headers.length > 1)
             headers.shift();
@@ -162,19 +163,19 @@ var SolarData = {
 
         return headers;
     },
-    headLine: function(e, i, f, s, l)
+    headLine: function(datum, i, format, a, l)
     {
         if (l == 0)
-            f = f + ((i !== null) ? (i + 1) : '');
+            format = format + ((i !== null) ? (i + 1) : '');
 
-        if ((s == 0) || !e || !this.isArray(e))
-            return f;
+        if ((a == 0) || !datum || !this.isArray(datum))
+            return format;
 
-        e = e.map((d, j) => this.headLine(d, j, f, s - 1, l - 1));
-        if (Array.isArray(e[0]))
-            return d3.merge(e);
+        datum = datum.map((d, j) => this.headLine(d, j, format, a - 1, l - 1));
+        if (Array.isArray(datum[0]))
+            return d3.merge(datum);
         else
-            return e;
+            return datum;
     },
     merge: function(a)
     {
