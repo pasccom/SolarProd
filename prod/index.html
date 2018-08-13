@@ -31,6 +31,7 @@
         <script src="js/solarplot.js" charset="utf-8"></script>
         <script src="js/lineplot.js" charset="utf-8"></script>
         <script src="js/histplot.js" charset="utf-8"></script>
+        <script src="js/solarlegend.js" charset="utf-8"></script>
         <script src="js/solarchart.js" charset="utf-8"></script>
     </head>
     <body>
@@ -71,8 +72,7 @@ var selectDir = 1;
 var cache = {};
 
 var data = SolarData.create([], '', '', '');
-var chart = new SolarChart(d3.select('body'),/*d3.select('#chart'), */data);
-var legend = chart.legendRoot;
+var chart = new SolarChart(d3.select('body'), data);
 
 // Window resize event:
 function windowResize()
@@ -88,127 +88,6 @@ function windowResize()
         h -= 38;
 
     chart.resize(w, h);
-}
-
-// Update visibility in legend so that it matches the visility of the element:
-function updateVisibility()
-{
-    // Ensure the checkboxes match the visility of the elements:
-    legend.selectAll('input').each(function(d) {
-        if (d[0] === undefined) {
-            this.checked = (d3.select(d).style('display') != 'none');
-        } else {
-            var allSelected = true;
-            var anySelected = false;
-            d.forEach(function(e) {
-                allSelected &= (d3.select(e).style('display') != 'none');
-                anySelected |= (d3.select(e).style('display') != 'none');
-            });
-            this.checked = anySelected;
-            this.indeterminate = !allSelected && anySelected;
-        }
-    });
-}
-
-// Change the visibility of an element:
-function changeVisiblilty(d)
-{
-    var selection;
-    if (chart.plot.groups !== undefined) {
-        var group;
-        var elem;
-        
-        // Get group number for current element:
-        chart.plot.groups.filter(function(d, i) {return i == 0;})
-                         .selectAll('g').each(function(e, i) {
-            d3.select(this).selectAll('rect').each(function(e, j) {
-                var element = this;
-                if ((d[0] === undefined) && (d == element))
-                    group = i;
-                if (d[0] !== undefined)
-                    d.forEach(function(e) {if (e == element) group = i;});
-            });
-        });
-        // Get element number for current element (if it is an element):
-        chart.plot.groups.filter(function(d, i) {return i == 0;})
-                         .selectAll('g').selectAll('rect').each(function(e, i) {
-            if (this == d)
-                elem = i;
-        });
-        console.log('group:', group, 'elem:', elem);
-        
-        // Get all element at position elem in group group:
-        selection = chart.plot.groups.selectAll('g').filter(function(e, i) {return (i == group);});
-        selection = selection.selectAll('rect').filter(function(e, i) {return (elem === undefined ? true : (i == elem));});
-    } else {
-        selection = (d[0] === undefined) ? d3.select(d) : d3.selectAll(d);
-    }
-    
-    // Show/hides elements:
-    if (d3.select(d3.event.target).property('checked'))
-        selection.style('display', 'initial');
-    else
-        selection.style('display', 'none');
-        
-    updateVisibility();
-}
-
-// Draw the legend:
-function drawLegend(paths)
-{
-    var sum = data.aggregation();
-    if (sum == null)
-        sum = 'sum';
-        
-    if (!legend)
-        return;
-    legend.selectAll('*').remove();
-    legend.append('h4').text('Légende');
-    
-    // Functions for styling legend items:
-    var style = chart.plot.legendStyle;
-    if (style === null)
-        return;
-        
-    // Creates legend (using lists)
-    if (sum == 'sum') {
-        legend.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
-        legend.append('span').text(' Total');
-    } else {
-        var inv = legend.append('ul').selectAll('li')
-                                     .data(paths._groups);
-        inv = inv.enter().append('li');
-        inv.append('span').classed('label', true);
-        
-        if (sum == 'str') {
-            inv.select('span').append('span').text(function(d, i) {return 'Onduleur ' + (i + 1);});
-            inv.append('span').classed('input', true)
-                              .append('input')
-                              .attr('type', 'checkbox')
-                              .on('change', changeVisiblilty);
-            
-            var str = inv.append('ul').selectAll('li')
-                                      .data(function(d) {return d;});
-            str = str.enter().append('li');
-            str.append('span').classed('label', true);
-            
-            str.select('span').append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
-            str.select('span').append('span').text(function(d, i) {return ' String ' + (i + 1);});
-            str.append('span').classed('input', true)
-                              .append('input')
-                              .attr('type', 'checkbox')
-                              .on('change', changeVisiblilty);
-        } else {
-            inv.select('span').append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
-            inv.select('span').append('span').text(function(d, i) {return ' Onduleur ' + (i + 1);});
-            inv.append('span').classed('input', true)
-                              .append('input')
-                              .attr('type', 'checkbox')
-                              .on('change', changeVisiblilty);
-        }
-        
-        updateVisibility();
-    }
 }
 
 // Fetch data:

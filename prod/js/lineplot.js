@@ -41,9 +41,8 @@ function LinePlot() {
         paths.attr('d', line)
              .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()));
 
-        // Draw axes and legend:
+        // Data for legend:
         this.legendData = paths;
-        drawLegend(paths);
 
         return true;
     };

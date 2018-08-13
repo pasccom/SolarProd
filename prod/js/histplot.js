@@ -52,9 +52,8 @@ function HistPlot() {
         // Places groups:
         this.groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.date) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
-        // Draw axes and legend:
+        // Data for legend:
         this.legendData = this.groups.filter((d, i) => (i == 0)).selectAll('g').selectAll('rect');
-        drawLegend(this.groups.filter((d, i) => (i == 0)).selectAll('g').selectAll('rect'));
 
         return true;
     };

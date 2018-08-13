@@ -38,6 +38,9 @@ function SolarChart(root, data) {
     this.yLabel = this.chartRoot.append('g').classed('label', true);
     this.yLabel.append('text').attr('transform', 'rotate(-90)');
 
+    // Create legend:
+    this.legend = new SolarLegend(this.legendRoot, this);
+
     this.setData(data);
 }
 
@@ -115,7 +118,10 @@ SolarChart.prototype = {
     // Draw the axes (and the grid)
     draw: function()
     {
-        if (!this.plot.draw()) {
+        if (this.plot.draw()) {
+            this.legend.clear();
+            this.legend.draw(this.plot.data.aggregation());
+        } else {
             this.hide();
             return false;
         }
