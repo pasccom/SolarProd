@@ -23,13 +23,15 @@ SolarLegend.prototype = {
         // Ensure the checkboxes match the visility of the elements:
         this.root.selectAll('input').each(function(d) {
             if (d[0] === undefined) {
-                this.checked = (d3.select(d).style('display') != 'none');
+                this.checked = (d.style('display') != 'none');
             } else {
                 var allSelected = true;
                 var anySelected = false;
-                d.forEach(function(e) {
-                    allSelected &= (d3.select(e).style('display') != 'none');
-                    anySelected |= (d3.select(e).style('display') != 'none');
+                d.forEach((e) => {
+                    if (Array.isArray(e))
+                        e = e[0];
+                    allSelected &= (e.style('display') != 'none');
+                    anySelected |= (e.style('display') != 'none');
                 });
                 this.checked = anySelected;
                 this.indeterminate = !allSelected && anySelected;
@@ -39,42 +41,13 @@ SolarLegend.prototype = {
     // Change the visibility of an element:
     changeVisiblilty: function(d)
     {
-        var selection;
-        if (this.parent.plot.groups !== undefined) {
-            var group;
-            var elem;
-
-            // Get group number for current element:
-            this.parent.plot.groups.filter(function(d, i) {return i == 0;})
-                                   .selectAll('g').each(function(e, i) {
-                d3.select(this).selectAll('rect').each(function(e, j) {
-                    var element = this;
-                    if ((d[0] === undefined) && (d == element))
-                        group = i;
-                    if (d[0] !== undefined)
-                        d.forEach(function(e) {if (e == element) group = i;});
-                });
-            });
-            // Get element number for current element (if it is an element):
-            this.parent.plot.groups.filter(function(d, i) {return i == 0;})
-                                   .selectAll('g').selectAll('rect').each(function(e, i) {
-                if (this == d)
-                    elem = i;
-            });
-            console.log('group:', group, 'elem:', elem);
-
-            // Get all element at position elem in group group:
-            selection = this.parent.plot.groups.selectAll('g').filter(function(e, i) {return (i == group);});
-            selection = selection.selectAll('rect').filter(function(e, i) {return (elem === undefined ? true : (i == elem));});
-        } else {
-            selection = (d[0] === undefined) ? d3.select(d) : d3.selectAll(d);
-        }
-
         // Show/hides elements:
-        if (d3.select(d3.event.target).property('checked'))
-            selection.style('display', 'initial');
-        else
-            selection.style('display', 'none');
+        recForEach(d, (e) => {
+            if (d3.select(d3.event.target).property('checked'))
+                e.style('display', 'initial');
+            else
+                e.style('display', 'none');
+        });
 
         this.updateVisibility();
     },
@@ -91,7 +64,7 @@ SolarLegend.prototype = {
             this.root.append('span').text(' Total');
         } else {
             var inv = this.root.append('ul').selectAll('li')
-                                            .data(this.parent.plot.legendData._groups);
+                                            .data(this.parent.plot.legendData);
             inv = inv.enter().append('li');
             inv.append('span').classed('label', true);
 

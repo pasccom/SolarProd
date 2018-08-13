@@ -53,7 +53,15 @@ function HistPlot() {
         this.groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.date) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
         // Data for legend:
-        this.legendData = this.groups.filter((d, i) => (i == 0)).selectAll('g').selectAll('rect');
+        this.legendData = d3.transpose(this.groups.nodes().map((g1) =>
+            d3.select(g1).selectAll('g').nodes())
+        ).map((g1) =>
+            d3.transpose(g1.map((g2) =>
+                d3.select(g2).selectAll('rect').nodes().map((r) =>
+                    d3.select(r)
+                )
+            ))
+        );
 
         return true;
     };

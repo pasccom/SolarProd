@@ -34,6 +34,14 @@ function recMax(a)
         return d3.max(a, recMax);
 }
 
+function recForEach(a, fun)
+{
+    if (!Array.isArray(a))
+        fun(a);
+    else
+        a.forEach((e) => recForEach(e, fun));
+};
+
 var SolarData = {
     // Variables:
     vars: [

@@ -42,7 +42,12 @@ function LinePlot() {
              .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()));
 
         // Data for legend:
-        this.legendData = paths;
+        this.legendData = d3.select(this.lines.node()).selectAll('g').nodes().map((g) =>
+            d3.select(g).selectAll('path').nodes().map((p) =>
+                d3.select(p)
+            )
+        );
+
 
         return true;
     };

@@ -21,11 +21,16 @@ var SolarPlot = {
     // Get d3 selection:
     getD3: function(d) {
         if (d === undefined)
-            return this.legendData;
-        else if (d[0] === undefined)
-            return d3.select(d);
+            d = this.legendData;
+
+        if (d[0] === undefined)
+            return d;
+        else if (d[0][0] === undefined)
+            return d[0];
+        else if (d[0][0][0] === undefined)
+            return d[0][0];
         else
-            return d3.select(d[0]);
+            return d[0][0][0];
     },
 }
 
