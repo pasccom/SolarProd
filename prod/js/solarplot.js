@@ -25,12 +25,8 @@ var SolarPlot = {
 
         if (d[0] === undefined)
             return d;
-        else if (d[0][0] === undefined)
-            return d[0];
-        else if (d[0][0][0] === undefined)
-            return d[0][0];
         else
-            return d[0][0][0];
+            return this.getD3(d[0]);
     },
 }
 
