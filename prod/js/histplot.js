@@ -25,9 +25,13 @@ function HistPlot() {
         this.groups = this.groups.enter().append('g').merge(this.groups);
 
         // Manages subGroups:
-        var nGroups = d3.max(this.data, (d) => Array.isArray(d.data) ? d.data.length : 1); // TODO move
+        var nGroups = d3.max(this.data, (d) =>
+            Array.isArray(d.data) ? d.data.length : 1
+        );
         var subGroups = this.groups.selectAll('g');
-        subGroups = subGroups.data((d) => Array.isArray(d.data) ? d.data : [d.data]);
+        subGroups = subGroups.data((d) =>
+            Array.isArray(d.data) ? d.data : [d.data]
+        );
         subGroups.exit().remove();
         subGroups = subGroups.enter().append('g').merge(subGroups);
         subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"))
@@ -35,9 +39,15 @@ function HistPlot() {
                 .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups));
 
         // Manages bars:
-        var nBars = d3.max(this.data, (d) => Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? a.length : 1) : 1); // TODO move
+        var nBars = d3.max(this.data, (d) =>
+            Array.isArray(d.data) ? d3.max(d.data, (a) =>
+                Array.isArray(a) ? a.length : 1
+            ) : 1
+        );
         var bars = subGroups.selectAll('rect');
-        bars = bars.data((d) => Array.isArray(d) ? d : [d]);
+        bars = bars.data((d) =>
+            Array.isArray(d) ? d : [d]
+        );
         bars.style('display', 'initial');
         bars.exit().remove();
         bars = bars.enter().append('rect').classed('bar', true).merge(bars);

@@ -24,14 +24,25 @@ function LinePlot() {
         this.lines = this.lines.enter().append('g').merge(this.lines);
 
         // Manages groups of lines (by inverter):
-        var linesGroups = this.lines.selectAll('g').data((d) => Array.isArray(d.y[0]) ? d.y.map((a) => {return {x: d.x, y: a};}) : [d]);
+        var linesGroups = this.lines.selectAll('g').data((d) =>
+            Array.isArray(d.y[0]) ? d.y.map((a) => {
+                return {x: d.x, y: a};
+            }) : [d]
+        );
         linesGroups.exit().remove();
         linesGroups = linesGroups.enter().append('g').merge(linesGroups);
         linesGroups.attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size()));
 
         // Manages individual lines (by string):
-        var paths = linesGroups.selectAll('path').data((d) => Array.isArray(d.y[0]) ? d.y.map((a) => a.map((e, i) => {return {x: d.x[i], y:e};}))
-                                                                                    : [d.y.map((e, i) => {return {x: d.x[i], y: e};})]);
+        var paths = linesGroups.selectAll('path').data((d) =>
+            Array.isArray(d.y[0]) ? d.y.map((a) =>
+                a.map((e, i) => {
+                    return {x: d.x[i], y:e};
+                })
+            ) : [d.y.map((e, i) => {
+                return {x: d.x[i], y: e};
+            })]
+        );
         paths.exit().remove();
         paths = paths.enter().append('path').classed('line', true).merge(paths);
 
