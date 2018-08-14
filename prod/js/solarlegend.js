@@ -1,19 +1,6 @@
-function SolarLegend(legendRoot, parent)
+function SolarLegend(legendRoot)
 {
     this.root = legendRoot;
-    this.parent = parent;
-
-    this.appendLegendItem = (function(element)
-    {
-        element.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(this.parent.plot.legendStyle);
-    }).bind(this);
-    this.appendVisibilityBox = (function(element)
-    {
-        element.append('span')
-               .classed('input', true).append('input')
-                                      .attr('type', 'checkbox')
-                                      .on('change', this.changeVisiblilty.bind(this));
-    }).bind(this);
 }
 
 SolarLegend.prototype = {
@@ -52,37 +39,47 @@ SolarLegend.prototype = {
         this.updateVisibility();
     },
     // Draw the legend:
-    draw: function(sum)
+    draw: function(agg, data, style)
     {
-        if (!this.parent.plot.legendStyle)
-            return;
-        this.root.append('h4').text('Légende');
+        var appendLegendItem = function(element)
+        {
+            element.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+        };
 
+        var appendVisibilityBox = (function(element)
+        {
+            element.append('span')
+                .classed('input', true).append('input')
+                                        .attr('type', 'checkbox')
+                                        .on('change', this.changeVisiblilty.bind(this));
+        }).bind(this);
+
+        this.root.append('h4').text('Légende');
         // Creates legend (using lists)
-        if (sum == 'sum') {
-            this.root.call(this.appendLegendItem);
+        if (agg == 'sum') {
+            this.root.call(appendLegendItem);
             this.root.append('span').text(' Total');
         } else {
             var inv = this.root.append('ul').selectAll('li')
-                                            .data(this.parent.plot.legendData);
+                                            .data(data);
             inv = inv.enter().append('li');
             inv.append('span').classed('label', true);
 
-            if (sum != 'str')
-                inv.select('span').call(this.appendLegendItem);
+            if (agg != 'str')
+                inv.select('span').call(appendLegendItem);
 
             inv.select('span').append('span').text((d, i) => ('Onduleur ' + (i + 1)));
-            inv.call(this.appendVisibilityBox);
+            inv.call(appendVisibilityBox);
 
-            if (sum == 'str') {
+            if (agg == 'str') {
                 var str = inv.append('ul').selectAll('li')
                                         .data((d) => d);
                 str = str.enter().append('li');
                 str.append('span').classed('label', true);
 
-                str.select('span').call(this.appendLegendItem);
+                str.select('span').call(appendLegendItem);
                 str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
-                str.call(this.appendVisibilityBox);
+                str.call(appendVisibilityBox);
             }
 
             this.updateVisibility();

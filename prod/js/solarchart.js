@@ -39,7 +39,7 @@ function SolarChart(root, data) {
     this.yLabel.append('text').attr('transform', 'rotate(-90)');
 
     // Create legend:
-    this.legend = new SolarLegend(this.legendRoot, this);
+    this.legend = new SolarLegend(this.legendRoot);
 
     this.setData(data);
 }
@@ -120,7 +120,8 @@ SolarChart.prototype = {
     {
         if (this.plot.draw()) {
             this.legend.clear();
-            this.legend.draw(this.plot.data.aggregation());
+            if (this.plot.legendStyle)
+                this.legend.draw(this.plot.data.aggregation(), this.plot.legendData, this.plot.legendStyle);
         } else {
             this.hide();
             return false;
