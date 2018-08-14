@@ -71,7 +71,7 @@ var selectDir = 1;
 // Cache for first/last day, month and year:
 var cache = {};
 
-var data = SolarData.create([], '', '', '');
+var data = new EmptyData([], '', '', '');
 var chart = new SolarChart(d3.select('body'), data);
 
 // Window resize event:
@@ -92,13 +92,25 @@ function windowResize()
 
 // Fetch data:
 function plot(today) {
-    // The selected date:
-    var year = d3.select('#year').property('value');
-    var month = d3.select('#month').property('value');
-    var day = d3.select('#day').property('value');
+    // Set date of today:
+    if (today) {
+        selectMonth = -1;
+        selectDay = -1;
+        selectDir = 1;
+        d3.select('#year').property('value', d3.select('#year').selectAll('option')
+                                                               .filter(function() {return (this.nextElementSibling == null);})
+                                                               .attr('value'));
+        updateMonths();
+        updatePrevNext();
+    }
     
+    if (today)
+        SolarData.create().then(doPlot).catch(console.warn);
+    else
+        SolarData.create(d3.select('#year').property('value'), d3.select('#month').property('value'), d3.select('#day').property('value')).then(doPlot).catch(console.warn);
+
     // Constructs data path:
-    var file = '';
+    /*var file = '';
     var folder = '';
     if (day != '') {
         while (day.length < 2)
@@ -118,22 +130,12 @@ function plot(today) {
     }
     if (file == '')
         file = 'years';
-    if (today) {
+    if (today)
         file = 'today';
-        folder = '';
-        selectMonth = -1;
-        selectDay = -1;
-        selectDir = 1;
-        d3.select('#year').property('value', d3.select('#year').selectAll('option')
-                                                               .filter(function() {return (this.nextElementSibling == null);})
-                                                               .attr('value'));
-        updateMonths();
-        updatePrevNext();
-    }
-    console.log("Data file path: " + folder + file + '.json')
+    console.log("Data file path: " + folder + file + '.json')*/
     
     // Fetch the data with AJAX:
-    d3.json('data/' + folder + file + '.json').on('error', function(error) {
+    /*d3.json('data/' + folder + file + '.json').on('error', function(error) {
         console.warn('Error:', error);
     }).on('load', function(json) {
         // Transform json into solar data:
@@ -146,7 +148,18 @@ function plot(today) {
         
         // Activate export:
         d3.select('#export').classed('disabled', false);
-    }).get();
+    }).get();*/
+}
+
+function doPlot(data)
+{
+    window.data = data;
+
+    updateVariables();
+    chart.setData(data);
+
+    // Activate export:
+    d3.select('#export').classed('disabled', false);
 }
 
 // Updates the variable selector:

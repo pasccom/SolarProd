@@ -311,15 +311,48 @@ var SolarData = {
     {
         return this.xScale.step()/2;
     },
-    create: function(data, year, month, day)
+    create: function(year, month, day)
     {
-        // Return appropriate child object instance:
-        if (!Array.isArray(data))
-            return new LineData(data, year, month, day);
-        else if (data.length > 0)
-            return new HistData(data, year, month, day);
-        else
-            return new EmptyData(data, year, month, day)
+        var file = '';
+        var folder = '';
+
+        if (arguments.length > 0) {
+            if (day != '') {
+                while (day.length < 2)
+                    day = "0" + day;
+                folder = (folder == '') ? 'days' : folder;
+                file = "/" + day + file;
+            }
+            if (month != '') {
+                while (month.length < 2)
+                    month = "0" + month;
+                folder = (folder == '') ? 'months' : folder;
+                file = "/" + month + file;
+            }
+            if (year != '') {
+                folder = (folder == '') ? 'years' : folder;
+                file = "/" + year + file;
+            }
+            if (file == '')
+                file = 'years';
+        } else {
+            file = 'today';
+        }
+        console.log("Data file path: " + folder + file + '.json')
+
+        // Loads the data:
+        return new Promise((resolve, reject) => {
+            d3.json('data/' + folder + file + '.json').on('error', reject)
+                                                      .on('load', (data) => {
+                // Return appropriate child object instance:
+                if (!Array.isArray(data))
+                    resolve(new LineData(data, year, month, day));
+                else if (data.length > 0)
+                    resolve(new HistData(data, year, month, day));
+                else
+                    resolve(new EmptyData(data, year, month, day));
+            }).get();
+        });
     },
     Type: {
         ALL:   'ALL',
