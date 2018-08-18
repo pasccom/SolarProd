@@ -317,18 +317,21 @@ var SolarData = {
         var folder = '';
 
         if (arguments.length > 0) {
+            day = '' + day + '';
             if (day != '') {
                 while (day.length < 2)
                     day = "0" + day;
                 folder = (folder == '') ? 'days' : folder;
                 file = "/" + day + file;
             }
+            month = '' + month + '';
             if (month != '') {
                 while (month.length < 2)
                     month = "0" + month;
                 folder = (folder == '') ? 'months' : folder;
                 file = "/" + month + file;
             }
+            year = '' + year + '';
             if (year != '') {
                 folder = (folder == '') ? 'years' : folder;
                 file = "/" + year + file;
