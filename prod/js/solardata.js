@@ -272,6 +272,20 @@ var SolarData = {
             dateString = '_' + dateString;
         return 'export_' + this.var + '_' + this.agg + dateString + '.csv';
     },
+    exportCsv: function()
+    {
+        var exportData = this.export();
+        if (!exportData)
+            return;
+
+        // Create CSV from data:
+        var csv = new Blob([[
+            exportData.headers.map((line) => line.join(',')).join('\r\n'),
+            exportData.data.map((line) => line.join(',')).join('\r\n')
+        ].join('\r\n')], {type: 'text/csv;charset=utf-8'});
+        saveAs(csv, this.exportFilename());
+    },
+
     yLabel: function()
     {
         return SolarData.variableName(this.var) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variableUnit(this.var) + ')';

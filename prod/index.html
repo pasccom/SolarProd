@@ -600,22 +600,6 @@ function nextPlot()
         nextYearPlot(true);
 }
 
-function exportCsv()
-{
-    // TODO move to data:
-    var exportData = chart.plot.data.export();
-    if (!exportData)
-        return;
-
-    // Create CSV from data:
-    var csv = new Blob([[
-        exportData.headers.map((line) => line.join(',')).join('\r\n'),
-        exportData.data.map((line) => line.join(',')).join('\r\n')
-    ].join('\r\n')], {type: 'text/csv;charset=utf-8'});
-    saveAs(csv, chart.plot.data.exportFilename());
-}
-
-
 // Events connections:
 d3.select('#year').on('change', function() {
     updatePrevNext();
@@ -631,7 +615,7 @@ d3.select('#plot').on('click', plot);
 d3.select('#prev').on('click', prevPlot);
 d3.select('#today').on('click', function() {plot(true);});
 d3.select('#next').on('click', nextPlot);
-d3.select('#export').on('click', exportCsv);
+d3.select('#export').on('click', function() {chart.plot.data.exportCsv();});
 
 d3.select(window).on('resize', windowResize);
 windowResize();

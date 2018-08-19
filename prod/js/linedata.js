@@ -33,10 +33,8 @@ function LineData(data, year, month, day) {
     this.sumArray = (a) => d3.transpose(a).map((d) => d3.sum(d));
 
     this.export = function() {
-        var exportData = this.aggregate(data[this.var]);
-
         return {headers: this.headLines(data[this.var]),
-                data: d3.transpose([data.dates.map(this.dateFormatter)].concat(this.merge(exportData))),
+                data: d3.transpose([data.dates.map(this.dateFormatter)].concat(this.merge(this.aggregate(data[this.var])))),
         };
     };
 
