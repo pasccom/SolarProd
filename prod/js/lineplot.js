@@ -18,7 +18,7 @@ function LinePlot() {
     {
         // Manages all lines:
         if (this.lines === undefined)
-            this.lines = chart.plotRoot.selectAll('g.nonexistent');
+            this.lines = this.root.selectAll('g.nonexistent');
         this.lines = this.lines.data(this.data);
         this.lines.exit().remove();
         this.lines = this.lines.enter().append('g').merge(this.lines);

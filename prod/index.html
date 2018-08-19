@@ -37,13 +37,6 @@
     </head>
     <body>
         <script>
-// Disables selects:
-d3.select('#day').attr('disabled', true);
-d3.select('#month').attr('disabled', true);
-d3.select('#year').attr('disabled', true);
-d3.select('#var').attr('disabled', true);
-d3.select('#sum').attr('disabled', true);
-
 // Day and month to select:
 var selectMonth = 0;
 var selectDay = 0;
@@ -52,8 +45,6 @@ var selectDir = 1;
 var cache = {};
 
 var app = new SolarProd();
-var chart = new SolarChart(d3.select('body')); // TODO move to SolarProd
-app.chart = chart; // TODO remove
 
 // Window resize event:
 function windowResize()
@@ -68,7 +59,7 @@ function windowResize()
     if (window.innerWidth < 403)
         h -= 38;
 
-    chart.resize(w, h);
+    app.chart.resize(w, h);
 }
 
 // Fetch data:
@@ -94,7 +85,7 @@ function plot(today) {
 function doPlot(data)
 {
     updateVariables(data);
-    chart.setData(data);
+    app.chart.setData(data);
 
     // Activate export:
     d3.select('#export').classed('disabled', false);
@@ -124,9 +115,9 @@ function updateVariables(data)
 
 // Event handler:
 d3.select('#var').on('change', function() {
-    chart.plot.data.variable(d3.select(this).property('value'));
-    updateSums(chart.plot.data);
-    chart.draw();
+    app.chart.plot.data.variable(d3.select(this).property('value'));
+    updateSums(app.chart.plot.data);
+    app.chart.draw();
 });
 
 // Updates the sum selector:
@@ -147,8 +138,8 @@ function updateSums(data)
 
 // Event handler:
 d3.select('#sum').on('change', function() {
-    chart.plot.data.aggregation(d3.select(this).property('value'));
-    chart.draw();
+    app.chart.plot.data.aggregation(d3.select(this).property('value'));
+    app.chart.draw();
 });
 
 
@@ -597,7 +588,7 @@ d3.select('#plot').on('click', plot);
 d3.select('#prev').on('click', prevPlot);
 d3.select('#today').on('click', function() {plot(true);});
 d3.select('#next').on('click', nextPlot);
-d3.select('#export').on('click', function() {chart.plot.data.exportCsv();});
+d3.select('#export').on('click', function() {app.chart.plot.data.exportCsv();});
 
 d3.select(window).on('resize', windowResize);
 windowResize();

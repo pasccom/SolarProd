@@ -55,5 +55,5 @@ function SolarProd() {
     this.nextButton.attr('id', 'next');
     this.exportButton.attr('id', 'export');
 
-    this.chart = null; // TODO construct chart here
+    this.chart = new SolarChart(d3.select('body'));
 }
