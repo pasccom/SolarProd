@@ -71,8 +71,7 @@ var selectDir = 1;
 // Cache for first/last day, month and year:
 var cache = {};
 
-var data = new EmptyData([], '', '', '');
-var chart = new SolarChart(d3.select('body'), data);
+var chart = new SolarChart(d3.select('body'));
 
 // Window resize event:
 function windowResize()
@@ -108,54 +107,11 @@ function plot(today) {
         SolarData.create().then(doPlot).catch(console.warn);
     else
         SolarData.create(d3.select('#year').property('value'), d3.select('#month').property('value'), d3.select('#day').property('value')).then(doPlot).catch(console.warn);
-
-    // Constructs data path:
-    /*var file = '';
-    var folder = '';
-    if (day != '') {
-        while (day.length < 2)
-            day = "0" + day;
-        folder = (folder == '') ? 'days' : folder;
-        file = "/" + day + file;
-    }
-    if (month != '') {
-        while (month.length < 2)
-            month = "0" + month;
-        folder = (folder == '') ? 'months' : folder;
-        file = "/" + month + file;
-    }
-    if (year != '') {
-        folder = (folder == '') ? 'years' : folder;
-        file = "/" + year + file;
-    }
-    if (file == '')
-        file = 'years';
-    if (today)
-        file = 'today';
-    console.log("Data file path: " + folder + file + '.json')*/
-    
-    // Fetch the data with AJAX:
-    /*d3.json('data/' + folder + file + '.json').on('error', function(error) {
-        console.warn('Error:', error);
-    }).on('load', function(json) {
-        // Transform json into solar data:
-        if (today)
-            data = SolarData.create(json);
-        else
-            data = SolarData.create(json, year, month, day);
-        updateVariables();
-        chart.setData(data);
-        
-        // Activate export:
-        d3.select('#export').classed('disabled', false);
-    }).get();*/
 }
 
 function doPlot(data)
 {
-    window.data = data;
-
-    updateVariables();
+    updateVariables(data);
     chart.setData(data);
 
     // Activate export:
@@ -163,7 +119,7 @@ function doPlot(data)
 }
 
 // Updates the variable selector:
-function updateVariables()
+function updateVariables(data)
 {
     // Adds the new variables using a data join:
     var vars = d3.select('#var')
@@ -180,12 +136,19 @@ function updateVariables()
     // Updates sums if needed:
     if (d3.select('#var').property('value') != data.variable()) {
         data.variable(d3.select('#var').property('value'));
-        updateSums();
+        updateSums(data);
     }
 }
 
+// Event handler:
+d3.select('#var').on('change', function() {
+    chart.plot.data.variable(d3.select(this).property('value'));
+    updateSums(chart.plot.data);
+    chart.draw();
+});
+
 // Updates the sum selector:
-function updateSums()
+function updateSums(data)
 {
     // Adds the new sums using a data join:
     var sums = d3.select('#sum')
@@ -199,6 +162,13 @@ function updateSums()
     sums.exit().remove();
     sums.order();
 }
+
+// Event handler:
+d3.select('#sum').on('change', function() {
+    chart.plot.data.aggregation(d3.select(this).property('value'));
+    chart.draw();
+});
+
 
 // Get cache:
 d3.json("list/cache.json", function(json) {
@@ -632,7 +602,8 @@ function nextPlot()
 
 function exportCsv()
 {
-    var exportData = data.export();
+    // TODO move to data:
+    var exportData = chart.plot.data.export();
     if (!exportData)
         return;
 
@@ -641,21 +612,11 @@ function exportCsv()
         exportData.headers.map((line) => line.join(',')).join('\r\n'),
         exportData.data.map((line) => line.join(',')).join('\r\n')
     ].join('\r\n')], {type: 'text/csv;charset=utf-8'});
-    saveAs(csv, data.exportFilename());
+    saveAs(csv, chart.plot.data.exportFilename());
 }
 
 
 // Events connections:
-d3.select('#var').on('change', function() {
-    data.variable(d3.select(this).property('value'));
-    updateSums();
-    chart.draw();
-});
-d3.select('#sum').on('change', function() {
-    data.aggregation(d3.select(this).property('value'));
-    chart.draw();
-});
-
 d3.select('#year').on('change', function() {
     updatePrevNext();
     updateMonths();

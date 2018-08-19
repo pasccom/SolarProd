@@ -41,7 +41,7 @@ function SolarChart(root, data) {
     // Create legend:
     this.legend = new SolarLegend(this.legendRoot);
 
-    this.setData(data);
+    this.setData(new EmptyData([], '', '', ''));
 }
 
 SolarChart.prototype = {
