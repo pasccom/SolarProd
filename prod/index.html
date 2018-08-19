@@ -33,29 +33,9 @@
         <script src="js/histplot.js" charset="utf-8"></script>
         <script src="js/solarlegend.js" charset="utf-8"></script>
         <script src="js/solarchart.js" charset="utf-8"></script>
+        <script src="js/solarprod.js" charset="utf-8"></script>
     </head>
     <body>
-        <div>
-            <div class="toolbar">
-                <select id="day" title="Jour">
-                </select>
-                <select id="month" title="Mois">
-                </select>
-                <select id="year" title="Année">
-                </select>
-                <select id="var" title="Variable">
-                </select>
-                <select id="sum" title="Aggrégation">
-                </select>
-                <img id="plot" class="button" src="img/plot.png" alt="Tracer" title="Tracer" />
-            </div>
-            <div class="toolbar">
-                <img id="prev" class="button disabled" src="img/prev.png" alt="Précédent" title="Précédent" />
-                <img id="today" class="button" src="img/today.png" alt="Aujourd'hui" title="Aujourd'hui" />
-                <img id="next" class="button disabled" src="img/next.png" alt="Suivant" title="Suivant" />
-                <img id="export" class="button disabled" src="img/csv.png" alt="Export CSV" title="Export CSV" />
-            </div>
-        </div>
         <script>
 // Disables selects:
 d3.select('#day').attr('disabled', true);
@@ -71,7 +51,9 @@ var selectDir = 1;
 // Cache for first/last day, month and year:
 var cache = {};
 
-var chart = new SolarChart(d3.select('body'));
+var app = new SolarProd();
+var chart = new SolarChart(d3.select('body')); // TODO move to SolarProd
+app.chart = chart; // TODO remove
 
 // Window resize event:
 function windowResize()

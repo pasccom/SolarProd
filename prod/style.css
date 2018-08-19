@@ -29,6 +29,23 @@ body {
     vertical-align: top;
     overflow: hidden;
     white-space: nowrap;
+    margin-right: 4px;
+}
+
+.toolbar:last-child {
+    margin-right: 0px;
+}
+
+.toolbar>* {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.toolbar>*:first-child {
+    margin-left: 0px;
+}
+.toolbar>*:last-child {
+    margin-right: 0px;
 }
 
 select {
@@ -39,7 +56,7 @@ select {
 .button {
     border: 1px solid #ddd;
     border-radius: 4px;
-    vertical-align: middle;
+    vertical-align: top;
     padding: 2px;
 }
 
