@@ -399,8 +399,8 @@ class LayoutTest(TestCase):
         self.browser = None
     
     @testData([
-        {'size': (1024, 694)},
-        {'size': (1023, 694)},
+        {'size': (1024, 655)},
+        {'size': (1023, 655)},
         {'size': (724, 500) },
     ])
     def testLargeSizes(self, size):
