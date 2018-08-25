@@ -37,10 +37,6 @@
     </head>
     <body>
         <script>
-// Day and month to select:
-var selectMonth = 0;
-var selectDay = 0;
-var selectDir = 1;
 // Cache for first/last day, month and year:
 var cache = {};
 
@@ -112,18 +108,18 @@ function updateCache()
     var month = d3.select('#month').property('value');
     var day = d3.select('#day').property('value');
     
-    if (selectDay == 1)
+    if (app.selectDay == 1)
         cache.lastDay = [year, month, day];
-    else if (selectDay == -1)
+    else if (app.selectDay == -1)
         cache.firstDay = [year, month, day];
-    else if (selectMonth == 1)
+    else if (app.selectMonth == 1)
         cache.lastMonth = [year, month];
-    else if (selectMonth == -1)
+    else if (app.selectMonth == -1)
         cache.firstMonth = [year, month];
     else
         return;
     
-    selectDir = 1;
+    app.selectDir = 1;
     console.log('Updated cache:', cache);
     updatePrevNext();
 }

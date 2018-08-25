@@ -1,7 +1,14 @@
 function SolarProd() {
+    // Current date:
     this.year = '';
     this.month = '';
     this.day = '';
+
+
+    // Day and month to select:
+    this.selectMonth = 0;
+    this.selectDay = 0;
+    this.selectDir = 1;
 
     d3.select('body').append('div');
 
@@ -130,9 +137,9 @@ SolarProd.prototype = {
                             .selectAll('option').remove();
             this.daySelect.attr('disabled', true)
                           .selectAll('option').remove();
-            if (selectMonth*selectDir < 0)
+            if (this.selectMonth*this.selectDir < 0)
                 this.prevYearPlot(callPlot);
-            else if (selectMonth*selectDir > 0)
+            else if (this.selectMonth*this.selectDir > 0)
                 this.nextYearPlot(callPlot);
             if (callPlot)
                 this.plot();
@@ -150,17 +157,17 @@ SolarProd.prototype = {
                                .filter((d) => (d == ''))
                                .lower();
 
-            if (selectMonth*selectDir > 0)
-                this.month = data[selectMonth*selectDir];
-            if (selectMonth*selectDir < 0)
-                this.month = data[data.length + selectMonth*selectDir];
+            if (this.selectMonth*this.selectDir > 0)
+                this.month = data[this.selectMonth*this.selectDir];
+            if (this.selectMonth*this.selectDir < 0)
+                this.month = data[data.length + this.selectMonth*this.selectDir];
             this.monthSelect.property('value', this.month);
 
-            if (selectMonth != 0)
+            if (this.selectMonth != 0)
                 updatePrevNext();
-            if ((selectDay == 0) && (selectDir == -1))
+            if ((this.selectDay == 0) && (this.selectDir == -1))
                 updateCache();
-            selectMonth = 0;
+            this.selectMonth = 0;
 
             this.updateDays(callPlot);
             if ((callPlot) && (this.day == ''))
@@ -186,9 +193,9 @@ SolarProd.prototype = {
             this.day = '';
             this.daySelect.attr('disabled', true)
                           .selectAll('option').remove();
-            if (selectDay*selectDir < 0)
+            if (this.selectDay*this.selectDir < 0)
                 this.prevMonthPlot(callPlot);
-            else if (selectDay*selectDir > 0)
+            else if (this.selectDay*this.selectDir > 0)
                 this.nextMonthPlot(callPlot);
             if (callPlot)
                 this.plot();
@@ -207,17 +214,17 @@ SolarProd.prototype = {
                           .filter((d) => (d == ''))
                           .lower();
 
-            if (selectDay*selectDir > 0)
-                this.day = data[selectDay*selectDir];
-            if (selectDay*selectDir < 0)
-                this.day = data[data.length + selectDay*selectDir];
+            if (this.selectDay*this.selectDir > 0)
+                this.day = data[this.selectDay*this.selectDir];
+            if (this.selectDay*this.selectDir < 0)
+                this.day = data[data.length + this.selectDay*this.selectDir];
             this.daySelect.property('value', this.day);
 
-            if (selectDay != 0)
+            if (this.selectDay != 0)
                 updatePrevNext();
-            if (selectDir == -1)
+            if (this.selectDir == -1)
                 updateCache();
-            selectDay = 0;
+            this.selectDay = 0;
 
             if (callPlot)
                 this.plot();
@@ -227,9 +234,9 @@ SolarProd.prototype = {
     plot: function(today) {
         // Set date of today:
         if (today) {
-            selectMonth = -1;
-            selectDay = -1;
-            selectDir = 1;
+            this.selectMonth = -1;
+            this.selectDay = -1;
+            this.selectDir = 1;
             this.year = this.yearSelect.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
                                                            .attr('value');
             this.yearSelect.property('value', this.year);
@@ -262,7 +269,7 @@ SolarProd.prototype = {
             if (callPlot)
                 this.plot();
         } else {
-            selectDay = -selectDir;
+            this.selectDay = -this.selectDir;
             this.prevMonthPlot(callPlot);
         }
     },
@@ -270,8 +277,8 @@ SolarProd.prototype = {
     prevMonthPlot: function(callPlot)
     {
         if ((cache.firstMonth !== undefined) && (this.year == cache.firstMonth[0]) && (this.month == cache.firstMonth[1])) {
-            if (selectDay != 0) {
-                selectDir = -1;
+            if (this.selectDay != 0) {
+                this.selectDir = -1;
                 this.nextDayPlot(callPlot);
             }
             return;
@@ -284,7 +291,7 @@ SolarProd.prototype = {
             updatePrevNext();
             this.updateDays(callPlot);
         } else {
-            selectMonth = -selectDir;
+            this.selectMonth = -this.selectDir;
             this.prevYearPlot(callPlot);
         }
     },
@@ -292,11 +299,11 @@ SolarProd.prototype = {
     prevYearPlot: function(callPlot)
     {
         if ((cache.firstYear !== undefined) && (this.year == cache.firstYear[0])) {
-            if (selectDay != 0) {
-                selectDir = -1;
+            if (this.selectDay != 0) {
+                this.selectDir = -1;
                 this.nextDayPlot(callPlot);
-            } else if (selectMonth != 0) {
-                selectDir = -1;
+            } else if (this.selectMonth != 0) {
+                this.selectDir = -1;
                 this.nextMonthPlot(callPlot);
             }
             return;
@@ -310,10 +317,10 @@ SolarProd.prototype = {
             this.updateMonths(callPlot);
         } else {
             this.prevButton.classed('disabled', true);
-            selectDir = -1;
-            if (selectDay != 0)
+            this.selectDir = -1;
+            if (this.selectDay != 0)
                 this.nextDayPlot(callPlot);
-            else if (selectMonth != 0)
+            else if (this.selectMonth != 0)
                 this.nextMonthPlot(callPlot);
         }
     },
@@ -342,7 +349,7 @@ SolarProd.prototype = {
             if (callPlot)
                 this.plot();
         } else {
-            selectDay = selectDir;
+            this.selectDay = this.selectDir;
             this.nextMonthPlot(callPlot);
         }
     },
@@ -350,8 +357,8 @@ SolarProd.prototype = {
     nextMonthPlot: function(callPlot)
     {
         if ((cache.lastMonth !== undefined) && (this.year == cache.lastMonth[0]) && (this.month == cache.lastMonth[1])) {
-            if (selectDay != 0) {
-                selectDir = -1;
+            if (this.selectDay != 0) {
+                this.selectDir = -1;
                 this.prevDayPlot(callPlot);
             }
             return;
@@ -364,7 +371,7 @@ SolarProd.prototype = {
             updatePrevNext();
             this.updateDays(callPlot);
         } else {
-            selectMonth = selectDir;
+            this.selectMonth = this.selectDir;
             this.nextYearPlot(callPlot);
         }
     },
@@ -372,11 +379,11 @@ SolarProd.prototype = {
     nextYearPlot: function(callPlot)
     {
         if ((cache.lastYear !== undefined) && (this.year == cache.lastYear[0])) {
-            if (selectDay != 0) {
-                selectDir = -1;
+            if (this.selectDay != 0) {
+                this.selectDir = -1;
                 this.prevDayPlot(callPlot);
-            } else if (selectMonth != 0) {
-                selectDir = -1;
+            } else if (this.selectMonth != 0) {
+                this.selectDir = -1;
                 this.prevMonthPlot(callPlot);
             }
             return;
@@ -390,10 +397,10 @@ SolarProd.prototype = {
             this.updateMonths(callPlot);
         } else {
             this.nextButton.classed('disabled', true);
-            selectDir = -1;
-            if (selectDay != 0)
+            this.selectDir = -1;
+            if (this.selectDay != 0)
                 this.prevDayPlot(callPlot);
-            else if (selectMonth != 0)
+            else if (this.selectMonth != 0)
                 this.prevMonthPlot(callPlot);
         }
     },
