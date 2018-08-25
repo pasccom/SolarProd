@@ -143,11 +143,29 @@ function SolarProd() {
     this.exportButton.attr('id', 'export');
 
     this.chart = new SolarChart(d3.select('body'));
+    d3.select(window).on('resize', this.windowResize.bind(this));
+    this.windowResize();
 
     this.updateYears(false);
 }
 
 SolarProd.prototype = {
+    // Window resize event:
+    windowResize: function()
+    {
+        // Compute toolbar total width (currently 403):
+        //var tw = 20;
+        //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
+
+        // Plot width and height:
+        var w = window.innerWidth - 18;
+        var h = window.innerHeight - 56;
+        if (window.innerWidth < 403)
+            h -= 38;
+
+        this.chart.resize(w, h);
+    },
+
     // Update years selector:
     updateYears: function(callPlot) {
         // Fetch available years with AJAX:

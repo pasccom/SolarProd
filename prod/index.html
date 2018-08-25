@@ -37,26 +37,7 @@
     </head>
     <body>
         <script>
-var app = new SolarProd();
-
-// Window resize event:
-function windowResize()
-{
-    // Compute toolbar total width (currently 403):
-    //var tw = 20;
-    //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
-
-    // Plot width and height:
-    var w = window.innerWidth - 18;
-    var h = window.innerHeight - 56;
-    if (window.innerWidth < 403)
-        h -= 38;
-
-    app.chart.resize(w, h);
-}
-
-d3.select(window).on('resize', windowResize);
-windowResize();
+            var app = new SolarProd();
         </script>
     </body>
 </html>
