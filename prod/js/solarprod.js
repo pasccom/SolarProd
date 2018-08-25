@@ -149,6 +149,24 @@ function SolarProd() {
     this.updateYears(false);
 }
 
+SolarProd.siblingOption = function(element) {
+    return function()
+    {
+        var datum = (arguments.length > 0) ? arguments[0] : this.property('value');
+
+        if (datum == '')
+            return null;
+
+        var o = this.selectAll('option')
+                    .filter((d) => (d == datum))
+                    .selectAll(function() {return [this[element]];});
+
+        if (o.empty() ||  (o.attr('value') == ''))
+            return null;
+        return o.attr('value');
+    };
+};
+
 SolarProd.prototype = {
     // Window resize event:
     windowResize: function()
@@ -386,9 +404,9 @@ SolarProd.prototype = {
         if (this.cache.isFirstDay(this.year, this.month, this.day))
             return;
 
-        var prevDay = this.prevOption(this.daySelect, this.day);
+        var prevDay = this.prevOption.call(this.daySelect);
         if (prevDay) {
-            this.day =  prevDay.attr('value');
+            this.day =  prevDay;
             this.daySelect.property('value', this.day);
             this.updatePrevNext();
             if (callPlot)
@@ -409,9 +427,9 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevMonth = this.prevOption(this.monthSelect, this.month);
+        var prevMonth = this.prevOption.call(this.monthSelect);
         if (prevMonth) {
-            this.month = prevMonth.attr('value');
+            this.month = prevMonth;
             this.monthSelect.property('value', this.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
@@ -434,9 +452,9 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevYear = this.prevOption(this.yearSelect, this.year);
+        var prevYear = this.prevOption.call(this.yearSelect);
         if (prevYear) {
-            this.year = prevYear.attr('value');
+            this.year = prevYear;
             this.yearSelect.property('value', this.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
@@ -466,9 +484,9 @@ SolarProd.prototype = {
         if (this.cache.isLastDay(this.year, this.month, this.day))
             return;
 
-        var nextDay = this.nextOption(this.daySelect, this.day);
+        var nextDay = this.nextOption.call(this.daySelect);
         if (nextDay) {
-            this.day = nextDay.attr('value');
+            this.day = nextDay;
             this.daySelect.property('value', this.day);
             this.updatePrevNext();
             if (callPlot)
@@ -489,9 +507,9 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextMonth = this.nextOption(this.monthSelect, this.month);
+        var nextMonth = this.nextOption.call(this.monthSelect);
         if (nextMonth) {
-            this.month = nextMonth.attr('value');
+            this.month = nextMonth;
             this.monthSelect.property('value', this.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
@@ -514,9 +532,9 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextYear = this.nextOption(this.yearSelect, this.year);
+        var nextYear = this.nextOption.call(this.yearSelect);
         if (nextYear) {
-            this.year = nextYear.attr('value');
+            this.year = nextYear;
             this.yearSelect.property('value', this.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
@@ -541,46 +559,18 @@ SolarProd.prototype = {
     },
 
     // Get previous option(s):
-    prevOption: function(d3Select, datum)
-    {
-        if (datum == '')
-            return null;
-
-        var p = d3Select.selectAll('option')
-                        .filter(function(d) {return d == datum;})
-                        .selectAll(function() {return [this.previousElementSibling];});
-
-        if (p.empty() ||  (p.attr('value') == ''))
-            return null;
-        return p;
-    },
-    // Get next option(s):
-    nextOption: function(d3Select, datum)
-    {
-        if (datum == '')
-            return null;
-
-        var n = d3Select.selectAll('option')
-                        .filter(function(d) {return d == datum;})
-                        .selectAll(function() {return [this.nextElementSibling];});
-
-        if (n.empty())
-            return null;
-        return n;
-    },
+    prevOption: SolarProd.siblingOption('previousElementSibling'),
+    nextOption: SolarProd.siblingOption('nextElementSibling'),
     // Update the states of previous and next buttons:
     updatePrevNext: function()
     {
-        var prevDay = (this.year != '') && (this.month != '') ? this.prevOption(this.daySelect, this.day) : null;
-        var nextDay = (this.year != '') && (this.month != '') ? this.nextOption(this.daySelect, this.day) : null;
-
-        var prevMonth = (this.year != '') ? this.prevOption(this.monthSelect, this.month) : null;
-        var nextMonth = (this.year != '') ? this.nextOption(this.monthSelect, this.month) : null;
-
-        var prevYear = this.prevOption(this.yearSelect, this.year);
-        var nextYear = this.nextOption(this.yearSelect, this.year);
-
-        d3.select('#prev').classed('disabled', this.cache.isFirst(this.year, this.month, this.day) || (!prevDay && !prevMonth && !prevYear));
-        d3.select('#next').classed('disabled', this.cache.isLast(this.year, this.month, this.day) || (!nextDay && !nextMonth && !nextYear));
+        this.prevButton.classed('disabled', this.cache.isFirst(this.year, this.month, this.day) ||
+                                           (!this.prevOption.call(this.daySelect) &&
+                                            !this.prevOption.call(this.monthSelect) &&
+                                            !this.prevOption.call(this.yearSelect)));
+        this.nextButton.classed('disabled', this.cache.isLast(this.year, this.month, this.day) ||
+                                           (!this.nextOption.call(this.daySelect) &&
+                                            !this.nextOption.call(this.monthSelect) &&
+                                            !this.nextOption.call(this.yearSelect)));
     },
 }
