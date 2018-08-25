@@ -1,14 +1,62 @@
+function SolarCache() {
+    // Get cache:
+    d3.json("list/cache.json").on('error', console.log)
+                              .on('load', (data) => {
+        Object.keys(data).forEach((k) => {this[k] = data[k];});
+    }).get();
+}
+
+SolarCache.is = function(member) {
+    return function() {
+        if (this[member] === undefined)
+            return false;
+
+        for (var i = 0; i < Math.min(this[member].length, arguments.length); i++)
+            if (this[member][i] != arguments[i])
+                return false;
+
+        return true;
+    };
+};
+
+SolarCache.prototype = {
+    isFirst: function(year, month, day) {
+        if ((year != '') && (month != '') && (day != ''))
+            return this.isFirstDay(year, month, day);
+        else if ((year != '') && (month != ''))
+            return this.isFirstMonth(year, month);
+        else
+            return this.isFirstYear(year);
+    },
+    isLast: function(year, month, day) {
+        if ((year != '') && (month != '') && (day != ''))
+            return this.isLastDay(year, month, day);
+        else if ((year != '') && (month != ''))
+            return this.isLastMonth(year, month);
+        else
+            return this.isLastYear(year);
+    },
+    isFirstDay: SolarCache.is('firstDay'),
+    isLastDay: SolarCache.is('lastDay'),
+    isFirstMonth: SolarCache.is('firstMonth'),
+    isLastMonth: SolarCache.is('lastMonth'),
+    isFirstYear: SolarCache.is('firstYear'),
+    isLastYear: SolarCache.is('lastYear'),
+};
+
 function SolarProd() {
     // Current date:
     this.year = '';
     this.month = '';
     this.day = '';
 
-
     // Day and month to select:
     this.selectMonth = 0;
     this.selectDay = 0;
     this.selectDir = 1;
+
+    // Cache:
+    this.cache = new SolarCache();
 
     d3.select('body').append('div');
 
@@ -166,7 +214,7 @@ SolarProd.prototype = {
             if (this.selectMonth != 0)
                 updatePrevNext();
             if ((this.selectDay == 0) && (this.selectDir == -1))
-                updateCache();
+                this.updateCache();
             this.selectMonth = 0;
 
             this.updateDays(callPlot);
@@ -223,12 +271,30 @@ SolarProd.prototype = {
             if (this.selectDay != 0)
                 updatePrevNext();
             if (this.selectDir == -1)
-                updateCache();
+                this.updateCache();
             this.selectDay = 0;
 
             if (callPlot)
                 this.plot();
         }).get();
+    },
+    // Update cache:
+    updateCache: function()
+    {
+        if (this.selectDay == 1)
+            this.cache.lastDay = [this.year, this.month, this.day];
+        else if (this.selectDay == -1)
+            this.cache.firstDay = [this.year, this.month, this.day];
+        else if (this.selectMonth == 1)
+            this.cache.lastMonth = [this.year, this.month];
+        else if (this.selectMonth == -1)
+            this.cache.firstMonth = [this.year, this.month];
+        else
+            return;
+
+        this.selectDir = 1;
+        console.log('Updated cache:', this.cache);
+        updatePrevNext();
     },
 
     plot: function(today) {
