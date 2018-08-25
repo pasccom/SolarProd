@@ -46,14 +46,19 @@ SolarCache.prototype = {
 
 function SolarProd() {
     // Current date:
-    this.year = '';
-    this.month = '';
-    this.day = '';
+    this.date = {
+        year: '',
+        month: '',
+        day: '',
+    };
 
-    // Day and month to select:
-    this.selectMonth = 0;
-    this.selectDay = 0;
-    this.selectDir = 1;
+    // Date to select:
+    this.selectDate = {
+        year: 0,
+        month: 0,
+        day: 0,
+        dir: 1,
+    };
 
     // Cache:
     this.cache = new SolarCache();
@@ -67,20 +72,20 @@ function SolarProd() {
     this.daySelect = toolbar1.append('select').attr('title', 'Jour')
                                               .attr('disabled', true)
                                               .on('change', () => {
-        this.day = this.daySelect.property('value');
+        this.date.day = this.daySelect.property('value');
         this.updatePrevNext();
     });
     this.monthSelect = toolbar1.append('select').attr('title', 'Mois')
                                                 .attr('disabled', true)
                                                 .on('change', () => {
-        this.month = this.monthSelect.property('value');
+        this.date.month = this.monthSelect.property('value');
         this.updatePrevNext();
         this.updateDays();
     });
     this.yearSelect = toolbar1.append('select').attr('title', 'Année')
                                                .attr('disabled', true)
                                                .on('change', () => {
-        this.year = this.yearSelect.property('value');
+        this.date.year = this.yearSelect.property('value');
         this.updatePrevNext();
         this.updateMonths();
     });
@@ -207,9 +212,9 @@ SolarProd.prototype = {
         this.monthSelect.attr('disabled', true);
         this.daySelect.attr('disabled', true);
 
-        if (this.year == '') {
-            this.month = '';
-            this.day = '';
+        if (this.date.year == '') {
+            this.date.month = '';
+            this.date.day = '';
             this.monthSelect.attr('disabled', true)
                             .selectAll('option').remove();
             this.daySelect.attr('disabled', true)
@@ -218,21 +223,21 @@ SolarProd.prototype = {
                 this.plot();
             return;
         }
-        console.log("Selected new year: " + pad(this.year, 4, '0'));
+        console.log("Selected new year: " + pad(this.date.year, 4, '0'));
 
         // Fetch available months with AJAX:
-        d3.json("list/months/" + pad(this.year, 4, '0') + ".json").on('error', (error) => {
+        d3.json("list/months/" + pad(this.date.year, 4, '0') + ".json").on('error', (error) => {
             console.warn(error);
 
-            this.month = '';
-            this.day = '';
+            this.date.month = '';
+            this.date.day = '';
             this.monthSelect.attr('disabled', true)
                             .selectAll('option').remove();
             this.daySelect.attr('disabled', true)
                           .selectAll('option').remove();
-            if (this.selectMonth*this.selectDir < 0)
+            if (this.selectDate.month*this.selectDate.dir < 0)
                 this.prevYearPlot(callPlot);
-            else if (this.selectMonth*this.selectDir > 0)
+            else if (this.selectDate.month*this.selectDate.dir > 0)
                 this.nextYearPlot(callPlot);
             if (callPlot)
                 this.plot();
@@ -243,35 +248,35 @@ SolarProd.prototype = {
             var months = this.monthSelect.attr('disabled', null)
                                          .selectAll('option').data(data, (d) => d);
             months.enter().append('option').attr('value', (d) => d)
-                                           .text((d) => (d == '' ? '' : localeLongMonth(new Date(this.year, d - 1))));
+                                           .text((d) => (d == '' ? '' : localeLongMonth(new Date(this.date.year, d - 1))));
             months.exit().remove();
 
             this.monthSelect.selectAll('option')
                                .filter((d) => (d == ''))
                                .lower();
 
-            if (this.selectMonth*this.selectDir > 0)
-                this.month = data[this.selectMonth*this.selectDir];
-            if (this.selectMonth*this.selectDir < 0)
-                this.month = data[data.length + this.selectMonth*this.selectDir];
-            this.monthSelect.property('value', this.month);
+            if (this.selectDate.month*this.selectDate.dir > 0)
+                this.date.month = data[this.selectDate.month*this.selectDate.dir];
+            if (this.selectDate.month*this.selectDate.dir < 0)
+                this.date.month = data[data.length + this.selectDate.month*this.selectDate.dir];
+            this.monthSelect.property('value', this.date.month);
 
-            if (this.selectMonth != 0)
+            if (this.selectDate.month != 0)
                 this.updatePrevNext();
-            if ((this.selectDay == 0) && (this.selectDir == -1))
+            if ((this.selectDate.day == 0) && (this.selectDate.dir == -1))
                 this.updateCache();
-            this.selectMonth = 0;
+            this.selectDate.month = 0;
 
             this.updateDays(callPlot);
-            if ((callPlot) && (this.day == ''))
+            if ((callPlot) && (this.date.day == ''))
                 this.plot();
         }).get();
     },
     // Update days selector:
     updateDays: function(callPlot)
     {
-        if (this.month == '') {
-            this.day = '';
+        if (this.date.month == '') {
+            this.date.day = '';
             this.daySelect.attr('disabled', true)
                           .selectAll('option').remove();
             if (callPlot)
@@ -279,16 +284,16 @@ SolarProd.prototype = {
             return;
         }
 
-        console.log("Selected new month: " + pad(this.month, 2, '0') + "/" + pad(this.year, 4, '0'));
+        console.log("Selected new month: " + pad(this.date.month, 2, '0') + "/" + pad(this.date.year, 4, '0'));
 
         // Fetch available days with AJAX:
-        d3.json("list/days/" + pad(this.year, 4, '0') + "/" + pad(this.month, 2, '0')  + ".json").on('error', () => {
-            this.day = '';
+        d3.json("list/days/" + pad(this.date.year, 4, '0') + "/" + pad(this.date.month, 2, '0')  + ".json").on('error', () => {
+            this.date.day = '';
             this.daySelect.attr('disabled', true)
                           .selectAll('option').remove();
-            if (this.selectDay*this.selectDir < 0)
+            if (this.selectDate.day*this.selectDate.dir < 0)
                 this.prevMonthPlot(callPlot);
-            else if (this.selectDay*this.selectDir > 0)
+            else if (this.selectDate.day*this.selectDate.dir > 0)
                 this.nextMonthPlot(callPlot);
             if (callPlot)
                 this.plot();
@@ -307,17 +312,17 @@ SolarProd.prototype = {
                           .filter((d) => (d == ''))
                           .lower();
 
-            if (this.selectDay*this.selectDir > 0)
-                this.day = data[this.selectDay*this.selectDir];
-            if (this.selectDay*this.selectDir < 0)
-                this.day = data[data.length + this.selectDay*this.selectDir];
-            this.daySelect.property('value', this.day);
+            if (this.selectDate.day*this.selectDate.dir > 0)
+                this.date.day = data[this.selectDate.day*this.selectDate.dir];
+            if (this.selectDate.day*this.selectDate.dir < 0)
+                this.date.day = data[data.length + this.selectDate.day*this.selectDate.dir];
+            this.daySelect.property('value', this.date.day);
 
-            if (this.selectDay != 0)
+            if (this.selectDate.day != 0)
                 this.updatePrevNext();
-            if (this.selectDir == -1)
+            if (this.selectDate.dir == -1)
                 this.updateCache();
-            this.selectDay = 0;
+            this.selectDate.day = 0;
 
             if (callPlot)
                 this.plot();
@@ -358,18 +363,18 @@ SolarProd.prototype = {
     // Update cache:
     updateCache: function()
     {
-        if (this.selectDay == 1)
-            this.cache.lastDay = [this.year, this.month, this.day];
-        else if (this.selectDay == -1)
-            this.cache.firstDay = [this.year, this.month, this.day];
-        else if (this.selectMonth == 1)
-            this.cache.lastMonth = [this.year, this.month];
-        else if (this.selectMonth == -1)
-            this.cache.firstMonth = [this.year, this.month];
+        if (this.selectDate.day == 1)
+            this.cache.lastDay = [this.date.year, this.date.month, this.date.day];
+        else if (this.selectDate.day == -1)
+            this.cache.firstDay = [this.date.year, this.date.month, this.date.day];
+        else if (this.selectDate.month == 1)
+            this.cache.lastMonth = [this.date.year, this.date.month];
+        else if (this.selectDate.month == -1)
+            this.cache.firstMonth = [this.date.year, this.date.month];
         else
             return;
 
-        this.selectDir = 1;
+        this.selectDate.dir = 1;
         console.log('Updated cache:', this.cache);
         this.updatePrevNext();
     },
@@ -377,17 +382,17 @@ SolarProd.prototype = {
     plot: function(today) {
         // Set date of today:
         if (today) {
-            this.selectMonth = -1;
-            this.selectDay = -1;
-            this.selectDir = 1;
-            this.year = this.yearSelect.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
-                                                           .attr('value');
-            this.yearSelect.property('value', this.year);
+            this.selectDate.month = -1;
+            this.selectDate.day = -1;
+            this.selectDate.dir = 1;
+            this.date.year = this.yearSelect.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
+                                                                .attr('value');
+            this.yearSelect.property('value', this.date.year);
             this.updateMonths();
             this.updatePrevNext();
         }
 
-        var solarPromise = today ? SolarData.create() : SolarData.create(this.year, this.month, this.day);
+        var solarPromise = today ? SolarData.create() : SolarData.create(this.date.year, this.date.month, this.date.day);
         solarPromise.catch(console.warn);
         solarPromise.then((data) => {
             this.updateVars(data);
@@ -401,27 +406,27 @@ SolarProd.prototype = {
     // Plots data for previous day:
     prevDayPlot: function(callPlot)
     {
-        if (this.cache.isFirstDay(this.year, this.month, this.day))
+        if (this.cache.isFirstDay(this.date.year, this.date.month, this.date.day))
             return;
 
         var prevDay = this.prevOption.call(this.daySelect);
         if (prevDay) {
-            this.day =  prevDay;
-            this.daySelect.property('value', this.day);
+            this.date.day = prevDay;
+            this.daySelect.property('value', this.date.day);
             this.updatePrevNext();
             if (callPlot)
                 this.plot();
         } else {
-            this.selectDay = -this.selectDir;
+            this.selectDate.day = -this.selectDate.dir;
             this.prevMonthPlot(callPlot);
         }
     },
     // Plots data for previous month:
     prevMonthPlot: function(callPlot)
     {
-        if (this.cache.isFirstMonth(this.year, this.month)) {
-            if (this.selectDay != 0) {
-                this.selectDir = -1;
+        if (this.cache.isFirstMonth(this.date.year, this.date.month)) {
+            if (this.selectDate.day != 0) {
+                this.selectDate.dir = -1;
                 this.nextDayPlot(callPlot);
             }
             return;
@@ -429,24 +434,24 @@ SolarProd.prototype = {
 
         var prevMonth = this.prevOption.call(this.monthSelect);
         if (prevMonth) {
-            this.month = prevMonth;
-            this.monthSelect.property('value', this.month);
+            this.date.month = prevMonth;
+            this.monthSelect.property('value', this.date.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
-            this.selectMonth = -this.selectDir;
+            this.selectDate.month = -this.selectDate.dir;
             this.prevYearPlot(callPlot);
         }
     },
     // Plots data for previous year:
     prevYearPlot: function(callPlot)
     {
-        if (this.cache.isFirstYear(this.year)) {
-            if (this.selectDay != 0) {
-                this.selectDir = -1;
+        if (this.cache.isFirstYear(this.date.year)) {
+            if (this.selectDate.day != 0) {
+                this.selectDate.dir = -1;
                 this.nextDayPlot(callPlot);
-            } else if (this.selectMonth != 0) {
-                this.selectDir = -1;
+            } else if (this.selectDate.month != 0) {
+                this.selectDate.dir = -1;
                 this.nextMonthPlot(callPlot);
             }
             return;
@@ -454,54 +459,54 @@ SolarProd.prototype = {
 
         var prevYear = this.prevOption.call(this.yearSelect);
         if (prevYear) {
-            this.year = prevYear;
-            this.yearSelect.property('value', this.year);
+            this.date.year = prevYear;
+            this.yearSelect.property('value', this.date.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
             this.prevButton.classed('disabled', true);
-            this.selectDir = -1;
-            if (this.selectDay != 0)
+            this.selectDate.dir = -1;
+            if (this.selectDate.day != 0)
                 this.nextDayPlot(callPlot);
-            else if (this.selectMonth != 0)
+            else if (this.selectDate.month != 0)
                 this.nextMonthPlot(callPlot);
         }
     },
     // Plots data for previous year/month/day:
     prevPlot: function()
     {
-        if (this.day != '')
+        if (this.date.day != '')
             this.prevDayPlot(true);
-        else if (this.month != '')
+        else if (this.date.month != '')
             this.prevMonthPlot(true);
-        else if (this.year != '')
+        else if (this.date.year != '')
             this.prevYearPlot(true);
     },
 
     // Plots data for next day:
     nextDayPlot: function(callPlot)
     {
-        if (this.cache.isLastDay(this.year, this.month, this.day))
+        if (this.cache.isLastDay(this.date.year, this.date.month, this.date.day))
             return;
 
         var nextDay = this.nextOption.call(this.daySelect);
         if (nextDay) {
-            this.day = nextDay;
-            this.daySelect.property('value', this.day);
+            this.date.day = nextDay;
+            this.daySelect.property('value', this.date.day);
             this.updatePrevNext();
             if (callPlot)
                 this.plot();
         } else {
-            this.selectDay = this.selectDir;
+            this.selectDate.day = this.selectDate.dir;
             this.nextMonthPlot(callPlot);
         }
     },
     // Plots data for next month:
     nextMonthPlot: function(callPlot)
     {
-        if (this.cache.isLastMonth(this.year, this.month)) {
-            if (this.selectDay != 0) {
-                this.selectDir = -1;
+        if (this.cache.isLastMonth(this.date.year, this.date.month)) {
+            if (this.selectDate.day != 0) {
+                this.selectDate.dir = -1;
                 this.prevDayPlot(callPlot);
             }
             return;
@@ -509,24 +514,24 @@ SolarProd.prototype = {
 
         var nextMonth = this.nextOption.call(this.monthSelect);
         if (nextMonth) {
-            this.month = nextMonth;
-            this.monthSelect.property('value', this.month);
+            this.date.month = nextMonth;
+            this.monthSelect.property('value', this.date.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
-            this.selectMonth = this.selectDir;
+            this.selectDate.month = this.selectDate.dir;
             this.nextYearPlot(callPlot);
         }
     },
     // Plots data for next year:
     nextYearPlot: function(callPlot)
     {
-        if (this.cache.isLastYear(this.year)) {
-            if (this.selectDay != 0) {
-                this.selectDir = -1;
+        if (this.cache.isLastYear(this.date.year)) {
+            if (this.selectDate.day != 0) {
+                this.selectDate.dir = -1;
                 this.prevDayPlot(callPlot);
-            } else if (this.selectMonth != 0) {
-                this.selectDir = -1;
+            } else if (this.selectDate.month != 0) {
+                this.selectDate.dir = -1;
                 this.prevMonthPlot(callPlot);
             }
             return;
@@ -534,27 +539,27 @@ SolarProd.prototype = {
 
         var nextYear = this.nextOption.call(this.yearSelect);
         if (nextYear) {
-            this.year = nextYear;
-            this.yearSelect.property('value', this.year);
+            this.date.year = nextYear;
+            this.yearSelect.property('value', this.date.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
             this.nextButton.classed('disabled', true);
-            this.selectDir = -1;
-            if (this.selectDay != 0)
+            this.selectDate.dir = -1;
+            if (this.selectDate.day != 0)
                 this.prevDayPlot(callPlot);
-            else if (this.selectMonth != 0)
+            else if (this.selectDate.month != 0)
                 this.prevMonthPlot(callPlot);
         }
     },
     // Plots data for next year/month/day:
     nextPlot: function()
     {
-        if (this.day != '')
+        if (this.date.day != '')
             this.nextDayPlot(true);
-        else if (this.month != '')
+        else if (this.date.month != '')
             this.nextMonthPlot(true);
-        else if (this.year != '')
+        else if (this.date.year != '')
             this.nextYearPlot(true);
     },
 
@@ -564,11 +569,11 @@ SolarProd.prototype = {
     // Update the states of previous and next buttons:
     updatePrevNext: function()
     {
-        this.prevButton.classed('disabled', this.cache.isFirst(this.year, this.month, this.day) ||
+        this.prevButton.classed('disabled', this.cache.isFirst(this.date.year, this.date.month, this.date.day) ||
                                            (!this.prevOption.call(this.daySelect) &&
                                             !this.prevOption.call(this.monthSelect) &&
                                             !this.prevOption.call(this.yearSelect)));
-        this.nextButton.classed('disabled', this.cache.isLast(this.year, this.month, this.day) ||
+        this.nextButton.classed('disabled', this.cache.isLast(this.date.year, this.date.month, this.date.day) ||
                                            (!this.nextOption.call(this.daySelect) &&
                                             !this.nextOption.call(this.monthSelect) &&
                                             !this.nextOption.call(this.yearSelect)));
