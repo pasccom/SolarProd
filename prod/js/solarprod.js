@@ -324,7 +324,7 @@ SolarProd.prototype = {
     // Plots data for previous day:
     prevDayPlot: function(callPlot)
     {
-        if ((cache.firstDay !== undefined) && (this.year == cache.firstDay[0]) && (this.month == cache.firstDay[1]) && (this.day == cache.firstDay[2]))
+        if (this.cache.isFirstDay(this.year, this.month, this.day))
             return;
 
         var prevDay = this.prevOption(this.daySelect, this.day);
@@ -342,7 +342,7 @@ SolarProd.prototype = {
     // Plots data for previous month:
     prevMonthPlot: function(callPlot)
     {
-        if ((cache.firstMonth !== undefined) && (this.year == cache.firstMonth[0]) && (this.month == cache.firstMonth[1])) {
+        if (this.cache.isFirstMonth(this.year, this.month)) {
             if (this.selectDay != 0) {
                 this.selectDir = -1;
                 this.nextDayPlot(callPlot);
@@ -364,7 +364,7 @@ SolarProd.prototype = {
     // Plots data for previous year:
     prevYearPlot: function(callPlot)
     {
-        if ((cache.firstYear !== undefined) && (this.year == cache.firstYear[0])) {
+        if (this.cache.isFirstYear(this.year)) {
             if (this.selectDay != 0) {
                 this.selectDir = -1;
                 this.nextDayPlot(callPlot);
@@ -404,7 +404,7 @@ SolarProd.prototype = {
     // Plots data for next day:
     nextDayPlot: function(callPlot)
     {
-        if ((cache.lastDay !== undefined) && (this.year == cache.lastDay[0]) && (this.month == cache.lastDay[1]) && (this.day == cache.lastDay[2]))
+        if (this.cache.isLastDay(this.year, this.month, this.day))
             return;
 
         var nextDay = this.nextOption(this.daySelect, this.day);
@@ -422,7 +422,7 @@ SolarProd.prototype = {
     // Plots data for next month:
     nextMonthPlot: function(callPlot)
     {
-        if ((cache.lastMonth !== undefined) && (this.year == cache.lastMonth[0]) && (this.month == cache.lastMonth[1])) {
+        if (this.cache.isLastMonth(this.year, this.month)) {
             if (this.selectDay != 0) {
                 this.selectDir = -1;
                 this.prevDayPlot(callPlot);
@@ -444,7 +444,7 @@ SolarProd.prototype = {
     // Plots data for next year:
     nextYearPlot: function(callPlot)
     {
-        if ((cache.lastYear !== undefined) && (this.year == cache.lastYear[0])) {
+        if (this.cache.isLastYear(this.year)) {
             if (this.selectDay != 0) {
                 this.selectDir = -1;
                 this.prevDayPlot(callPlot);
