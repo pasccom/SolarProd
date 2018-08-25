@@ -93,56 +93,6 @@ d3.select('#sum').on('change', function() {
     app.chart.draw();
 });
 
-// Get previous option(s):
-function prevOption(d3Select, datum)
-{
-    if (datum == '')
-        return null;
-    
-    var p = d3Select.selectAll('option')
-                    .filter(function(d) {return d == datum;})
-                    .selectAll(function() {return [this.previousElementSibling];});
-    
-    if (p.empty() ||  (p.attr('value') == ''))
-        return null;
-    return p;
-}
-
-// Get next option(s):
-function nextOption(d3Select, datum)
-{
-    if (datum == '')
-        return null;
-   
-    var n = d3Select.selectAll('option')
-                    .filter(function(d) {return d == datum;})
-                    .selectAll(function() {return [this.nextElementSibling];});
-                    
-    if (n.empty())
-        return null;
-    return n;
-}
-
-// Update the states of previous and next buttons:
-function updatePrevNext()
-{
-    var year = d3.select('#year').property('value');
-    var month = d3.select('#month').property('value');
-    var day = d3.select('#day').property('value');
-    
-    var prevDay = (year != '') && (month != '') ? prevOption(d3.select('#day'), day) : null;
-    var nextDay = (year != '') && (month != '') ? nextOption(d3.select('#day'), day) : null;
-    
-    var prevMonth = (year != '') ? prevOption(d3.select('#month'), month) : null;
-    var nextMonth = (year != '') ? nextOption(d3.select('#month'), month) : null;
-
-    var prevYear = prevOption(d3.select('#year'), year);
-    var nextYear = nextOption(d3.select('#year'), year);
-
-    d3.select('#prev').classed('disabled', app.cache.isFirst(year, month, day) || (!prevDay && !prevMonth && !prevYear));
-    d3.select('#next').classed('disabled', app.cache.isLast(year, month, day) || (!nextDay && !nextMonth && !nextYear));
-}
-
 // Window resize event:
 function windowResize()
 {

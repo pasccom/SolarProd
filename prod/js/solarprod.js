@@ -68,20 +68,20 @@ function SolarProd() {
                                               .attr('disabled', true)
                                               .on('change', () => {
         this.day = this.daySelect.property('value');
-        updatePrevNext();
+        this.updatePrevNext();
     });
     this.monthSelect = toolbar1.append('select').attr('title', 'Mois')
                                                 .attr('disabled', true)
                                                 .on('change', () => {
         this.month = this.monthSelect.property('value');
-        updatePrevNext();
+        this.updatePrevNext();
         this.updateDays();
     });
     this.yearSelect = toolbar1.append('select').attr('title', 'Année')
                                                .attr('disabled', true)
                                                .on('change', () => {
         this.year = this.yearSelect.property('value');
-        updatePrevNext();
+        this.updatePrevNext();
         this.updateMonths();
     });
     this.varSelect = toolbar1.append('select').attr('title', 'Variable')
@@ -212,7 +212,7 @@ SolarProd.prototype = {
             this.monthSelect.property('value', this.month);
 
             if (this.selectMonth != 0)
-                updatePrevNext();
+                this.updatePrevNext();
             if ((this.selectDay == 0) && (this.selectDir == -1))
                 this.updateCache();
             this.selectMonth = 0;
@@ -269,7 +269,7 @@ SolarProd.prototype = {
             this.daySelect.property('value', this.day);
 
             if (this.selectDay != 0)
-                updatePrevNext();
+                this.updatePrevNext();
             if (this.selectDir == -1)
                 this.updateCache();
             this.selectDay = 0;
@@ -294,7 +294,7 @@ SolarProd.prototype = {
 
         this.selectDir = 1;
         console.log('Updated cache:', this.cache);
-        updatePrevNext();
+        this.updatePrevNext();
     },
 
     plot: function(today) {
@@ -307,7 +307,7 @@ SolarProd.prototype = {
                                                            .attr('value');
             this.yearSelect.property('value', this.year);
             this.updateMonths();
-            updatePrevNext();
+            this.updatePrevNext();
         }
 
         var solarPromise = today ? SolarData.create() : SolarData.create(this.year, this.month, this.day);
@@ -327,11 +327,11 @@ SolarProd.prototype = {
         if ((cache.firstDay !== undefined) && (this.year == cache.firstDay[0]) && (this.month == cache.firstDay[1]) && (this.day == cache.firstDay[2]))
             return;
 
-        var prevDay = prevOption(this.daySelect, this.day);
+        var prevDay = this.prevOption(this.daySelect, this.day);
         if (prevDay) {
             this.day =  prevDay.attr('value');
             this.daySelect.property('value', this.day);
-            updatePrevNext();
+            this.updatePrevNext();
             if (callPlot)
                 this.plot();
         } else {
@@ -350,11 +350,11 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevMonth = prevOption(this.monthSelect, this.month);
+        var prevMonth = this.prevOption(this.monthSelect, this.month);
         if (prevMonth) {
             this.month = prevMonth.attr('value');
             this.monthSelect.property('value', this.month);
-            updatePrevNext();
+            this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
             this.selectMonth = -this.selectDir;
@@ -375,11 +375,11 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevYear = prevOption(this.yearSelect, this.year);
+        var prevYear = this.prevOption(this.yearSelect, this.year);
         if (prevYear) {
             this.year = prevYear.attr('value');
             this.yearSelect.property('value', this.year);
-            updatePrevNext();
+            this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
             this.prevButton.classed('disabled', true);
@@ -407,11 +407,11 @@ SolarProd.prototype = {
         if ((cache.lastDay !== undefined) && (this.year == cache.lastDay[0]) && (this.month == cache.lastDay[1]) && (this.day == cache.lastDay[2]))
             return;
 
-        var nextDay = nextOption(this.daySelect, this.day);
+        var nextDay = this.nextOption(this.daySelect, this.day);
         if (nextDay) {
             this.day = nextDay.attr('value');
             this.daySelect.property('value', this.day);
-            updatePrevNext();
+            this.updatePrevNext();
             if (callPlot)
                 this.plot();
         } else {
@@ -430,11 +430,11 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextMonth = nextOption(this.monthSelect, this.month);
+        var nextMonth = this.nextOption(this.monthSelect, this.month);
         if (nextMonth) {
             this.month = nextMonth.attr('value');
             this.monthSelect.property('value', this.month);
-            updatePrevNext();
+            this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
             this.selectMonth = this.selectDir;
@@ -455,11 +455,11 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextYear = nextOption(this.yearSelect, this.year);
+        var nextYear = this.nextOption(this.yearSelect, this.year);
         if (nextYear) {
             this.year = nextYear.attr('value');
             this.yearSelect.property('value', this.year);
-            updatePrevNext();
+            this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
             this.nextButton.classed('disabled', true);
@@ -479,5 +479,49 @@ SolarProd.prototype = {
             this.nextMonthPlot(true);
         else if (this.year != '')
             this.nextYearPlot(true);
+    },
+
+    // Get previous option(s):
+    prevOption: function(d3Select, datum)
+    {
+        if (datum == '')
+            return null;
+
+        var p = d3Select.selectAll('option')
+                        .filter(function(d) {return d == datum;})
+                        .selectAll(function() {return [this.previousElementSibling];});
+
+        if (p.empty() ||  (p.attr('value') == ''))
+            return null;
+        return p;
+    },
+    // Get next option(s):
+    nextOption: function(d3Select, datum)
+    {
+        if (datum == '')
+            return null;
+
+        var n = d3Select.selectAll('option')
+                        .filter(function(d) {return d == datum;})
+                        .selectAll(function() {return [this.nextElementSibling];});
+
+        if (n.empty())
+            return null;
+        return n;
+    },
+    // Update the states of previous and next buttons:
+    updatePrevNext: function()
+    {
+        var prevDay = (this.year != '') && (this.month != '') ? this.prevOption(this.daySelect, this.day) : null;
+        var nextDay = (this.year != '') && (this.month != '') ? this.nextOption(this.daySelect, this.day) : null;
+
+        var prevMonth = (this.year != '') ? this.prevOption(this.monthSelect, this.month) : null;
+        var nextMonth = (this.year != '') ? this.nextOption(this.monthSelect, this.month) : null;
+
+        var prevYear = this.prevOption(this.yearSelect, this.year);
+        var nextYear = this.nextOption(this.yearSelect, this.year);
+
+        d3.select('#prev').classed('disabled', this.cache.isFirst(this.year, this.month, this.day) || (!prevDay && !prevMonth && !prevYear));
+        d3.select('#next').classed('disabled', this.cache.isLast(this.year, this.month, this.day) || (!nextDay && !nextMonth && !nextYear));
     },
 }
