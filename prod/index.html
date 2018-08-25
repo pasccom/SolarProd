@@ -39,57 +39,6 @@
         <script>
 var app = new SolarProd();
 
-// Updates the variable selector:
-function updateVariables(data)
-{
-    // Adds the new variables using a data join:
-    var vars = d3.select('#var')
-                 .attr('disabled', null)
-                 .selectAll('option')
-                 .data(data.validVars, (d) => d);
-    vars.enter()
-        .append('option')
-        .attr('value', (d) => d)
-        .text(SolarData.variableName);
-    vars.exit().remove();
-    vars.order();
-    
-    // Updates sums if needed:
-    if (d3.select('#var').property('value') != data.variable()) {
-        data.variable(d3.select('#var').property('value'));
-        updateSums(data);
-    }
-}
-
-// Event handler:
-d3.select('#var').on('change', function() {
-    app.chart.plot.data.variable(d3.select(this).property('value'));
-    updateSums(app.chart.plot.data);
-    app.chart.draw();
-});
-
-// Updates the sum selector:
-function updateSums(data)
-{
-    // Adds the new sums using a data join:
-    var sums = d3.select('#sum')
-                 .attr('disabled', (data.validAggs.length < 2) ? true : null)
-                 .selectAll('option')
-                 .data(data.validAggs, (d) => d);
-    sums.enter()
-        .append('option')
-        .attr('value', (d) => d)
-        .text(SolarData.aggregationName);
-    sums.exit().remove();
-    sums.order();
-}
-
-// Event handler:
-d3.select('#sum').on('change', function() {
-    app.chart.plot.data.aggregation(d3.select(this).property('value'));
-    app.chart.draw();
-});
-
 // Window resize event:
 function windowResize()
 {

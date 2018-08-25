@@ -85,9 +85,18 @@ function SolarProd() {
         this.updateMonths();
     });
     this.varSelect = toolbar1.append('select').attr('title', 'Variable')
-                                              .attr('disabled', true);
+                                              .attr('disabled', true)
+                                              .on('change', () => {
+        this.chart.plot.data.variable(this.varSelect.property('value'));
+        this.updateAggs();
+        this.chart.draw();
+    });
     this.aggSelect = toolbar1.append('select').attr('title', 'Aggrégation')
-                                              .attr('disabled', true);
+                                              .attr('disabled', true)
+                                              .on('change', () => {
+        this.chart.plot.data.aggregation(this.aggSelect.property('value'));
+        this.chart.draw();
+    });
 
     // The buttons:
     this.plotButton = toolbar1.append('img').classed('button', true)
@@ -278,6 +287,38 @@ SolarProd.prototype = {
                 this.plot();
         }).get();
     },
+    // Updates the variable selector:
+    updateVars: function()
+    {
+        var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
+
+        // Adds the new variables using a data join:
+        var vars = this.varSelect.attr('disabled', null)
+                                 .selectAll('option').data(data.validVars, (d) => d);
+        vars.enter().append('option').attr('value', (d) => d)
+                                     .text(SolarData.variableName);
+        vars.exit().remove();
+        vars.order();
+
+        // Updates sums if needed:
+        if (this.varSelect.property('value') != data.variable()) {
+            data.variable(this.varSelect.property('value'));
+            this.updateAggs(data);
+        }
+    },
+    // Updates the sum selector:
+    updateAggs: function()
+    {
+        var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
+
+        // Adds the new sums using a data join:
+        var aggs = this.aggSelect.attr('disabled', (data.validAggs.length < 2) ? true : null)
+                                 .selectAll('option').data(data.validAggs, (d) => d);
+        aggs.enter().append('option').attr('value', (d) => d)
+                                     .text(SolarData.aggregationName);
+        aggs.exit().remove();
+        aggs.order();
+    },
     // Update cache:
     updateCache: function()
     {
@@ -313,7 +354,7 @@ SolarProd.prototype = {
         var solarPromise = today ? SolarData.create() : SolarData.create(this.year, this.month, this.day);
         solarPromise.catch(console.warn);
         solarPromise.then((data) => {
-            updateVariables(data);
+            this.updateVars(data);
             this.chart.setData(data);
 
             // Activate export:
