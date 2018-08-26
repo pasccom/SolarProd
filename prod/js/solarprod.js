@@ -46,19 +46,23 @@ SolarCache.prototype = {
 
 function SolarProd() {
     // Current date:
-    this.date = {
-        year: '',
-        month: '',
-        day: '',
+    this.date = function() {
+        var l = (arguments.length > 0) ? arguments[0] : 3;
+        return [this.date.year, this.date.month, this.date.day].slice(0, l);
     };
+    this.date.year = '';
+    this.date.month = '';
+    this.date.day = '';
 
     // Date to select:
-    this.selectDate = {
-        year: 0,
-        month: 0,
-        day: 0,
-        dir: 1,
+    this.selectDate = function() {
+        var l = (arguments.length > 0) ? arguments[0] : 3;
+        return [this.selectDate.year, this.selectDate.month, this.selectDate.day].slice(0, l);
     };
+    this.selectDate.year = 0;
+    this.selectDate.month = 0;
+    this.selectDate.day = 0;
+    this.selectDate.dir = 1;
 
     // Cache:
     this.cache = new SolarCache();
@@ -69,7 +73,10 @@ function SolarProd() {
     var toolbar2 = d3.select('body').select('div').append('div').classed('toolbar', true);
 
     // The selectors:
-    this.selects = {};
+    this.selects = function() {
+        var l = (arguments.length > 0) ? arguments[0] : 3;
+        return [this.selects.year, this.selects.month, this.selects.day].slice(0, l);
+    };
     this.selects.day = toolbar1.append('select').attr('title', 'Jour')
                                                 .attr('disabled', true)
                                                 .on('change', () => {
@@ -366,13 +373,13 @@ SolarProd.prototype = {
     updateCache: function()
     {
         if (this.selectDate.day == 1)
-            this.cache.lastDay = [this.date.year, this.date.month, this.date.day];
+            this.cache.lastDay = this.date(3);
         else if (this.selectDate.day == -1)
-            this.cache.firstDay = [this.date.year, this.date.month, this.date.day];
+            this.cache.firstDay = this.date(3);
         else if (this.selectDate.month == 1)
-            this.cache.lastMonth = [this.date.year, this.date.month];
+            this.cache.lastMonth = this.date(2);
         else if (this.selectDate.month == -1)
-            this.cache.firstMonth = [this.date.year, this.date.month];
+            this.cache.firstMonth = this.date(2);
         else
             return;
 
@@ -394,7 +401,7 @@ SolarProd.prototype = {
             this.updatePrevNext();
         }
 
-        var solarPromise = today ? SolarData.create() : SolarData.create(this.date.year, this.date.month, this.date.day);
+        var solarPromise = today ? SolarData.create() : SolarData.create(... this.date());
         solarPromise.catch(console.warn);
         solarPromise.then((data) => {
             this.updateVars(data);
@@ -408,7 +415,7 @@ SolarProd.prototype = {
     // Plots data for previous day:
     prevDayPlot: function(callPlot)
     {
-        if (this.cache.isFirstDay(this.date.year, this.date.month, this.date.day))
+        if (this.cache.isFirstDay(... this.date()))
             return;
 
         var prevDay = this.prevOption.call(this.selects.day);
@@ -426,7 +433,7 @@ SolarProd.prototype = {
     // Plots data for previous month:
     prevMonthPlot: function(callPlot)
     {
-        if (this.cache.isFirstMonth(this.date.year, this.date.month)) {
+        if (this.cache.isFirstMonth(... this.date())) {
             if (this.selectDate.day != 0) {
                 this.selectDate.dir = -1;
                 this.nextDayPlot(callPlot);
@@ -448,7 +455,7 @@ SolarProd.prototype = {
     // Plots data for previous year:
     prevYearPlot: function(callPlot)
     {
-        if (this.cache.isFirstYear(this.date.year)) {
+        if (this.cache.isFirstYear(... this.date())) {
             if (this.selectDate.day != 0) {
                 this.selectDate.dir = -1;
                 this.nextDayPlot(callPlot);
@@ -488,7 +495,7 @@ SolarProd.prototype = {
     // Plots data for next day:
     nextDayPlot: function(callPlot)
     {
-        if (this.cache.isLastDay(this.date.year, this.date.month, this.date.day))
+        if (this.cache.isLastDay(... this.date()))
             return;
 
         var nextDay = this.nextOption.call(this.selects.day);
@@ -506,7 +513,7 @@ SolarProd.prototype = {
     // Plots data for next month:
     nextMonthPlot: function(callPlot)
     {
-        if (this.cache.isLastMonth(this.date.year, this.date.month)) {
+        if (this.cache.isLastMonth(... this.date())) {
             if (this.selectDate.day != 0) {
                 this.selectDate.dir = -1;
                 this.prevDayPlot(callPlot);
@@ -528,7 +535,7 @@ SolarProd.prototype = {
     // Plots data for next year:
     nextYearPlot: function(callPlot)
     {
-        if (this.cache.isLastYear(this.date.year)) {
+        if (this.cache.isLastYear(... this.date())) {
             if (this.selectDate.day != 0) {
                 this.selectDate.dir = -1;
                 this.prevDayPlot(callPlot);
@@ -571,11 +578,11 @@ SolarProd.prototype = {
     // Update the states of previous and next buttons:
     updatePrevNext: function()
     {
-        this.buttons.prev.classed('disabled', this.cache.isFirst(this.date.year, this.date.month, this.date.day) ||
+        this.buttons.prev.classed('disabled', this.cache.isFirst(... this.date()) ||
                                             (!this.prevOption.call(this.selects.day) &&
                                              !this.prevOption.call(this.selects.month) &&
                                              !this.prevOption.call(this.selects.year)));
-        this.buttons.next.classed('disabled', this.cache.isLast(this.date.year, this.date.month, this.date.day) ||
+        this.buttons.next.classed('disabled', this.cache.isLast(... this.date()) ||
                                             (!this.nextOption.call(this.selects.day) &&
                                              !this.nextOption.call(this.selects.month) &&
                                              !this.nextOption.call(this.selects.year)));
