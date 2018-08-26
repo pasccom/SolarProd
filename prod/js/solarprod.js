@@ -172,7 +172,7 @@ function SolarProd() {
 }
 
 SolarProd.update = function(level, value) {
-    if (!value)
+    if (value === null)
         return false;
 
     var members = ['', 'year', 'month', 'day'];
@@ -196,6 +196,27 @@ SolarProd.prototype = {
 
         this.chart.resize(w, h);
     },
+    disable: function(level) {
+        for (var l = level; l <= 3; l++)
+            this.selects()[l - 1].attr('disabled', true);
+    },
+    clear: function(level) {
+        for (var l = level; l <= 3; l++) {
+            this.date.update(l, '');
+            this.selects()[l - 1].attr('disabled', true)
+                                 .selectAll('option').remove();
+        }
+    },
+    update: function(callPlot, level) {
+        if (level == 1)
+            this.updateYears(callPlot);
+        else if (level == 2)
+            this.updateMonths(callPlot);
+        else if (level == 3)
+            this.updateDays(callPlot);
+        else if (callPlot)
+            this.plot();
+    },
 
     // Update years selector:
     updateYears: function(callPlot) {
@@ -217,16 +238,10 @@ SolarProd.prototype = {
     // Update months selector:
     updateMonths: function(callPlot)
     {
-        this.selects.month.attr('disabled', true);
-        this.selects.day.attr('disabled', true);
+        this.disable(2);
 
         if (this.date.year == '') {
-            this.date.month = '';
-            this.date.day = '';
-            this.selects.month.attr('disabled', true)
-                              .selectAll('option').remove();
-            this.selects.day.attr('disabled', true)
-                            .selectAll('option').remove();
+            this.clear(2);
             if (callPlot)
                 this.plot();
             return;
@@ -236,13 +251,7 @@ SolarProd.prototype = {
         // Fetch available months with AJAX:
         d3.json("list/months/" + pad(this.date.year, 4, '0') + ".json").on('error', (error) => {
             console.warn(error);
-
-            this.date.month = '';
-            this.date.day = '';
-            this.selects.month.attr('disabled', true)
-                              .selectAll('option').remove();
-            this.selects.day.attr('disabled', true)
-                            .selectAll('option').remove();
+            this.clear(2);
             this.siblingPlot(this.selectDate.month*this.selectDate.dir, callPlot, 1);
         }).on('load', (data) => {
             data.unshift('');
@@ -277,10 +286,10 @@ SolarProd.prototype = {
     // Update days selector:
     updateDays: function(callPlot)
     {
+        this.disable(3);
+
         if (this.date.month == '') {
-            this.date.day = '';
-            this.selects.day.attr('disabled', true)
-                            .selectAll('option').remove();
+            this.clear(3);
             if (callPlot)
                 this.plot();
             return;
@@ -289,17 +298,15 @@ SolarProd.prototype = {
         console.log("Selected new month: " + pad(this.date.month, 2, '0') + "/" + pad(this.date.year, 4, '0'));
 
         // Fetch available days with AJAX:
-        d3.json("list/days/" + pad(this.date.year, 4, '0') + "/" + pad(this.date.month, 2, '0')  + ".json").on('error', () => {
-            this.date.day = '';
-            this.selects.day.attr('disabled', true)
-                            .selectAll('option').remove();
+        d3.json("list/days/" + pad(this.date.year, 4, '0') + "/" + pad(this.date.month, 2, '0')  + ".json").on('error', (error) => {
+            console.warn(error);
+            this.clear(3);
             this.siblingPlot(this.selectDate.day*this.selectDate.dir, callPlot, 2);
         }).on('load', (data) => {
             data.unshift('');
 
             var days = this.selects.day.attr('disabled', null)
-                                       .selectAll('option')
-                                       .data(data, (d) => d);
+                                       .selectAll('option').data(data, (d) => d);
             days.enter().append('option').attr('value', (d) => d)
                                          .text((d) => d);
             days.exit().remove();
@@ -397,17 +404,6 @@ SolarProd.prototype = {
             // Activate export:
             this.buttons.export.classed('disabled', false);
         });
-    },
-
-    update: function(callPlot, level) {
-        if (level == 1)
-            this.updateYears(callPlot);
-        else if (level == 2)
-            this.updateMonths(callPlot);
-        else if (level == 3)
-            this.updateDays(callPlot);
-        else if (callPlot)
-            this.plot();
     },
 
     siblingPlot: function()
