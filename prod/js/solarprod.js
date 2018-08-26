@@ -90,14 +90,14 @@ function SolarProd() {
                                                   .on('change', () => {
         this.date.month = this.selects.month.property('value');
         this.updatePrevNext();
-        this.updateDays();
+        this.update(false, 3);
     });
     this.selects.year = toolbar1.append('select').attr('title', 'Année')
                                                  .attr('disabled', true)
                                                  .on('change', () => {
         this.date.year = this.selects.year.property('value');
         this.updatePrevNext();
-        this.updateMonths();
+        this.update(false, 2);
     });
     this.selects.var = toolbar1.append('select').attr('title', 'Variable')
                                                 .attr('disabled', true)
@@ -168,7 +168,7 @@ function SolarProd() {
     d3.select(window).on('resize', this.windowResize.bind(this));
     this.windowResize();
 
-    this.updateYears(false);
+    this.update(false, 1);
 }
 
 SolarProd.update = function(level, value) {
@@ -196,141 +196,94 @@ SolarProd.prototype = {
 
         this.chart.resize(w, h);
     },
-    disable: function(level) {
-        for (var l = level; l <= 3; l++)
-            this.selects()[l - 1].attr('disabled', true);
-    },
-    clear: function(level) {
+
+    clearSelect: function(level) {
         for (var l = level; l <= 3; l++) {
             this.date.update(l, '');
-            this.selects()[l - 1].attr('disabled', true)
-                                 .selectAll('option').remove();
+            this.selects()[l - 1].selectAll('option').remove();
         }
     },
+    // Update year, month and day selector (depending on level)
     update: function(callPlot, level) {
-        if (level == 1)
-            this.updateYears(callPlot);
-        else if (level == 2)
-            this.updateMonths(callPlot);
-        else if (level == 3)
-            this.updateDays(callPlot);
-        else if (callPlot)
-            this.plot();
-    },
-
-    // Update years selector:
-    updateYears: function(callPlot) {
-        // Fetch available years with AJAX:
-        d3.json("list/years.json").on('error', console.warn)
-                                  .on('load', (data) => {
-            data.unshift('');
-            var years = this.selects.year.attr('disabled', null)
-                                         .selectAll('option').data(data);
-
-            years.enter().append('option').attr('value', (d) => d)
-                                          .text((d) => d);
-            years.exit().remove();
-
-            if (callPlot)
-                this.plot();
-        }).get();
-    },
-    // Update months selector:
-    updateMonths: function(callPlot)
-    {
-        this.disable(2);
-
-        if (this.date.year == '') {
-            this.clear(2);
-            if (callPlot)
-                this.plot();
-            return;
-        }
-        console.log("Selected new year: " + pad(this.date.year, 4, '0'));
-
-        // Fetch available months with AJAX:
-        d3.json("list/months/" + pad(this.date.year, 4, '0') + ".json").on('error', (error) => {
-            console.warn(error);
-            this.clear(2);
-            this.siblingPlot(this.selectDate.month*this.selectDate.dir, callPlot, 1);
-        }).on('load', (data) => {
-            data.unshift('');
-
-            var months = this.selects.month.attr('disabled', null)
-                                           .selectAll('option').data(data, (d) => d);
-            months.enter().append('option').attr('value', (d) => d)
-                                           .text((d) => (d == '' ? '' : localeLongMonth(new Date(this.date.year, d - 1))));
-            months.exit().remove();
-
-            this.selects.month.selectAll('option')
-                              .filter((d) => (d == ''))
-                              .lower();
-
-            if (this.selectDate.month*this.selectDate.dir > 0)
-                this.date.month = data[this.selectDate.month*this.selectDate.dir];
-            if (this.selectDate.month*this.selectDate.dir < 0)
-                this.date.month = data[data.length + this.selectDate.month*this.selectDate.dir];
-            this.selects.month.property('value', this.date.month);
-
-            if (this.selectDate.month != 0)
-                this.updatePrevNext();
-            if ((this.selectDate.day == 0) && (this.selectDate.dir == -1))
-                this.updateCache();
-            this.selectDate.month = 0;
-
-            this.updateDays(callPlot);
-            if ((callPlot) && (this.date.day == ''))
-                this.plot();
-        }).get();
-    },
-    // Update days selector:
-    updateDays: function(callPlot)
-    {
-        this.disable(3);
-
-        if (this.date.month == '') {
-            this.clear(3);
+        if (level == 4) {
             if (callPlot)
                 this.plot();
             return;
         }
 
-        console.log("Selected new month: " + pad(this.date.month, 2, '0') + "/" + pad(this.date.year, 4, '0'));
+        // Disables selects above current level inclusive:
+        for (var l = level; l <= 3; l++)
+            this.selects()[l - 1].attr('disabled', true);
 
-        // Fetch available days with AJAX:
-        d3.json("list/days/" + pad(this.date.year, 4, '0') + "/" + pad(this.date.month, 2, '0')  + ".json").on('error', (error) => {
+        // None selected at previous level:
+        if ((level > 1) && (this.date()[level - 2] == '')) {
+            this.clearSelect(level);
+            if (callPlot)
+                this.plot();
+            return;
+        }
+
+        var listPath = 'list/' + SolarData.listFilePath(... this.date(level - 1));
+        console.log("List file path: ", listPath);
+
+        // Load data list:
+        d3.json(listPath).on('error', (error) => {
             console.warn(error);
-            this.clear(3);
-            this.siblingPlot(this.selectDate.day*this.selectDate.dir, callPlot, 2);
+            this.clearSelect(level);
+            this.siblingPlot(this.selectDate()[level - 1]*this.selectDate.dir, callPlot, level -1);
         }).on('load', (data) => {
             data.unshift('');
 
-            var days = this.selects.day.attr('disabled', null)
-                                       .selectAll('option').data(data, (d) => d);
-            days.enter().append('option').attr('value', (d) => d)
-                                         .text((d) => d);
-            days.exit().remove();
+            var text = (d) => d;
+            if (level == 2)
+                text = (d) => (d == '' ? '' : localeLongMonth(new Date(this.date.year, d - 1)));
 
-            this.selects.day.selectAll('option')
-                            .filter((d) => (d == ''))
-                            .lower();
+            var opts = this.selects()[level - 1].attr('disabled', null)
+                                                .selectAll('option').data(data, (d) => d);
+            opts.enter().append('option').attr('value', (d) => d)
+                                         .text(text);
+            opts.exit().remove();
 
-            if (this.selectDate.day*this.selectDate.dir > 0)
-                this.date.day = data[this.selectDate.day*this.selectDate.dir];
-            if (this.selectDate.day*this.selectDate.dir < 0)
-                this.date.day = data[data.length + this.selectDate.day*this.selectDate.dir];
-            this.selects.day.property('value', this.date.day);
+            this.selects()[level - 1].selectAll('option')
+                                     .filter((d) => (d == ''))
+                                     .lower();
 
-            if (this.selectDate.day != 0)
+            if (this.selectDate()[level - 1]*this.selectDate.dir > 0)
+                this.date.update(level, data[this.selectDate()[level - 1]*this.selectDate.dir]);
+            if (this.selectDate()[level - 1]*this.selectDate.dir < 0)
+                this.date.update(level, data[data.length + this.selectDate()[level - 1]*this.selectDate.dir]);
+            this.selects()[level - 1].property('value', this.date()[level - 1]);
+
+            if (this.selectDate()[level - 1] != 0)
                 this.updatePrevNext();
-            if (this.selectDate.dir == -1)
+            if (((level == 3) || (this.selectDate()[level] == 0)) && (this.selectDate.dir == -1))
                 this.updateCache();
-            this.selectDate.day = 0;
+            this.selectDate.update(level, 0);
 
-            if (callPlot)
+            this.update(callPlot, level + 1);
+            if ((level != 3) && (callPlot) && (this.date()[level] == ''))
                 this.plot();
         }).get();
     },
+    // Update cache:
+    updateCache: function()
+    {
+        if (this.selectDate.day == 1)
+            this.cache.lastDay = this.date(3);
+        else if (this.selectDate.day == -1)
+            this.cache.firstDay = this.date(3);
+        else if (this.selectDate.month == 1)
+            this.cache.lastMonth = this.date(2);
+        else if (this.selectDate.month == -1)
+            this.cache.firstMonth = this.date(2);
+        else
+            return;
+
+        this.selectDate.dir = 1;
+        console.log('Updated cache:', this.cache);
+        this.updatePrevNext();
+    },
+
     // Updates the variable selector:
     updateVars: function()
     {
@@ -363,24 +316,6 @@ SolarProd.prototype = {
         aggs.exit().remove();
         aggs.order();
     },
-    // Update cache:
-    updateCache: function()
-    {
-        if (this.selectDate.day == 1)
-            this.cache.lastDay = this.date(3);
-        else if (this.selectDate.day == -1)
-            this.cache.firstDay = this.date(3);
-        else if (this.selectDate.month == 1)
-            this.cache.lastMonth = this.date(2);
-        else if (this.selectDate.month == -1)
-            this.cache.firstMonth = this.date(2);
-        else
-            return;
-
-        this.selectDate.dir = 1;
-        console.log('Updated cache:', this.cache);
-        this.updatePrevNext();
-    },
 
     plot: function(today) {
         // Set date of today:
@@ -391,7 +326,7 @@ SolarProd.prototype = {
             this.date.year = this.selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
                                                                   .attr('value');
             this.selects.year.property('value', this.date.year);
-            this.updateMonths();
+            this.update(false, 2);
             this.updatePrevNext();
         }
 
