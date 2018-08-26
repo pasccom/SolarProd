@@ -69,83 +69,85 @@ function SolarProd() {
     var toolbar2 = d3.select('body').select('div').append('div').classed('toolbar', true);
 
     // The selectors:
-    this.daySelect = toolbar1.append('select').attr('title', 'Jour')
-                                              .attr('disabled', true)
-                                              .on('change', () => {
-        this.date.day = this.daySelect.property('value');
-        this.updatePrevNext();
-    });
-    this.monthSelect = toolbar1.append('select').attr('title', 'Mois')
+    this.selects = {};
+    this.selects.day = toolbar1.append('select').attr('title', 'Jour')
                                                 .attr('disabled', true)
                                                 .on('change', () => {
-        this.date.month = this.monthSelect.property('value');
+        this.date.day = this.selects.day.property('value');
+        this.updatePrevNext();
+    });
+    this.selects.month = toolbar1.append('select').attr('title', 'Mois')
+                                                  .attr('disabled', true)
+                                                  .on('change', () => {
+        this.date.month = this.selects.month.property('value');
         this.updatePrevNext();
         this.updateDays();
     });
-    this.yearSelect = toolbar1.append('select').attr('title', 'Année')
-                                               .attr('disabled', true)
-                                               .on('change', () => {
-        this.date.year = this.yearSelect.property('value');
+    this.selects.year = toolbar1.append('select').attr('title', 'Année')
+                                                 .attr('disabled', true)
+                                                 .on('change', () => {
+        this.date.year = this.selects.year.property('value');
         this.updatePrevNext();
         this.updateMonths();
     });
-    this.varSelect = toolbar1.append('select').attr('title', 'Variable')
-                                              .attr('disabled', true)
-                                              .on('change', () => {
-        this.chart.plot.data.variable(this.varSelect.property('value'));
+    this.selects.var = toolbar1.append('select').attr('title', 'Variable')
+                                                .attr('disabled', true)
+                                                .on('change', () => {
+        this.chart.plot.data.variable(this.selects.var.property('value'));
         this.updateAggs();
         this.chart.draw();
     });
-    this.aggSelect = toolbar1.append('select').attr('title', 'Aggrégation')
-                                              .attr('disabled', true)
-                                              .on('change', () => {
-        this.chart.plot.data.aggregation(this.aggSelect.property('value'));
+    this.selects.agg = toolbar1.append('select').attr('title', 'Aggrégation')
+                                                .attr('disabled', true)
+                                                .on('change', () => {
+        this.chart.plot.data.aggregation(this.selects.agg.property('value'));
         this.chart.draw();
     });
 
     // The buttons:
-    this.plotButton = toolbar1.append('img').classed('button', true)
-                                            .attr('src', 'img/plot.png')
-                                            .attr('title', 'Tracer')
-                                            .attr('alt', 'Tracer')
-                                            .on('click', () => {this.plot();});
-    this.prevButton = toolbar2.append('img').classed('button', true)
-                                            .classed('disabled', true)
-                                            .attr('src', 'img/prev.png')
-                                            .attr('title', 'Précédent')
-                                            .attr('alt', 'Précédent')
-                                            .on('click', () => {this.prevPlot();});
-    this.todayButton = toolbar2.append('img').classed('button', true)
-                                             .attr('src', 'img/today.png')
-                                             .attr('title', 'Aujourd\'hui')
-                                             .attr('alt', 'Aujourd\'hui')
-                                             .on('click', () => {this.plot(true);});
-    this.nextButton = toolbar2.append('img').classed('button', true)
-                                            .classed('disabled', true)
-                                            .attr('src', 'img/next.png')
-                                            .attr('title', 'Suivant')
-                                            .attr('alt', 'Suivant')
-                                            .on('click', () => {this.nextPlot();});
-    this.exportButton = toolbar2.append('img').classed('button', true)
+    this.buttons = {};
+    this.buttons.plot = toolbar1.append('img').classed('button', true)
+                                              .attr('src', 'img/plot.png')
+                                              .attr('title', 'Tracer')
+                                              .attr('alt', 'Tracer')
+                                              .on('click', () => {this.plot();});
+    this.buttons.prev = toolbar2.append('img').classed('button', true)
                                               .classed('disabled', true)
-                                              .attr('src', 'img/csv.png')
-                                              .attr('title', 'Export CSV')
-                                              .attr('alt', 'Export CSV')
-                                              .on('click', () => {this.chart.plot.data.exportCsv();});
+                                              .attr('src', 'img/prev.png')
+                                              .attr('title', 'Précédent')
+                                              .attr('alt', 'Précédent')
+                                              .on('click', () => {this.prevPlot();});
+    this.buttons.today = toolbar2.append('img').classed('button', true)
+                                               .attr('src', 'img/today.png')
+                                               .attr('title', 'Aujourd\'hui')
+                                               .attr('alt', 'Aujourd\'hui')
+                                               .on('click', () => {this.plot(true);});
+    this.buttons.next = toolbar2.append('img').classed('button', true)
+                                              .classed('disabled', true)
+                                              .attr('src', 'img/next.png')
+                                              .attr('title', 'Suivant')
+                                              .attr('alt', 'Suivant')
+                                              .on('click', () => {this.nextPlot();});
+    this.buttons.export = toolbar2.append('img').classed('button', true)
+                                                .classed('disabled', true)
+                                                .attr('src', 'img/csv.png')
+                                                .attr('title', 'Export CSV')
+                                                .attr('alt', 'Export CSV')
+                                                .on('click', () => {this.chart.plot.data.exportCsv();});
 
     // TODO remove?
     // WARNING Used by test.py
-    this.daySelect.attr('id', 'day');
-    this.monthSelect.attr('id', 'month');
-    this.yearSelect.attr('id', 'year');
-    this.varSelect.attr('id', 'var');
-    this.aggSelect.attr('id', 'sum');
+    this.selects.day.attr('id', 'day');
+    this.selects.month.attr('id', 'month');
+    this.selects.year.attr('id', 'year');
+    this.selects.var.attr('id', 'var');
+    this.selects.agg.attr('id', 'sum');
 
-    this.plotButton.attr('id', 'plot');
-    this.prevButton.attr('id', 'prev');
-    this.todayButton.attr('id', 'today');
-    this.nextButton.attr('id', 'next');
-    this.exportButton.attr('id', 'export');
+    this.buttons.plot.attr('id', 'plot');
+    this.buttons.prev.attr('id', 'prev');
+    this.buttons.today.attr('id', 'today');
+    this.buttons.next.attr('id', 'next');
+    this.buttons.export.attr('id', 'export');
 
     this.chart = new SolarChart(d3.select('body'));
     d3.select(window).on('resize', this.windowResize.bind(this));
@@ -195,8 +197,8 @@ SolarProd.prototype = {
         d3.json("list/years.json").on('error', console.warn)
                                   .on('load', (data) => {
             data.unshift('');
-            var years = this.yearSelect.attr('disabled', null)
-                                       .selectAll('option').data(data);
+            var years = this.selects.year.attr('disabled', null)
+                                         .selectAll('option').data(data);
 
             years.enter().append('option').attr('value', (d) => d)
                                           .text((d) => d);
@@ -209,16 +211,16 @@ SolarProd.prototype = {
     // Update months selector:
     updateMonths: function(callPlot)
     {
-        this.monthSelect.attr('disabled', true);
-        this.daySelect.attr('disabled', true);
+        this.selects.month.attr('disabled', true);
+        this.selects.day.attr('disabled', true);
 
         if (this.date.year == '') {
             this.date.month = '';
             this.date.day = '';
-            this.monthSelect.attr('disabled', true)
+            this.selects.month.attr('disabled', true)
+                              .selectAll('option').remove();
+            this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
-            this.daySelect.attr('disabled', true)
-                          .selectAll('option').remove();
             if (callPlot)
                 this.plot();
             return;
@@ -231,10 +233,10 @@ SolarProd.prototype = {
 
             this.date.month = '';
             this.date.day = '';
-            this.monthSelect.attr('disabled', true)
+            this.selects.month.attr('disabled', true)
+                              .selectAll('option').remove();
+            this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
-            this.daySelect.attr('disabled', true)
-                          .selectAll('option').remove();
             if (this.selectDate.month*this.selectDate.dir < 0)
                 this.prevYearPlot(callPlot);
             else if (this.selectDate.month*this.selectDate.dir > 0)
@@ -245,21 +247,21 @@ SolarProd.prototype = {
         }).on('load', (data) => {
             data.unshift('');
 
-            var months = this.monthSelect.attr('disabled', null)
-                                         .selectAll('option').data(data, (d) => d);
+            var months = this.selects.month.attr('disabled', null)
+                                           .selectAll('option').data(data, (d) => d);
             months.enter().append('option').attr('value', (d) => d)
                                            .text((d) => (d == '' ? '' : localeLongMonth(new Date(this.date.year, d - 1))));
             months.exit().remove();
 
-            this.monthSelect.selectAll('option')
-                               .filter((d) => (d == ''))
-                               .lower();
+            this.selects.month.selectAll('option')
+                              .filter((d) => (d == ''))
+                              .lower();
 
             if (this.selectDate.month*this.selectDate.dir > 0)
                 this.date.month = data[this.selectDate.month*this.selectDate.dir];
             if (this.selectDate.month*this.selectDate.dir < 0)
                 this.date.month = data[data.length + this.selectDate.month*this.selectDate.dir];
-            this.monthSelect.property('value', this.date.month);
+            this.selects.month.property('value', this.date.month);
 
             if (this.selectDate.month != 0)
                 this.updatePrevNext();
@@ -277,8 +279,8 @@ SolarProd.prototype = {
     {
         if (this.date.month == '') {
             this.date.day = '';
-            this.daySelect.attr('disabled', true)
-                          .selectAll('option').remove();
+            this.selects.day.attr('disabled', true)
+                            .selectAll('option').remove();
             if (callPlot)
                 this.plot();
             return;
@@ -289,8 +291,8 @@ SolarProd.prototype = {
         // Fetch available days with AJAX:
         d3.json("list/days/" + pad(this.date.year, 4, '0') + "/" + pad(this.date.month, 2, '0')  + ".json").on('error', () => {
             this.date.day = '';
-            this.daySelect.attr('disabled', true)
-                          .selectAll('option').remove();
+            this.selects.day.attr('disabled', true)
+                            .selectAll('option').remove();
             if (this.selectDate.day*this.selectDate.dir < 0)
                 this.prevMonthPlot(callPlot);
             else if (this.selectDate.day*this.selectDate.dir > 0)
@@ -301,22 +303,22 @@ SolarProd.prototype = {
         }).on('load', (data) => {
             data.unshift('');
 
-            var days = this.daySelect.attr('disabled', null)
-                                     .selectAll('option')
-                                     .data(data, (d) => d);
+            var days = this.selects.day.attr('disabled', null)
+                                       .selectAll('option')
+                                       .data(data, (d) => d);
             days.enter().append('option').attr('value', (d) => d)
                                          .text((d) => d);
             days.exit().remove();
 
-            this.daySelect.selectAll('option')
-                          .filter((d) => (d == ''))
-                          .lower();
+            this.selects.day.selectAll('option')
+                            .filter((d) => (d == ''))
+                            .lower();
 
             if (this.selectDate.day*this.selectDate.dir > 0)
                 this.date.day = data[this.selectDate.day*this.selectDate.dir];
             if (this.selectDate.day*this.selectDate.dir < 0)
                 this.date.day = data[data.length + this.selectDate.day*this.selectDate.dir];
-            this.daySelect.property('value', this.date.day);
+            this.selects.day.property('value', this.date.day);
 
             if (this.selectDate.day != 0)
                 this.updatePrevNext();
@@ -334,16 +336,16 @@ SolarProd.prototype = {
         var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
 
         // Adds the new variables using a data join:
-        var vars = this.varSelect.attr('disabled', null)
-                                 .selectAll('option').data(data.validVars, (d) => d);
+        var vars = this.selects.var.attr('disabled', null)
+                                   .selectAll('option').data(data.validVars, (d) => d);
         vars.enter().append('option').attr('value', (d) => d)
                                      .text(SolarData.variableName);
         vars.exit().remove();
         vars.order();
 
         // Updates sums if needed:
-        if (this.varSelect.property('value') != data.variable()) {
-            data.variable(this.varSelect.property('value'));
+        if (this.selects.var.property('value') != data.variable()) {
+            data.variable(this.selects.var.property('value'));
             this.updateAggs(data);
         }
     },
@@ -353,8 +355,8 @@ SolarProd.prototype = {
         var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
 
         // Adds the new sums using a data join:
-        var aggs = this.aggSelect.attr('disabled', (data.validAggs.length < 2) ? true : null)
-                                 .selectAll('option').data(data.validAggs, (d) => d);
+        var aggs = this.selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
+                                   .selectAll('option').data(data.validAggs, (d) => d);
         aggs.enter().append('option').attr('value', (d) => d)
                                      .text(SolarData.aggregationName);
         aggs.exit().remove();
@@ -385,9 +387,9 @@ SolarProd.prototype = {
             this.selectDate.month = -1;
             this.selectDate.day = -1;
             this.selectDate.dir = 1;
-            this.date.year = this.yearSelect.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
-                                                                .attr('value');
-            this.yearSelect.property('value', this.date.year);
+            this.date.year = this.selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
+                                                                  .attr('value');
+            this.selects.year.property('value', this.date.year);
             this.updateMonths();
             this.updatePrevNext();
         }
@@ -399,7 +401,7 @@ SolarProd.prototype = {
             this.chart.setData(data);
 
             // Activate export:
-            this.exportButton.classed('disabled', false);
+            this.buttons.export.classed('disabled', false);
         });
     },
 
@@ -409,10 +411,10 @@ SolarProd.prototype = {
         if (this.cache.isFirstDay(this.date.year, this.date.month, this.date.day))
             return;
 
-        var prevDay = this.prevOption.call(this.daySelect);
+        var prevDay = this.prevOption.call(this.selects.day);
         if (prevDay) {
             this.date.day = prevDay;
-            this.daySelect.property('value', this.date.day);
+            this.selects.day.property('value', this.date.day);
             this.updatePrevNext();
             if (callPlot)
                 this.plot();
@@ -432,10 +434,10 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevMonth = this.prevOption.call(this.monthSelect);
+        var prevMonth = this.prevOption.call(this.selects.month);
         if (prevMonth) {
             this.date.month = prevMonth;
-            this.monthSelect.property('value', this.date.month);
+            this.selects.month.property('value', this.date.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
@@ -457,14 +459,14 @@ SolarProd.prototype = {
             return;
         }
 
-        var prevYear = this.prevOption.call(this.yearSelect);
+        var prevYear = this.prevOption.call(this.selects.year);
         if (prevYear) {
             this.date.year = prevYear;
-            this.yearSelect.property('value', this.date.year);
+            this.selects.year.property('value', this.date.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
-            this.prevButton.classed('disabled', true);
+            this.buttons.prev.classed('disabled', true);
             this.selectDate.dir = -1;
             if (this.selectDate.day != 0)
                 this.nextDayPlot(callPlot);
@@ -489,10 +491,10 @@ SolarProd.prototype = {
         if (this.cache.isLastDay(this.date.year, this.date.month, this.date.day))
             return;
 
-        var nextDay = this.nextOption.call(this.daySelect);
+        var nextDay = this.nextOption.call(this.selects.day);
         if (nextDay) {
             this.date.day = nextDay;
-            this.daySelect.property('value', this.date.day);
+            this.selects.day.property('value', this.date.day);
             this.updatePrevNext();
             if (callPlot)
                 this.plot();
@@ -512,10 +514,10 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextMonth = this.nextOption.call(this.monthSelect);
+        var nextMonth = this.nextOption.call(this.selects.month);
         if (nextMonth) {
             this.date.month = nextMonth;
-            this.monthSelect.property('value', this.date.month);
+            this.selects.month.property('value', this.date.month);
             this.updatePrevNext();
             this.updateDays(callPlot);
         } else {
@@ -537,14 +539,14 @@ SolarProd.prototype = {
             return;
         }
 
-        var nextYear = this.nextOption.call(this.yearSelect);
+        var nextYear = this.nextOption.call(this.selects.year);
         if (nextYear) {
             this.date.year = nextYear;
-            this.yearSelect.property('value', this.date.year);
+            this.selects.year.property('value', this.date.year);
             this.updatePrevNext();
             this.updateMonths(callPlot);
         } else {
-            this.nextButton.classed('disabled', true);
+            this.buttons.next.classed('disabled', true);
             this.selectDate.dir = -1;
             if (this.selectDate.day != 0)
                 this.prevDayPlot(callPlot);
@@ -569,13 +571,13 @@ SolarProd.prototype = {
     // Update the states of previous and next buttons:
     updatePrevNext: function()
     {
-        this.prevButton.classed('disabled', this.cache.isFirst(this.date.year, this.date.month, this.date.day) ||
-                                           (!this.prevOption.call(this.daySelect) &&
-                                            !this.prevOption.call(this.monthSelect) &&
-                                            !this.prevOption.call(this.yearSelect)));
-        this.nextButton.classed('disabled', this.cache.isLast(this.date.year, this.date.month, this.date.day) ||
-                                           (!this.nextOption.call(this.daySelect) &&
-                                            !this.nextOption.call(this.monthSelect) &&
-                                            !this.nextOption.call(this.yearSelect)));
+        this.buttons.prev.classed('disabled', this.cache.isFirst(this.date.year, this.date.month, this.date.day) ||
+                                            (!this.prevOption.call(this.selects.day) &&
+                                             !this.prevOption.call(this.selects.month) &&
+                                             !this.prevOption.call(this.selects.year)));
+        this.buttons.next.classed('disabled', this.cache.isLast(this.date.year, this.date.month, this.date.day) ||
+                                            (!this.nextOption.call(this.selects.day) &&
+                                             !this.nextOption.call(this.selects.month) &&
+                                             !this.nextOption.call(this.selects.year)));
     },
 }
