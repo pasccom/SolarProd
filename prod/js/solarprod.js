@@ -174,24 +174,6 @@ SolarProd.update = function(level, value) {
     return true;
 };
 
-SolarProd.siblingOption = function(element) {
-    return function()
-    {
-        var datum = (arguments.length > 0) ? arguments[0] : this.property('value');
-
-        if (datum == '')
-            return null;
-
-        var o = this.selectAll('option')
-                    .filter((d) => (d == datum))
-                    .selectAll(function() {return [this[element]];});
-
-        if (o.empty() ||  (o.attr('value') == ''))
-            return null;
-        return o.attr('value');
-    };
-};
-
 SolarProd.prototype = {
     // Window resize event:
     windowResize: function()
@@ -471,7 +453,7 @@ SolarProd.prototype = {
                 return;
             }
 
-            if (this.date.update(level, this.prevOption.call(this.selects()[level - 1]))) {
+            if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], -1))) {
                 this.selects()[level - 1].property('value', this.date()[level - 1]);
                 this.updatePrevNext();
                 this.update(callPlot, level + 1);
@@ -518,7 +500,7 @@ SolarProd.prototype = {
                 return;
             }
 
-            if (this.date.update(level, this.nextOption.call(this.selects()[level - 1]))) {
+            if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], 1))) {
                 this.selects()[level - 1].property('value', this.date()[level - 1]);
                 this.updatePrevNext();
                 this.update(callPlot, level + 1);
@@ -529,18 +511,31 @@ SolarProd.prototype = {
         }
     },
     // Get previous option(s):
-    prevOption: SolarProd.siblingOption('previousElementSibling'),
-    nextOption: SolarProd.siblingOption('nextElementSibling'),
+    siblingOption: function(dir)
+    {
+        var datum = (arguments.length > 1) ? arguments[1] : this.property('value');
+
+        if (datum == '')
+            return null;
+
+        var o = this.selectAll('option')
+                    .filter((d) => (d == datum))
+                    .selectAll(function() {return (dir == 1) ? [this.nextElementSibling] : [this.previousElementSibling];});
+
+        if (o.empty() ||  (o.attr('value') == ''))
+            return null;
+        return o.attr('value');
+    },
     // Update the states of previous and next buttons:
     updatePrevNext: function()
     {
         this.buttons.prev.classed('disabled', this.cache.isFirst(... this.date()) ||
-                                            (!this.prevOption.call(this.selects.day) &&
-                                             !this.prevOption.call(this.selects.month) &&
-                                             !this.prevOption.call(this.selects.year)));
+                                            (!this.siblingOption.call(this.selects.day, -1) &&
+                                             !this.siblingOption.call(this.selects.month, -1) &&
+                                             !this.siblingOption.call(this.selects.year, -1)));
         this.buttons.next.classed('disabled', this.cache.isLast(... this.date()) ||
-                                            (!this.nextOption.call(this.selects.day) &&
-                                             !this.nextOption.call(this.selects.month) &&
-                                             !this.nextOption.call(this.selects.year)));
+                                            (!this.siblingOption.call(this.selects.day, 1) &&
+                                             !this.siblingOption.call(this.selects.month, 1) &&
+                                             !this.siblingOption.call(this.selects.year, 1)));
     },
 }
