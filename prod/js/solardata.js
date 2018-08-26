@@ -325,42 +325,37 @@ var SolarData = {
     {
         return this.xScale.step()/2;
     },
-    create: function(year, month, day)
+    filePath: function(year, month, day)
     {
         var file = '';
         var folder = '';
 
-        if (arguments.length > 0) {
-            day = '' + day + '';
-            if (day != '') {
-                while (day.length < 2)
-                    day = "0" + day;
-                folder = (folder == '') ? 'days' : folder;
-                file = "/" + day + file;
-            }
-            month = '' + month + '';
-            if (month != '') {
-                while (month.length < 2)
-                    month = "0" + month;
-                folder = (folder == '') ? 'months' : folder;
-                file = "/" + month + file;
-            }
-            year = '' + year + '';
-            if (year != '') {
-                folder = (folder == '') ? 'years' : folder;
-                file = "/" + year + file;
-            }
-            if (file == '')
-                file = 'years';
-        } else {
-            file = 'today';
+        if (day != '') {
+            folder = (folder == '') ? 'days' : folder;
+            file = "/" + pad(day, 2, '0') + file;
         }
-        console.log("Data file path: " + folder + file + '.json')
+        if (month != '') {
+            folder = (folder == '') ? 'months' : folder;
+            file = "/" + pad(month, 2, '0') + file;
+        }
+        if (year != '') {
+            folder = (folder == '') ? 'years' : folder;
+            file = "/" + pad(year, 4, '0') + file;
+        }
+        if (file == '')
+            file = 'years';
+
+        return folder + file;
+    },
+    create: function(year, month, day)
+    {
+        var dataPath = 'data/' + ((arguments.length == 0) ? 'today' : SolarData.filePath(year, month, day)) + '.json';
+        console.log("Data file path: ", dataPath);
 
         // Loads the data:
         return new Promise((resolve, reject) => {
-            d3.json('data/' + folder + file + '.json').on('error', reject)
-                                                      .on('load', (data) => {
+            d3.json(dataPath).on('error', reject)
+                             .on('load', (data) => {
                 // Return appropriate child object instance:
                 if (!Array.isArray(data))
                     resolve(new LineData(data, year, month, day));
