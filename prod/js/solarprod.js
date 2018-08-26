@@ -114,7 +114,13 @@ function SolarProd() {
     });
 
     // The buttons:
-    this.buttons = {};
+    this.buttons = function(dir) {
+        if (dir == 1)
+            return this.buttons.next;
+        if (dir == -1)
+            return this.buttons.prev;
+    };
+
     this.buttons.plot = toolbar1.append('img').classed('button', true)
                                               .attr('src', 'img/plot.png')
                                               .attr('title', 'Tracer')
@@ -125,7 +131,7 @@ function SolarProd() {
                                               .attr('src', 'img/prev.png')
                                               .attr('title', 'Précédent')
                                               .attr('alt', 'Précédent')
-                                              .on('click', () => {this.prevPlot();});
+                                              .on('click', () => {this.siblingPlot(-1);});
     this.buttons.today = toolbar2.append('img').classed('button', true)
                                                .attr('src', 'img/today.png')
                                                .attr('title', 'Aujourd\'hui')
@@ -136,7 +142,7 @@ function SolarProd() {
                                               .attr('src', 'img/next.png')
                                               .attr('title', 'Suivant')
                                               .attr('alt', 'Suivant')
-                                              .on('click', () => {this.nextPlot();});
+                                              .on('click', () => {this.siblingPlot(1);});
     this.buttons.export = toolbar2.append('img').classed('button', true)
                                                 .classed('disabled', true)
                                                 .attr('src', 'img/csv.png')
@@ -237,13 +243,7 @@ SolarProd.prototype = {
                               .selectAll('option').remove();
             this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
-            if (this.selectDate.month*this.selectDate.dir < 0)
-                this.prevPlot(callPlot, 1);
-            else if (this.selectDate.month*this.selectDate.dir > 0)
-                this.nextPlot(callPlot, 1);
-            if (callPlot)
-                this.plot();
-            return;
+            this.siblingPlot(this.selectDate.month*this.selectDate.dir, callPlot, 1);
         }).on('load', (data) => {
             data.unshift('');
 
@@ -293,13 +293,7 @@ SolarProd.prototype = {
             this.date.day = '';
             this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
-            if (this.selectDate.day*this.selectDate.dir < 0)
-                this.prevPlot(callPlot, 2);
-            else if (this.selectDate.day*this.selectDate.dir > 0)
-                this.nextPlot(callPlot, 2);
-            if (callPlot)
-                this.plot();
-            return;
+            this.siblingPlot(this.selectDate.day*this.selectDate.dir, callPlot, 2);
         }).on('load', (data) => {
             data.unshift('');
 
@@ -416,98 +410,60 @@ SolarProd.prototype = {
             this.plot();
     },
 
-    prevPlot: function()
+    siblingPlot: function()
     {
-        var callPlot = (arguments.length > 0) ? arguments[0] : true;
+        var dir = arguments[0];
+        var callPlot = (arguments.length > 1) ? arguments[1] : true;
 
-        if (arguments.length < 2) {
-            for (var l = 3; l > 0; l--) {
-                if (this.date()[l - 1] != '') {
-                    this.prevPlot(callPlot, l);
-                    break;
-                }
-            }
-        } else {
-            var level = arguments[1];
-
-            if (level == 0) {
-                this.buttons.prev.classed('disabled', true);
-                this.selectDate.dir = -1;
-                for (var l = 3; l > 1; l--) {
-                    if (this.selectDate()[l - 1] != 0) {
-                        this.nextPlot(callPlot, l);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            if (this.cache.isFirst(... this.date(level))) {
-                for (var l = 3; l > level; l--) {
-                    if (this.selectDate()[l - 1] != 0) {
-                        this.selectDate.dir = -1;
-                        this.nextPlot(callPlot, l);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], -1))) {
-                this.selects()[level - 1].property('value', this.date()[level - 1]);
-                this.updatePrevNext();
-                this.update(callPlot, level + 1);
-            } else {
-                this.selectDate.update(level, -this.selectDate.dir);
-                this.prevPlot(callPlot, level - 1);
-            }
+        if (dir == 0) {
+            if (callPlot)
+                this.plot();
+            return;
         }
-    },
-    nextPlot: function()
-    {
-        var callPlot = (arguments.length > 0) ? arguments[0] : true;
 
-        if (arguments.length < 2) {
+        if (arguments.length < 3) {
             for (var l = 3; l > 0; l--) {
                 if (this.date()[l - 1] != '') {
-                    this.nextPlot(callPlot, l);
+                    this.siblingPlot(dir, callPlot, l);
                     break;
                 }
             }
+            return;
+        }
+
+        var level = arguments[2];
+
+        if (level == 0) {
+            this.buttons(dir).classed('disabled', true);
+            this.selectDate.dir = -1;
+            for (var l = 3; l > 1; l--) {
+                if (this.selectDate()[l - 1] != 0) {
+                    this.siblingPlot(-dir, callPlot, l);
+                    break;
+                }
+            }
+            return;
+        }
+
+        if (((dir == 1 ) && this.cache.isLast(... this.date(level))) ||
+            ((dir == -1) && this.cache.isFirst(... this.date(level)))) {
+            for (var l = 3; l > level; l--) {
+                if (this.selectDate()[l - 1] != 0) {
+                    this.selectDate.dir = -1;
+                    this.siblingPlot(dir, callPlot, l);
+                    break;
+                }
+            }
+            return;
+        }
+
+        if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], dir))) {
+            this.selects()[level - 1].property('value', this.date()[level - 1]);
+            this.updatePrevNext();
+            this.update(callPlot, level + 1);
         } else {
-            var level = arguments[1];
-
-            if (level == 0) {
-                this.buttons.next.classed('disabled', true);
-                this.selectDate.dir = -1;
-                for (var l = 3; l > 1; l--) {
-                    if (this.selectDate()[l - 1] != 0) {
-                        this.prevPlot(callPlot, l);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            if (this.cache.isLast(... this.date(level))) {
-                for (var l = 3; l > level; l--) {
-                    if (this.selectDate()[l - 1] != 0) {
-                        this.selectDate.dir = -1;
-                        this.nextPlot(callPlot, l);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], 1))) {
-                this.selects()[level - 1].property('value', this.date()[level - 1]);
-                this.updatePrevNext();
-                this.update(callPlot, level + 1);
-            } else {
-                this.selectDate.update(level, this.selectDate.dir);
-                this.nextPlot(callPlot, level - 1);
-            }
+            this.selectDate.update(level, this.selectDate.dir*dir);
+            this.siblingPlot(dir, callPlot, level - 1);
         }
     },
     // Get previous option(s):
@@ -538,4 +494,4 @@ SolarProd.prototype = {
                                              !this.siblingOption.call(this.selects.month, 1) &&
                                              !this.siblingOption.call(this.selects.year, 1)));
     },
-}
+};
