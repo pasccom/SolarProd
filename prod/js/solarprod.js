@@ -21,17 +21,17 @@ SolarCache.is = function(member) {
 
 SolarCache.prototype = {
     isFirst: function(year, month, day) {
-        if ((year != '') && (month != '') && (day != ''))
+        if ((year !== undefined) && (year !== '') && (month !== undefined) && (month !== '') && (day !== undefined) && (day !== ''))
             return this.isFirstDay(year, month, day);
-        else if ((year != '') && (month != ''))
+        else if ((year !== undefined) && (year !== '') && (month !== undefined) && (month !== ''))
             return this.isFirstMonth(year, month);
         else
             return this.isFirstYear(year);
     },
     isLast: function(year, month, day) {
-        if ((year != '') && (month != '') && (day != ''))
+        if ((year !== undefined) && (year !== '') && (month !== undefined) && (month !== '') && (day !== undefined) && (day !== ''))
             return this.isLastDay(year, month, day);
-        else if ((year != '') && (month != ''))
+        else if ((year !== undefined) && (year !== '') && (month !== undefined) && (month !== ''))
             return this.isLastMonth(year, month);
         else
             return this.isLastYear(year);
@@ -53,6 +53,7 @@ function SolarProd() {
     this.date.year = '';
     this.date.month = '';
     this.date.day = '';
+    this.date.update = SolarProd.update;
 
     // Date to select:
     this.selectDate = function() {
@@ -63,6 +64,7 @@ function SolarProd() {
     this.selectDate.month = 0;
     this.selectDate.day = 0;
     this.selectDate.dir = 1;
+    this.selectDate.update = SolarProd.update;
 
     // Cache:
     this.cache = new SolarCache();
@@ -163,6 +165,15 @@ function SolarProd() {
     this.updateYears(false);
 }
 
+SolarProd.update = function(level, value) {
+    if (!value)
+        return false;
+
+    var members = ['', 'year', 'month', 'day'];
+    this[members[level]] = value;
+    return true;
+};
+
 SolarProd.siblingOption = function(element) {
     return function()
     {
@@ -245,9 +256,9 @@ SolarProd.prototype = {
             this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
             if (this.selectDate.month*this.selectDate.dir < 0)
-                this.prevYearPlot(callPlot);
+                this.prevPlot(callPlot, 1);
             else if (this.selectDate.month*this.selectDate.dir > 0)
-                this.nextYearPlot(callPlot);
+                this.nextPlot(callPlot, 1);
             if (callPlot)
                 this.plot();
             return;
@@ -301,9 +312,9 @@ SolarProd.prototype = {
             this.selects.day.attr('disabled', true)
                             .selectAll('option').remove();
             if (this.selectDate.day*this.selectDate.dir < 0)
-                this.prevMonthPlot(callPlot);
+                this.prevPlot(callPlot, 2);
             else if (this.selectDate.day*this.selectDate.dir > 0)
-                this.nextMonthPlot(callPlot);
+                this.nextPlot(callPlot, 2);
             if (callPlot)
                 this.plot();
             return;
@@ -412,166 +423,111 @@ SolarProd.prototype = {
         });
     },
 
-    // Plots data for previous day:
-    prevDayPlot: function(callPlot)
-    {
-        if (this.cache.isFirstDay(... this.date()))
-            return;
-
-        var prevDay = this.prevOption.call(this.selects.day);
-        if (prevDay) {
-            this.date.day = prevDay;
-            this.selects.day.property('value', this.date.day);
-            this.updatePrevNext();
-            if (callPlot)
-                this.plot();
-        } else {
-            this.selectDate.day = -this.selectDate.dir;
-            this.prevMonthPlot(callPlot);
-        }
-    },
-    // Plots data for previous month:
-    prevMonthPlot: function(callPlot)
-    {
-        if (this.cache.isFirstMonth(... this.date())) {
-            if (this.selectDate.day != 0) {
-                this.selectDate.dir = -1;
-                this.nextDayPlot(callPlot);
-            }
-            return;
-        }
-
-        var prevMonth = this.prevOption.call(this.selects.month);
-        if (prevMonth) {
-            this.date.month = prevMonth;
-            this.selects.month.property('value', this.date.month);
-            this.updatePrevNext();
-            this.updateDays(callPlot);
-        } else {
-            this.selectDate.month = -this.selectDate.dir;
-            this.prevYearPlot(callPlot);
-        }
-    },
-    // Plots data for previous year:
-    prevYearPlot: function(callPlot)
-    {
-        if (this.cache.isFirstYear(... this.date())) {
-            if (this.selectDate.day != 0) {
-                this.selectDate.dir = -1;
-                this.nextDayPlot(callPlot);
-            } else if (this.selectDate.month != 0) {
-                this.selectDate.dir = -1;
-                this.nextMonthPlot(callPlot);
-            }
-            return;
-        }
-
-        var prevYear = this.prevOption.call(this.selects.year);
-        if (prevYear) {
-            this.date.year = prevYear;
-            this.selects.year.property('value', this.date.year);
-            this.updatePrevNext();
+    update: function(callPlot, level) {
+        if (level == 1)
+            this.updateYears(callPlot);
+        else if (level == 2)
             this.updateMonths(callPlot);
-        } else {
-            this.buttons.prev.classed('disabled', true);
-            this.selectDate.dir = -1;
-            if (this.selectDate.day != 0)
-                this.nextDayPlot(callPlot);
-            else if (this.selectDate.month != 0)
-                this.nextMonthPlot(callPlot);
-        }
+        else if (level == 3)
+            this.updateDays(callPlot);
+        else if (callPlot)
+            this.plot();
     },
-    // Plots data for previous year/month/day:
+
     prevPlot: function()
     {
-        if (this.date.day != '')
-            this.prevDayPlot(true);
-        else if (this.date.month != '')
-            this.prevMonthPlot(true);
-        else if (this.date.year != '')
-            this.prevYearPlot(true);
-    },
+        var callPlot = (arguments.length > 0) ? arguments[0] : true;
 
-    // Plots data for next day:
-    nextDayPlot: function(callPlot)
-    {
-        if (this.cache.isLastDay(... this.date()))
-            return;
-
-        var nextDay = this.nextOption.call(this.selects.day);
-        if (nextDay) {
-            this.date.day = nextDay;
-            this.selects.day.property('value', this.date.day);
-            this.updatePrevNext();
-            if (callPlot)
-                this.plot();
-        } else {
-            this.selectDate.day = this.selectDate.dir;
-            this.nextMonthPlot(callPlot);
-        }
-    },
-    // Plots data for next month:
-    nextMonthPlot: function(callPlot)
-    {
-        if (this.cache.isLastMonth(... this.date())) {
-            if (this.selectDate.day != 0) {
-                this.selectDate.dir = -1;
-                this.prevDayPlot(callPlot);
+        if (arguments.length < 2) {
+            for (var l = 3; l > 0; l--) {
+                if (this.date()[l - 1] != '') {
+                    this.prevPlot(callPlot, l);
+                    break;
+                }
             }
-            return;
-        }
-
-        var nextMonth = this.nextOption.call(this.selects.month);
-        if (nextMonth) {
-            this.date.month = nextMonth;
-            this.selects.month.property('value', this.date.month);
-            this.updatePrevNext();
-            this.updateDays(callPlot);
         } else {
-            this.selectDate.month = this.selectDate.dir;
-            this.nextYearPlot(callPlot);
-        }
-    },
-    // Plots data for next year:
-    nextYearPlot: function(callPlot)
-    {
-        if (this.cache.isLastYear(... this.date())) {
-            if (this.selectDate.day != 0) {
+            var level = arguments[1];
+
+            if (level == 0) {
+                this.buttons.prev.classed('disabled', true);
                 this.selectDate.dir = -1;
-                this.prevDayPlot(callPlot);
-            } else if (this.selectDate.month != 0) {
-                this.selectDate.dir = -1;
-                this.prevMonthPlot(callPlot);
+                for (var l = 3; l > 1; l--) {
+                    if (this.selectDate()[l - 1] != 0) {
+                        this.nextPlot(callPlot, l);
+                        break;
+                    }
+                }
+                return;
             }
-            return;
-        }
 
-        var nextYear = this.nextOption.call(this.selects.year);
-        if (nextYear) {
-            this.date.year = nextYear;
-            this.selects.year.property('value', this.date.year);
-            this.updatePrevNext();
-            this.updateMonths(callPlot);
-        } else {
-            this.buttons.next.classed('disabled', true);
-            this.selectDate.dir = -1;
-            if (this.selectDate.day != 0)
-                this.prevDayPlot(callPlot);
-            else if (this.selectDate.month != 0)
-                this.prevMonthPlot(callPlot);
+            if (this.cache.isFirst(... this.date(level))) {
+                for (var l = 3; l > level; l--) {
+                    if (this.selectDate()[l - 1] != 0) {
+                        this.selectDate.dir = -1;
+                        this.nextPlot(callPlot, l);
+                        break;
+                    }
+                }
+                return;
+            }
+
+            if (this.date.update(level, this.prevOption.call(this.selects()[level - 1]))) {
+                this.selects()[level - 1].property('value', this.date()[level - 1]);
+                this.updatePrevNext();
+                this.update(callPlot, level + 1);
+            } else {
+                this.selectDate.update(level, -this.selectDate.dir);
+                this.prevPlot(callPlot, level - 1);
+            }
         }
     },
-    // Plots data for next year/month/day:
     nextPlot: function()
     {
-        if (this.date.day != '')
-            this.nextDayPlot(true);
-        else if (this.date.month != '')
-            this.nextMonthPlot(true);
-        else if (this.date.year != '')
-            this.nextYearPlot(true);
-    },
+        var callPlot = (arguments.length > 0) ? arguments[0] : true;
 
+        if (arguments.length < 2) {
+            for (var l = 3; l > 0; l--) {
+                if (this.date()[l - 1] != '') {
+                    this.nextPlot(callPlot, l);
+                    break;
+                }
+            }
+        } else {
+            var level = arguments[1];
+
+            if (level == 0) {
+                this.buttons.next.classed('disabled', true);
+                this.selectDate.dir = -1;
+                for (var l = 3; l > 1; l--) {
+                    if (this.selectDate()[l - 1] != 0) {
+                        this.prevPlot(callPlot, l);
+                        break;
+                    }
+                }
+                return;
+            }
+
+            if (this.cache.isLast(... this.date(level))) {
+                for (var l = 3; l > level; l--) {
+                    if (this.selectDate()[l - 1] != 0) {
+                        this.selectDate.dir = -1;
+                        this.nextPlot(callPlot, l);
+                        break;
+                    }
+                }
+                return;
+            }
+
+            if (this.date.update(level, this.nextOption.call(this.selects()[level - 1]))) {
+                this.selects()[level - 1].property('value', this.date()[level - 1]);
+                this.updatePrevNext();
+                this.update(callPlot, level + 1);
+            } else {
+                this.selectDate.update(level, this.selectDate.dir);
+                this.nextPlot(callPlot, level - 1);
+            }
+        }
+    },
     // Get previous option(s):
     prevOption: SolarProd.siblingOption('previousElementSibling'),
     nextOption: SolarProd.siblingOption('nextElementSibling'),
