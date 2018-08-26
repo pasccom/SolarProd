@@ -328,28 +328,43 @@ var SolarData = {
     filePath: function(year, month, day)
     {
         var file = '';
-        var folder = '';
 
-        if (day != '') {
-            folder = (folder == '') ? 'days' : folder;
+        if ((day != undefined) && (day != ''))
             file = "/" + pad(day, 2, '0') + file;
-        }
-        if (month != '') {
-            folder = (folder == '') ? 'months' : folder;
+        if ((month != undefined) && (month != ''))
             file = "/" + pad(month, 2, '0') + file;
-        }
-        if (year != '') {
-            folder = (folder == '') ? 'years' : folder;
+        if ((year != undefined) && (year != ''))
             file = "/" + pad(year, 4, '0') + file;
-        }
         if (file == '')
             file = 'years';
 
-        return folder + file;
+        return file + '.json';
+    },
+    listFilePath: function(year, month, day) {
+        var folder = '';
+
+        if ((month != undefined) && (month != ''))
+            folder = 'days';
+        else if ((year != undefined) && (year != ''))
+            folder = 'months';
+
+        return folder + SolarData.filePath(year, month, day);
+    },
+    dataFilePath: function(year, month, day) {
+        var folder = '';
+
+        if ((day != undefined) && (day != ''))
+            folder = 'days';
+        else if ((month != undefined) && (month != ''))
+            folder = 'months';
+        else if ((year != undefined) && (year != ''))
+            folder = 'years';
+
+        return folder + SolarData.filePath(year, month, day);
     },
     create: function(year, month, day)
     {
-        var dataPath = 'data/' + ((arguments.length == 0) ? 'today' : SolarData.filePath(year, month, day)) + '.json';
+        var dataPath = 'data/' + ((arguments.length == 0) ? 'today.json' : SolarData.dataFilePath(year, month, day));
         console.log("Data file path: ", dataPath);
 
         // Loads the data:
