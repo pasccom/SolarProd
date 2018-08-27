@@ -1397,7 +1397,68 @@ class LegendTest(BrowserTestCase):
             self.assertTrue(checkbox.get_property('checked'))
             self.assertFalse(checkbox.get_property('indeterminate'))
             self.assertTrue(all([('display' not in self.getStyle(p).keys()) or (self.getStyle(p)['display'] != 'none') for p in pathes]))
-        
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
+    ])
+    def testEmptyChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay)
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
+    @testData([
+        {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
+        {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2019, 'month': None, 'day': None},
+        {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2018, 'month': 2,    'day': None},
+        {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2017, 'month': 8,    'day': 5   },
+    ])
+    def testEmptyTransition(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay)
+        self.browser.find_element_by_id('plot').click()
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 6,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
+    ])
+    def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.browser.find_element_by_id('prev').click()
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 4,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
+    ])
+    def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.browser.find_element_by_id('next').click()
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
 class ChartTest(BrowserTestCase):
     def __init__(self, *args, **kwArgs):
         super().__init__(*args, **kwArgs)

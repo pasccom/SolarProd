@@ -141,6 +141,8 @@ SolarChart.prototype = {
     },
     // Removes the current axes:
     hide: function() {
+        this.legend.clear();
+
         this.xLabel.select('text').text('');
         this.yLabel.select('text').text('');
 
