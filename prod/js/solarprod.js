@@ -223,7 +223,7 @@ SolarProd.prototype = {
             return;
         }
 
-        var listPath = 'list/' + SolarData.listFilePath(... this.date(level - 1));
+        var listPath = SolarData.listFilePath(... this.date(level - 1));
         console.log("List file path: ", listPath);
 
         // Load data list:

@@ -348,7 +348,7 @@ var SolarData = {
         else if ((year != undefined) && (year != ''))
             folder = 'months';
 
-        return folder + SolarData.filePath(year, month, day);
+        return 'list/' + folder + SolarData.filePath(year, month, day);
     },
     dataFilePath: function(year, month, day) {
         var folder = '';
@@ -360,11 +360,11 @@ var SolarData = {
         else if ((year != undefined) && (year != ''))
             folder = 'years';
 
-        return folder + SolarData.filePath(year, month, day);
+        return 'data/' + folder + SolarData.filePath(year, month, day);
     },
     create: function(year, month, day)
     {
-        var dataPath = 'data/' + ((arguments.length == 0) ? 'today.json' : SolarData.dataFilePath(year, month, day));
+        var dataPath = ((arguments.length == 0) ? 'data/today.json' : SolarData.dataFilePath(year, month, day));
         console.log("Data file path: ", dataPath);
 
         // Loads the data:

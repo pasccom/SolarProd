@@ -503,6 +503,70 @@ describe('SolarData', function() {
             });
         });
     });
+    describe('filePath', function() {
+        it('years.json', function() {
+            expect(SolarData.filePath('', '', '')).toBe('years.json');
+        });
+        it('/YYYY.json', [
+            generators.year,
+        ], function(year) {
+            expect(SolarData.filePath(year, '', '')).toBe('/' + pad(year, 4, '0') + '.json');
+        });
+        it('/YYYY/mm.json', [
+            generators.year,
+            generators.month,
+        ], function(year, month) {
+            expect(SolarData.filePath(year, month, '')).toBe('/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+        });
+        it('/YYYY/mm/dd.json', [
+            generators.emptyLineData,
+            generators.year,
+            generators.month,
+            generators.day,
+        ], function(data, year, month, day) {
+            expect(SolarData.filePath(year, month, day)).toBe('/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '/' + pad(day, 2, '0') + '.json');
+        });
+    });
+    describe('dataFilePath', function() {
+        it('data/years.json', function() {
+            expect(SolarData.dataFilePath('', '', '')).toBe('data/years.json');
+        });
+        it('data/years/YYYY.json', [
+            generators.year,
+        ], function(year) {
+            expect(SolarData.dataFilePath(year, '', '')).toBe('data/years/' + pad(year, 4, '0') + '.json');
+        });
+        it('data/months/YYYY/mm.json', [
+            generators.year,
+            generators.month,
+        ], function(year, month) {
+            expect(SolarData.dataFilePath(year, month, '')).toBe('data/months/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+        });
+        it('data/days/YYYY/mm/dd.json', [
+            generators.emptyLineData,
+            generators.year,
+            generators.month,
+            generators.day,
+        ], function(data, year, month, day) {
+            expect(SolarData.dataFilePath(year, month, day)).toBe('data/days/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '/' + pad(day, 2, '0') + '.json');
+        });
+    });
+    describe('listFilePath', function() {
+        it('list/years.json', function() {
+            expect(SolarData.listFilePath('', '', '')).toBe('list/years.json');
+        });
+        it('list/months/YYYY.json', [
+            generators.year,
+        ], function(year) {
+            expect(SolarData.listFilePath(year, '', '')).toBe('list/months/' + pad(year, 4, '0') + '.json');
+        });
+        it('list/days/YYYY/mm.json', [
+            generators.year,
+            generators.month,
+        ], function(year, month) {
+            expect(SolarData.listFilePath(year, month, '')).toBe('list/days/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+        });
+    });
     describe('dateString', function() {
         it('should be empty', function() {
             return createSolarData('', '', '').then(function(solarData) {
