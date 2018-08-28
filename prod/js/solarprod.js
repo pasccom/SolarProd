@@ -337,7 +337,7 @@ SolarProd.prototype = {
             this.chart.setData(data);
 
             // Activate export:
-            this.buttons.export.classed('disabled', false);
+            this.buttons.export.classed('disabled', data.isEmpty());
         });
     },
 

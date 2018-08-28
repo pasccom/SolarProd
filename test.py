@@ -365,7 +365,16 @@ class ElementsTest(BrowserTestCase):
         
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, True)
-        
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testExportEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        export = self.browser.find_element_by_id('export')
+        self.assertEnabled(export, False)
 
 class LayoutTest(TestCase):
     def setUpBrowser(self, expectedSize):
@@ -645,15 +654,6 @@ class ExportTest(BrowserTestCase):
         {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'sum'},
         {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'inv'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'nrj',  'agg': 'sum'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'nrj',  'agg': 'inv'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'pac',  'agg': 'sum'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'pac',  'agg': 'inv'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'pdc',  'agg': 'sum'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'pdc',  'agg': 'inv'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'pdc',  'agg': 'str'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'udc',  'agg': 'str'},
-        {'year': 2017, 'month': 8,    'day': 5,    'var': 'temp', 'agg': 'inv'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
@@ -690,10 +690,6 @@ class ExportTest(BrowserTestCase):
         {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
         {'year': 2018, 'month': 2,    'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
-        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
-        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
-        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
-        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -710,6 +706,37 @@ class ExportTest(BrowserTestCase):
         self.assertTrue(os.path.isfile(csvFilePath))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testTransition(self, year, month, day, newYear, newMonth, newDay):
+        self.loadData(newYear, newMonth, newDay)
+
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay)
+        self.browser.find_element_by_id('plot').click()
+
+        csvFilePath = self.waitExport('nrj', 'sum', newYear, newMonth, newDay, 5)
+        self.assertTrue(os.path.isfile(csvFilePath))
+        self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
+        os.remove(csvFilePath)
         
     @testData([
         {'year': 2009, 'month': None, 'day': None, 'prevYear': 2009, 'prevMonth': None, 'prevDay': None},
@@ -721,7 +748,6 @@ class ExportTest(BrowserTestCase):
         {'year': 2011, 'month': 12,   'day': 25,   'prevYear': 2011, 'prevMonth': 6,    'prevDay': 30  },
         {'year': 2017, 'month': 2,    'day': 1,    'prevYear': 2011, 'prevMonth': 12,   'prevDay': 31  },
         {'year': 2017, 'month': 8,    'day': 5,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 4   },
-        {'year': 2017, 'month': 8,    'day': 6,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
     ])
     def testPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.loadData(prevYear, prevMonth, prevDay)
@@ -742,7 +768,6 @@ class ExportTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': None, 'nextYear': 2018, 'nextMonth': 2,    'nextDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 8   },
         {'year': 2017, 'month': 8,    'day': 6,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 8   },
-        {'year': 2017, 'month': 8,    'day': 4,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 5   },
         {'year': 2017, 'month': 8,    'day': 5,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 6   },
         {'year': 2017, 'month': 2,    'day': 7,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 2   },
         {'year': 2011, 'month': 12,   'day': 31,   'nextYear': 2017, 'nextMonth': 2,    'nextDay': 1   },
@@ -758,7 +783,78 @@ class ExportTest(BrowserTestCase):
         self.assertTrue(os.path.isfile(csvFilePath))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
-    
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 5},
+    ])
+    def testEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
+        self.assertFalse(os.path.isfile(csvFilePath))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
+    ])
+    def testEmptyChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay)
+
+        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
+        self.assertFalse(os.path.isfile(csvFilePath))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': None, 'month': None, 'day': None},
+        {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': 2019, 'month': None, 'day': None},
+        {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': 2018, 'month': 2,    'day': None},
+        {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': 2017, 'month': 8,    'day': 5   },
+    ])
+    def testEmptyTransition(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay)
+        self.browser.find_element_by_id('plot').click()
+
+        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
+        self.assertFalse(os.path.isfile(csvFilePath))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 6, 'prevYear': 2017, 'prevMonth': 8, 'prevDay': 5},
+    ])
+    def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.browser.find_element_by_id('prev').click()
+
+        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
+        self.assertFalse(os.path.isfile(csvFilePath))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 4, 'prevYear': 2017, 'prevMonth': 8, 'prevDay': 5},
+    ])
+    def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.browser.find_element_by_id('next').click()
+
+        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
+        self.assertFalse(os.path.isfile(csvFilePath))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
 class PrevNextTest(BrowserTestCase):
     
     def __checkArgument(self, cache, arg):

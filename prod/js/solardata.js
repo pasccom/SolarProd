@@ -274,6 +274,9 @@ var SolarData = {
     },
     exportCsv: function()
     {
+        if (this.isEmpty())
+            return;
+
         var exportData = this.export();
         if (!exportData)
             return;
