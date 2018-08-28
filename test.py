@@ -241,12 +241,16 @@ class BrowserTestCase(TestCase):
             self.selectOption('day', '')
     
     def selectVar(self, var):
+        if var is None:
+            return
         try:
             self.selectOption('var', self.longVar(var), var)
         except (ValueError):
             self.selectOption('var', var, self.__class__.shortVars[self.__class__.longVars.index(var)])
      
     def selectSum(self, agg):
+        if agg is None:
+            return
         self.selectOption('sum', self.__class__.sumNames[agg], agg)
      
     def waitOptions(self, select, t=-1):
@@ -524,17 +528,18 @@ class SelectTest(BrowserTestCase):
         {'year': 2017, 'month': None, 'day': None, 'expected': set(['Énergie'])                                                             },
         {'year': 2017, 'month': 8,    'day': None, 'expected': set(['Énergie', 'Puissance'])                                                },
         {'year': 2017, 'month': 8,    'day': 8,    'expected': set(['Énergie', 'Puissance AC', 'Puissance DC', 'Tension DC', 'Température'])},
+        {'year': 2017, 'month': 8,    'day': 5,    'expected': set([])                                                                      },
     ])
     def testVar(self, year, month, day, expected):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
         
         select = self.browser.find_element_by_id('var')
-        options = [o.text for o in self.waitOptions(select)]
+        options = [o.text for o in self.waitOptions(select, 5)]
         
         self.assertEqual(set(options), expected)
-        self.assertTrue(select.is_enabled())
-         
+        self.assertEqual(select.is_enabled(), len(expected) > 0)
+
     @testData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              },
         {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              }, 
@@ -545,6 +550,7 @@ class SelectTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'expected': set(['Total', 'Par onduleur', 'Par string'])}, 
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'expected': set(['Par string'])                         },   
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'expected': set(['Par onduleur'])                       },
+        {'year': 2017, 'month': 8,    'day': 5,    'var': None,   'expected': set([])                                     },
     ])
     def testSum(self, year, month, day, var, expected):
         self.selectDate(year, month, day)
@@ -552,7 +558,7 @@ class SelectTest(BrowserTestCase):
         self.selectVar(var)
         
         select = self.browser.find_element_by_id('sum')
-        options = [o.text for o in self.waitOptions(select)]
+        options = [o.text for o in self.waitOptions(select, 5)]
         
         self.assertEqual(set(options), expected)
         self.assertEqual(select.is_enabled(), len(expected) > 1)

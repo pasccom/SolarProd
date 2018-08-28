@@ -289,32 +289,45 @@ SolarProd.prototype = {
     {
         var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
 
-        // Adds the new variables using a data join:
-        var vars = this.selects.var.attr('disabled', null)
-                                   .selectAll('option').data(data.validVars, (d) => d);
-        vars.enter().append('option').attr('value', (d) => d)
-                                     .text(SolarData.variableName);
-        vars.exit().remove();
-        vars.order();
+        if (data.isEmpty()) {
+            // Clears variables:
+            this.selects.var.attr('disabled', true)
+                            .selectAll('option').remove();
+        } else {
+            // Adds the new variables using a data join:
+            var vars = this.selects.var.attr('disabled', null)
+                                    .selectAll('option').data(data.validVars, (d) => d);
+            vars.enter().append('option').attr('value', (d) => d)
+                                        .text(SolarData.variableName);
+            vars.exit().remove();
+            vars.order();
 
-        // Updates sums if needed:
-        if (this.selects.var.property('value') != data.variable()) {
-            data.variable(this.selects.var.property('value'));
-            this.updateAggs(data);
+            // Updates sums if needed:
+            if (this.selects.var.property('value') != data.variable()) {
+                data.variable(this.selects.var.property('value'));
+            }
         }
+
+        this.updateAggs(data);
     },
     // Updates the sum selector:
     updateAggs: function()
     {
         var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
 
-        // Adds the new sums using a data join:
-        var aggs = this.selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
-                                   .selectAll('option').data(data.validAggs, (d) => d);
-        aggs.enter().append('option').attr('value', (d) => d)
-                                     .text(SolarData.aggregationName);
-        aggs.exit().remove();
-        aggs.order();
+        if (data.isEmpty()) {
+            // Clears sums:
+            this.selects.agg.attr('disabled', true)
+                            .selectAll('option').remove();
+        } else {
+            // Adds the new sums using a data join:
+            var aggs = this.selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
+                                    .selectAll('option').data(data.validAggs, (d) => d);
+            aggs.enter().append('option').attr('value', (d) => d)
+                                        .text(SolarData.aggregationName);
+            aggs.exit().remove();
+            aggs.order();
+        }
     },
 
     plot: function(today) {
