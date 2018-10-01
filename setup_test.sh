@@ -75,15 +75,19 @@ create_profile() {
     printf "Creating profile \"$PROFILES_DIR/$1\" ...\t"
     
     # Create profile directory:
-    mkdir -p "$PROFILES_DIR/$1"
+    mkdir -p "$PROFILES_DIR/$1/extensions"
     
     # Set download directory to EXPORTS_DIR:
     echo "user_pref(\"browser.download.dir\", \"${EXPORTS_DIR}\");" >> "$PROFILES_DIR/$1/prefs.js"
     echo "user_pref(\"browser.download.folderList\", 2);" >> "$PROFILES_DIR/$1/prefs.js"
+    echo "user_pref(\"xpinstall.signatures.required\", false);" >> "$PROFILES_DIR/$1/prefs.js"
     
     # Set mimeTypes.rdf so that CSV files are automatically saved to disk:
     cp "$SCRIPT_DIR/mimeTypes.rdf" "$PROFILES_DIR/$1/"
     
+    # Install console capture:
+    cp "$SCRIPT_DIR/console_capture.xpi" "$PROFILES_DIR/$1/extensions/console_capture@pas.com.xpi"
+
     # Change size:
     if [ $# -gt 1 ]; then
         W=$(expr $2 + 0)
@@ -252,6 +256,16 @@ if [ $(ls "$PROFILES_DIR" | wc -l) -gt 0 ]; then
     done
 fi
 
+# Get ConsoleCapture:
+if [ -z "$ANS" ]; then
+    CC_VERSION="$(curl "https://github.com/pasccom/ConsoleCapture/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/pasccom/ConsoleCapture/releases/tag/\(v[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')"
+    if [ "$CC_VERSION" = '<html><body>You are being <a href="https://github.com/pasccom/ConsoleCapture/releases">redirected</a>.</body></html>' ]; then
+        CC_VERSION='v0.1'
+    fi
+    rm console_capture.xpi 2> /dev/null
+    wget "https://github.com/pasccom/ConsoleCapture/releases/download/$CC_VERSION/console_capture.xpi"
+fi
+
 # Create new profiles:
 if [ -z "$ANS" ]; then
     create_profile "test"
@@ -263,6 +277,9 @@ if [ -z "$ANS" ]; then
     create_profile  "403x200"  403 200
     create_profile  "402x200"  402 200
 fi
+
+# Delete ConsoleCapture:
+rm console_capture.xpi
 
 # Delete old test data:
 ANS=
