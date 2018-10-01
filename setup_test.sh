@@ -258,9 +258,10 @@ fi
 
 # Get ConsoleCapture:
 if [ -z "$ANS" ]; then
-    CC_VERSION="$(curl "https://github.com/pasccom/ConsoleCapture/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/pasccom/ConsoleCapture/releases/tag/\(v[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')"
-    if [ "$CC_VERSION" = '<html><body>You are being <a href="https://github.com/pasccom/ConsoleCapture/releases">redirected</a>.</body></html>' ]; then
-        CC_VERSION='v0.1'
+    if [ -f "$SCRIPT_DIR/ConsoleCapture-version.local" ]; then
+        CC_VERSION=$(cat "$SCRIPT_DIR/ConsoleCapture-version.local")
+    else
+        CC_VERSION="$(curl "https://github.com/pasccom/ConsoleCapture/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/pasccom/ConsoleCapture/releases/tag/\(v[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')"
     fi
     rm console_capture.xpi 2> /dev/null
     wget "https://github.com/pasccom/ConsoleCapture/releases/download/$CC_VERSION/console_capture.xpi"
