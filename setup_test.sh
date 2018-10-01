@@ -280,7 +280,9 @@ if [ -z "$ANS" ]; then
 fi
 
 # Delete ConsoleCapture:
-rm console_capture.xpi
+if [ -z "$ANS" ]; then
+    rm console_capture.xpi
+fi
 
 # Delete old test data:
 ANS=
