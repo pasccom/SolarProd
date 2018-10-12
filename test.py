@@ -16,6 +16,8 @@
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/>
 
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common import exceptions as selenium
 import unittest
 from PythonUtils.testdata import testData
@@ -204,6 +206,20 @@ class BrowserTestCase(TestCase):
     def setUp(self):
         self.browser = self.__class__.browser
         self.browser.get(self.index)
+
+    def getLog(self):
+        return self.browser.execute_script('return console.capture.get();')
+
+    def printLog(self):
+        for entry in self.getLog():
+            try:
+                print('{}@{}:{}:{}'.format(entry['caller'], entry['fileName'], entry['lineNumber'], entry['columnNumber']))
+            except (KeyError):
+                pass
+            print(entry['arguments'])
+
+    def clearLog(self):
+        self.browser.execute_script('console.capture.clear();')
      
     def assertEnabled(self, obj, enabled):
         if (enabled):
@@ -258,7 +274,7 @@ class BrowserTestCase(TestCase):
         while (len(options) == 0):
             options = select.find_elements_by_tag_name('option')
             if (t == 0):
-                break
+                raise RuntimeError('Timed out wating for options')
             time.sleep(1)
             t -= 1
         return options
@@ -271,7 +287,7 @@ class BrowserTestCase(TestCase):
         if (select.get_property('value') == value):
             return
             
-        options = [o for o in self.waitOptions(select) if (o.text == option)]
+        options = [o for o in self.waitOptions(select, 10) if (o.text == option)]
         try:
             if (select.get_property('value') != value):
                 options[0].click()
@@ -279,6 +295,14 @@ class BrowserTestCase(TestCase):
             pass
         self.assertEqual(select.get_property('value'), value)
         
+    def clickButton(self, button, repeat=1):
+        actions = ActionChains(self.browser)
+        for r in range(0, repeat):
+            actions.move_to_element(button)
+            actions.click(button)
+        actions.pause(1)
+        return actions
+
     def getClasses(self, element):
         classes = element.get_attribute('class')
         return classes.split(' ')
@@ -454,7 +478,7 @@ class LayoutTest(TestCase):
 class SelectTest(BrowserTestCase):
     def testYears(self):
         select = self.browser.find_element_by_id('year')
-        options = [o.text for o in self.waitOptions(select)]
+        options = [o.text for o in self.waitOptions(select, 5)]
         
         with open(self.listPath(), 'r') as jsonFile:
             expected = json.load(jsonFile)
@@ -567,7 +591,7 @@ class SelectTest(BrowserTestCase):
         self.browser.find_element_by_id('today').click()
         
         day = self.browser.find_element_by_id('day')
-        self.waitOptions(day)
+        self.waitOptions(day, 5)
         self.assertTrue(day.is_enabled())
         self.assertEqual(day.get_property('value'), '8')
         
@@ -945,7 +969,7 @@ class PrevNextTest(BrowserTestCase):
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
-        
+
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, nextEnabled)
     
@@ -953,23 +977,35 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest
     @testData([
-        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False},
-        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False},
-        {'year': 2011, 'prevYear': 2010, 'prevEnabled': True },
-        {'year': 2013, 'prevYear': 2011, 'prevEnabled': True },
-        {'year': 2014, 'prevYear': 2013, 'prevEnabled': True },
-        {'year': 2015, 'prevYear': 2014, 'prevEnabled': True },
-        {'year': 2017, 'prevYear': 2015, 'prevEnabled': True },
-        {'year': 2018, 'prevYear': 2017, 'prevEnabled': True },
-        {'year': 2019, 'prevYear': 2018, 'prevEnabled': True },
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False             },
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False             },
+        {'year': 2011, 'prevYear': 2010, 'prevEnabled': True              },
+        {'year': 2013, 'prevYear': 2011, 'prevEnabled': True              },
+        {'year': 2014, 'prevYear': 2013, 'prevEnabled': True              },
+        {'year': 2015, 'prevYear': 2014, 'prevEnabled': True              },
+        {'year': 2017, 'prevYear': 2015, 'prevEnabled': True              },
+        {'year': 2018, 'prevYear': 2017, 'prevEnabled': True              },
+        {'year': 2019, 'prevYear': 2018, 'prevEnabled': True              },
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2011, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2013, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2014, 'prevYear': 2011, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2015, 'prevYear': 2013, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2017, 'prevYear': 2014, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2018, 'prevYear': 2015, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2017, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 7},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 8},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 9},
     ])
-    def testPrevYear(self, year, prevYear, prevEnabled):
+    def testPrevYear(self, year, prevYear, prevEnabled, repeat=1):
         self.selectDate(year)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        prevButton.click()
+        self.clickButton(prevButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
@@ -982,26 +1018,41 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest
     @testData([
-        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False},
-        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False},
-        {'year': 2011, 'month': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True },
-        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True },
-        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True },
-        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True },
-        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True },
-        {'year': 2017, 'month': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True },
-        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True },
-        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True },
-        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True },
-        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 8,  'prevEnabled': True },
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
+        {'year': 2011, 'month': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True               },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True               },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True               },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True               },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True               },
+        {'year': 2017, 'month': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True               },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True               },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True               },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 8,  'prevEnabled': True               },
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 8,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12},
     ])
-    def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled):
+    def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1):
         self.selectDate(year, month)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        prevButton.click()
+        self.clickButton(prevButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(prevMonth))
@@ -1014,23 +1065,38 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest
     @testData([
-        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False},
-        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False},
-        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True },
-        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True },
-        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True },
-        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True },
-        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True },
-        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True },
-        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 6,  'prevEnabled': True },
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True               },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True               },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 6,  'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 29, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 3,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
     ])
-    def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled):
+    def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
         self.selectDate(year, month, day)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        prevButton.click()
+        self.clickButton(prevButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(prevMonth))
@@ -1043,23 +1109,35 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest   
     @testData([
-        {'year': 2009, 'nextYear': 2010, 'nextEnabled': True },
-        {'year': 2010, 'nextYear': 2011, 'nextEnabled': True },
-        {'year': 2011, 'nextYear': 2013, 'nextEnabled': True },
-        {'year': 2013, 'nextYear': 2014, 'nextEnabled': True },
-        {'year': 2014, 'nextYear': 2015, 'nextEnabled': True },
-        {'year': 2015, 'nextYear': 2017, 'nextEnabled': True },
-        {'year': 2017, 'nextYear': 2018, 'nextEnabled': True },
-        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False},
-        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False},
+        {'year': 2009, 'nextYear': 2010, 'nextEnabled': True              },
+        {'year': 2010, 'nextYear': 2011, 'nextEnabled': True              },
+        {'year': 2011, 'nextYear': 2013, 'nextEnabled': True              },
+        {'year': 2013, 'nextYear': 2014, 'nextEnabled': True              },
+        {'year': 2014, 'nextYear': 2015, 'nextEnabled': True              },
+        {'year': 2015, 'nextYear': 2017, 'nextEnabled': True              },
+        {'year': 2017, 'nextYear': 2018, 'nextEnabled': True              },
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False             },
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False             },
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2017, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2015, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2014, 'nextYear': 2017, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2013, 'nextYear': 2015, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2011, 'nextYear': 2014, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2010, 'nextYear': 2013, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2011, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 7},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 8},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 9},
     ])
-    def testNextYear(self, year, nextYear, nextEnabled):
+    def testNextYear(self, year, nextYear, nextEnabled, repeat=1):
         self.selectDate(year)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        nextButton.click()
+        self.clickButton(nextButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
@@ -1072,26 +1150,41 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest
     @testData([
-        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False},
-        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False},
-        {'year': 2017, 'month': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True },
-        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True },
-        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True },
-        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True },
-        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True },
-        {'year': 2011, 'month': 10, 'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True },
-        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True },
-        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True },
-        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True },
-        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 6,  'nextEnabled': True },
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
+        {'year': 2017, 'month': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True               },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True               },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True               },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True               },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True               },
+        {'year': 2011, 'month': 10, 'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True               },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True               },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True               },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 6,  'nextEnabled': True               },
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 6,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12},
     ])
-    def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled):
+    def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1):
         self.selectDate(year, month)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        nextButton.click()
+        self.clickButton(nextButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(nextMonth))
@@ -1104,23 +1197,38 @@ class PrevNextTest(BrowserTestCase):
     # that's why @cacheTest is first.
     @cacheTest
     @testData([
-        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False},
-        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False},
-        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True },
-        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True },
-        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True },
-        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True },
-        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True },
-        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True },
-        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 26, 'nextEnabled': True },
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True               },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True               },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 26, 'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 3,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 29, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
     ])
-    def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled):
+    def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
         self.selectDate(year, month, day)
         
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        nextButton.click()
+        self.clickButton(nextButton, repeat).perform()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(nextMonth))
