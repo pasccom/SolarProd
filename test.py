@@ -19,8 +19,12 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common import exceptions as selenium
+
+from test_server import TestHTTPServer
+
 import unittest
 from PythonUtils.testdata import testData
+
 from datetime import datetime as datetime
 import os
 import re
@@ -65,7 +69,7 @@ class TestCase(unittest.TestCase):
         if cls.baseDir is None:
             cls.baseDir = os.path.dirname(os.path.abspath(__file__))
             cls.profilesDir = os.path.join(cls.baseDir, 'profiles')
-        
+
     def __init__(self, *args, **kwArgs):
         super().__init__(*args, **kwArgs)
         TestCase.setUpClass()
@@ -194,11 +198,14 @@ class BrowserTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+
         profile = webdriver.FirefoxProfile(os.path.join(cls.profilesDir, 'test'))
         cls.browser = webdriver.Firefox(profile)
     
     @classmethod
     def tearDownClass(cls):
+        super().tearDownClass()
+
         if (cls.browser is not None):
             cls.browser.close()
             cls.browser = None
@@ -1275,6 +1282,35 @@ class PrevNextTest(BrowserTestCase):
         self.assertEnabled(prevButton, False)
         self.assertEnabled(nextButton, False)
      
+class SlowPrevNextTest(BrowserTestCase):
+    server = None
+    port = 0
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        if cls.server is None:
+            cls.server = TestHTTPServer(('', cls.port))
+            cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+        if (cls.server is not None):
+            cls.server.stop()
+            cls.server.server_close()
+
+    def setUp(self):
+        self.server = self.__class__.server;
+        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
+        super().setUp()
+
+    def testSleep(self):
+        time.sleep(10)
+
+
 class LegendTest(BrowserTestCase):
     
     def removeChildren(self, elements, src=None):
@@ -2369,6 +2405,6 @@ class ChartTest(BrowserTestCase):
         self.initMapFunction('yaxis')
         
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
-    
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
