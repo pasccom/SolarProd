@@ -62,22 +62,19 @@ class HelperTest(unittest.TestCase):
                                  [[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]]), [40, 40, 40])
 
 class TestCase(unittest.TestCase):
-    baseDir = None
-    
+
     @classmethod
     def setUpClass(cls):
-        if cls.baseDir is None:
-            cls.baseDir = os.path.dirname(os.path.abspath(__file__))
-            cls.profilesDir = os.path.join(cls.baseDir, 'profiles')
+        cls.baseDir = os.path.dirname(os.path.abspath(__file__))
+        cls.profilesDir = os.path.join(cls.baseDir, 'profiles')
 
-    def __init__(self, *args, **kwArgs):
-        super().__init__(*args, **kwArgs)
-        TestCase.setUpClass()
-        
+    def setUp(self):
+        super().setUp()
+
         self.index = 'file://' + self.__class__.baseDir + '/testdata/index.html'
         self.profilesDir = self.__class__.profilesDir
         self.cacheDir = os.path.join('testdata', 'list', 'cache.json')
-        
+
     def listPath(self, year=None, month=None):
         listDir = os.path.join('testdata', 'list') 
         if year is None:
@@ -211,6 +208,8 @@ class BrowserTestCase(TestCase):
             cls.browser = None
     
     def setUp(self):
+        super().setUp()
+
         self.browser = self.__class__.browser
         self.browser.get(self.index)
 
@@ -1303,13 +1302,16 @@ class SlowPrevNextTest(BrowserTestCase):
             cls.server.server_close()
 
     def setUp(self):
-        self.server = self.__class__.server;
+        self.server = self.__class__.server
+        self.browser = self.__class__.browser
         self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
-        super().setUp()
+        self.browser.get(self.index)
 
     def testSleep(self):
-        time.sleep(10)
-
+        with self.server.hold():
+            time.sleep(5)
+            self.browser.find_element_by_id('today').click()
+            time.sleep(5)
 
 class LegendTest(BrowserTestCase):
     
