@@ -552,7 +552,6 @@ class SelectTest(BrowserTestCase):
         {'year': 2017, 'month': None, 'day': None, 'expected': set(['Énergie'])                                                             },
         {'year': 2017, 'month': 8,    'day': None, 'expected': set(['Énergie', 'Puissance'])                                                },
         {'year': 2017, 'month': 8,    'day': 8,    'expected': set(['Énergie', 'Puissance AC', 'Puissance DC', 'Tension DC', 'Température'])},
-        {'year': 2017, 'month': 8,    'day': 5,    'expected': set([])                                                                      },
     ])
     def testVar(self, year, month, day, expected):
         self.selectDate(year, month, day)
@@ -565,6 +564,19 @@ class SelectTest(BrowserTestCase):
         self.assertEqual(select.is_enabled(), len(expected) > 0)
 
     @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testEmptyVar(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        select = self.browser.find_element_by_id('var')
+        self.assertFalse(select.is_enabled())
+
+        with self.assertRaises(RuntimeError):
+            self.waitOptions(select, 10)
+
+    @testData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              },
         {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              }, 
         {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              }, 
@@ -574,7 +586,6 @@ class SelectTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'expected': set(['Total', 'Par onduleur', 'Par string'])}, 
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'expected': set(['Par string'])                         },   
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'expected': set(['Par onduleur'])                       },
-        {'year': 2017, 'month': 8,    'day': 5,    'var': None,   'expected': set([])                                     },
     ])
     def testSum(self, year, month, day, var, expected):
         self.selectDate(year, month, day)
@@ -586,6 +597,19 @@ class SelectTest(BrowserTestCase):
         
         self.assertEqual(set(options), expected)
         self.assertEqual(select.is_enabled(), len(expected) > 1)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testEmptySum(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        select = self.browser.find_element_by_id('sum')
+        self.assertFalse(select.is_enabled())
+
+        with self.assertRaises(RuntimeError):
+            self.waitOptions(select, 10)
     
     def testToday(self):
         self.browser.find_element_by_id('today').click()
@@ -1925,21 +1949,10 @@ class ChartTest(BrowserTestCase):
         self.loadData(2017, 8, 5)
         self.selectDate(2017, 8, 5)
         self.browser.find_element_by_id('plot').click()
-       
-    @testData([
-        {'var': 'nrj',  'agg': 'sum'},
-        {'var': 'nrj',  'agg': 'inv'},
-        {'var': 'pac',  'agg': 'sum'},
-        {'var': 'pac',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'sum'},
-        {'var': 'pdc',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'str'},
-        {'var': 'udc',  'agg': 'str'},
-        {'var': 'temp', 'agg': 'inv'},
-    ], before=loadEmpty)   
-    def testEmptyLabel(self, var, agg):
-        self.selectVar(var)
-        self.selectSum(agg)
+
+    def testEmptyLabel(self):
+        self.selectDate(2017, 8, 5)
+        self.browser.find_element_by_id('plot').click()
         
         xLabel = self.getLabel('xaxis')
         self.assertEqual(xLabel.text, '')
@@ -1987,20 +2000,9 @@ class ChartTest(BrowserTestCase):
         self.assertRegex(yLabel.text, r'{} \([kMGT]?{}\)'.format(self.longVar(var), self.unit(var)))
         self.assertLabelStyle(yLabel)
     
-    @testData([
-        {'var': 'nrj',  'agg': 'sum'},
-        {'var': 'nrj',  'agg': 'inv'},
-        {'var': 'pac',  'agg': 'sum'},
-        {'var': 'pac',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'sum'},
-        {'var': 'pdc',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'str'},
-        {'var': 'udc',  'agg': 'str'},
-        {'var': 'temp', 'agg': 'inv'},
-    ], before=loadEmpty)
-    def testEmptyAxis(self, var, agg):
-        self.selectVar(var)
-        self.selectSum(agg)
+    def testEmptyAxis(self):
+        self.selectDate(2017, 8, 5)
+        self.browser.find_element_by_id('plot').click()
         
         self.assertEqual(len(self.getAxis('xaxis').find_elements_by_xpath('./*')), 0)
         self.assertEqual(len(self.getAxis('yaxis').find_elements_by_xpath('./*')), 0)
@@ -2066,20 +2068,9 @@ class ChartTest(BrowserTestCase):
         # Check y axis:
         self.assertRangeEqual(self.getRange('yaxis', False), self.getDataRange(var, agg))
     
-    @testData([
-        {'var': 'nrj',  'agg': 'sum'},
-        {'var': 'nrj',  'agg': 'inv'},
-        {'var': 'pac',  'agg': 'sum'},
-        {'var': 'pac',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'sum'},
-        {'var': 'pdc',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'str'},
-        {'var': 'udc',  'agg': 'str'},
-        {'var': 'temp', 'agg': 'inv'},
-    ], before=loadEmpty)
-    def testEmptyGrid(self, var, agg):
-        self.selectVar(var)
-        self.selectSum(agg)
+    def testEmptyGrid(self):
+        self.selectDate(2017, 8, 5)
+        self.browser.find_element_by_id('plot').click()
         
         self.assertEqual(len(self.getAxis('grid').find_elements_by_xpath('./*')), 0)
     
@@ -2110,20 +2101,9 @@ class ChartTest(BrowserTestCase):
         
         self.assertEqual(self.getTickPositions('yaxis'), self.getTickPositions('grid'))
     
-    @testData([
-        {'var': 'nrj',  'agg': 'sum'},
-        {'var': 'nrj',  'agg': 'inv'},
-        {'var': 'pac',  'agg': 'sum'},
-        {'var': 'pac',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'sum'},
-        {'var': 'pdc',  'agg': 'inv'},
-        {'var': 'pdc',  'agg': 'str'},
-        {'var': 'udc',  'agg': 'str'},
-        {'var': 'temp', 'agg': 'inv'},
-    ], before=loadEmpty)
-    def testEmptyData(self, var, agg):
-        self.selectVar(var)
-        self.selectSum(agg)
+    def testEmptyData(self):
+        self.selectDate(2017, 8, 5)
+        self.browser.find_element_by_id('plot').click()
         
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
