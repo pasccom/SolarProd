@@ -79,6 +79,9 @@ create_profile() {
     
     # Set download directory to EXPORTS_DIR:
     echo "user_pref(\"browser.download.dir\", \"${EXPORTS_DIR}\");" >> "$PROFILES_DIR/$1/prefs.js"
+    echo "user_pref(\"browser.cache.memory.enable\", false);" >> "$PROFILES_DIR/$1/prefs.js"
+    echo "user_pref(\"browser.cache.disk.enable\", false);" >> "$PROFILES_DIR/$1/prefs.js"
+    echo "user_pref(\"browser.cache.offline.enable\", false);" >> "$PROFILES_DIR/$1/prefs.js"
     echo "user_pref(\"browser.download.folderList\", 2);" >> "$PROFILES_DIR/$1/prefs.js"
     echo "user_pref(\"xpinstall.signatures.required\", false);" >> "$PROFILES_DIR/$1/prefs.js"
     
