@@ -276,6 +276,20 @@ class BrowserTestCase(TestCase):
     def monthNumber(self, monthName):
         return self.__class__.monthNames.index(monthName) + 1
     
+    def assertSelectValue(self, name, value='', wait=0):
+        while (wait != 0) and (self.browser.find_element_by_id(name).get_property('value') != str(value)):
+            time.sleep(1)
+            wait -= 1
+        if (wait == 0):
+            self.fail('Select "{}" does not have value "{}"'.format(name, value))
+        return wait
+
+    def assertDate(self, year='', month='', day='', wait=0):
+        wait = self.assertSelectValue('year', str(year), wait)
+        wait = self.assertSelectValue('month', str(month), wait)
+        wait = self.assertSelectValue('day', str(day), wait)
+        return wait
+
     def selectDate(self, year, month=None, day=None):
         if year is not None:
             self.selectOption('year', str(year))
@@ -648,18 +662,18 @@ class SelectTest(BrowserTestCase):
     def testToday(self):
         self.browser.find_element_by_id('today').click()
         
+        year = self.browser.find_element_by_id('year')
+        self.assertTrue(year.is_enabled())
+        self.assertEqual(year.get_property('value'), '2017')
+
+        month = self.browser.find_element_by_id('month')
+        self.assertTrue(month.is_enabled())
+        self.assertEqual(month.get_property('value'), '8')
+
         day = self.browser.find_element_by_id('day')
         self.waitOptions(day, 5)
         self.assertTrue(day.is_enabled())
         self.assertEqual(day.get_property('value'), '8')
-        
-        year = self.browser.find_element_by_id('year')
-        self.assertTrue(year.is_enabled())
-        self.assertEqual(year.get_property('value'), '2017')
-        
-        month = self.browser.find_element_by_id('month')
-        self.assertTrue(month.is_enabled())
-        self.assertEqual(month.get_property('value'), '8')
         
         var = self.browser.find_element_by_id('var')
         self.assertTrue(var.is_enabled())
@@ -1038,10 +1052,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(prevButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), '')
-        
+        self.assertDate(prevYear)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
    
@@ -1085,10 +1096,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(prevButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(prevMonth))
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), '')
-        
+        self.assertDate(prevYear, prevMonth)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
     
@@ -1129,10 +1137,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(prevButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(prevYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(prevMonth))
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), str(prevDay))
-        
+        self.assertDate(prevYear, prevMonth, prevDay)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
     
@@ -1170,10 +1175,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(nextButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), '')
-        
+        self.assertDate(nextYear)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
     
@@ -1217,10 +1219,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(nextButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(nextMonth))
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), '')
-        
+        self.assertDate(nextYear, nextMonth)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
         
@@ -1261,10 +1260,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(nextButton, repeat).perform()
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), str(nextYear))
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), str(nextMonth))
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), str(nextDay))
-        
+        self.assertDate(nextYear, nextMonth, nextDay)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
     
@@ -1273,30 +1269,13 @@ class PrevNextTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), '')
-        self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
-        self.assertEqual(self.browser.find_element_by_id('day').get_property('value'), '')
-        
+        self.assertDate()
         self.assertEnabled(prevButton, False)
         self.assertEnabled(nextButton, False)
      
 class SlowPrevNextTest(BrowserTestCase):
     server = None
     port = 0
-
-    def assertSelectValue(self, name, value='', wait=0):
-        while (wait != 0) and (self.browser.find_element_by_id(name).get_property('value') != str(value)):
-            time.sleep(1)
-            wait -= 1
-        if (wait == 0):
-            self.fail('Select "{}" does not have value "{}"'.format(name, value))
-        return wait
-
-    def assertDate(self, year='', month='', day='', wait=0):
-        wait = self.assertSelectValue('year', str(year), wait)
-        wait = self.assertSelectValue('month', str(month), wait)
-        wait = self.assertSelectValue('day', str(day), wait)
-        return wait
 
     @classmethod
     def setUpClass(cls):
