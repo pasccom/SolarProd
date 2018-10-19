@@ -53,7 +53,15 @@ function SolarProd() {
     this.date.year = '';
     this.date.month = '';
     this.date.day = '';
-    this.date.update = SolarProd.update;
+    this.date.update = function(level, value) {
+        if (value === null)
+            return false;
+
+        var members = ['', 'year', 'month', 'day'];
+        console.log('Date.update:', level, members[level], value);
+        this[members[level]] = value;
+        return true;
+    };
 
     // Date to select:
     this.selectDate = function() {
@@ -64,7 +72,22 @@ function SolarProd() {
     this.selectDate.month = 0;
     this.selectDate.day = 0;
     this.selectDate.dir = 1;
-    this.selectDate.update = SolarProd.update;
+    this.selectDate.update = function(level, value) {
+        if (value === null)
+            return false;
+
+        var members = ['', 'year', 'month', 'day'];
+        console.log('SelectDate.update:', level, members[level], value);
+        this[members[level]] += value;
+        return true;
+    };
+    this.selectDate.reset = function() {
+        var l = arguments.length >= 1 ? arguments[0] : 3;
+
+        var members = ['', 'year', 'month', 'day'];
+        while (l >= 1)
+            this[members[l--]] = 0;
+    };
 
     // Cache:
     this.cache = new SolarCache();
@@ -171,15 +194,6 @@ function SolarProd() {
     this.update(false, 1);
 }
 
-SolarProd.update = function(level, value) {
-    if (value === null)
-        return false;
-
-    var members = ['', 'year', 'month', 'day'];
-    this[members[level]] = value;
-    return true;
-};
-
 SolarProd.prototype = {
     // Window resize event:
     windowResize: function()
@@ -228,9 +242,9 @@ SolarProd.prototype = {
 
         // Load data list:
         d3.json(listPath).on('error', (error) => {
-            console.warn(error);
+            console.warn("Could not retrieve list: ", listPath, error);
             this.clearSelect(level);
-            this.siblingPlot(this.selectDate()[level - 1]*this.selectDate.dir, callPlot, level -1);
+            this.siblingPlot(Math.sign(this.selectDate()[level - 1]*this.selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
             data.unshift('');
 
@@ -248,33 +262,48 @@ SolarProd.prototype = {
                                      .filter((d) => (d == ''))
                                      .lower();
 
-            if (this.selectDate()[level - 1]*this.selectDate.dir > 0)
-                this.date.update(level, data[this.selectDate()[level - 1]*this.selectDate.dir]);
-            if (this.selectDate()[level - 1]*this.selectDate.dir < 0)
-                this.date.update(level, data[data.length + this.selectDate()[level - 1]*this.selectDate.dir]);
-            this.selects()[level - 1].property('value', this.date()[level - 1]);
+            var dateOffset = this.selectDate()[level - 1]*this.selectDate.dir;
+            var selectDateOffset = 0;
+            if (dateOffset < 0) {
+                dateOffset = Math.max(data.length + dateOffset, 1);
+                selectDateOffset = (data.length - dateOffset)*this.selectDate.dir;
+            } else if (dateOffset > 0) {
+                dateOffset = Math.min(dateOffset, data.length - 1);
+                selectDateOffset = -dateOffset*this.selectDate.dir;
+            }
 
-            if (this.selectDate()[level - 1] != 0)
+            if (dateOffset != 0) {
+                this.date.update(level, data[dateOffset]);
+                this.selects()[level - 1].property('value', this.date()[level - 1]);
                 this.updatePrevNext();
+            }
+
             if (((level == 3) || (this.selectDate()[level] == 0)) && (this.selectDate.dir == -1))
                 this.updateCache();
-            this.selectDate.update(level, 0);
+            this.selectDate.update(level, selectDateOffset);
 
-            this.update(callPlot, level + 1);
-            if ((level != 3) && (callPlot) && (this.date()[level] == ''))
-                this.plot();
+            if (this.selectDate()[level - 1] == 0) {
+                this.update(callPlot, level + 1);
+                if ((level != 3) && (callPlot) && (this.date()[level] == ''))
+                    this.plot();
+            } else {
+                if ((this.selectDate()[level - 1]*this.selectDate.dir > 0) && !this.cache.isLast(... this.date(level)))
+                    this.siblingPlot(1, callPlot, level - 1);
+                else if ((this.selectDate()[level - 1]*this.selectDate.dir < 0) && !this.cache.isFirst(... this.date(level)))
+                    this.siblingPlot(-1, callPlot, level - 1);
+            }
         }).get();
     },
     // Update cache:
     updateCache: function()
     {
-        if (this.selectDate.day == 1)
+        if (this.selectDate.day > 0)
             this.cache.lastDay = this.date(3);
-        else if (this.selectDate.day == -1)
+        else if (this.selectDate.day < 0)
             this.cache.firstDay = this.date(3);
-        else if (this.selectDate.month == 1)
+        else if (this.selectDate.month > 0)
             this.cache.lastMonth = this.date(2);
-        else if (this.selectDate.month == -1)
+        else if (this.selectDate.month < 0)
             this.cache.firstMonth = this.date(2);
         else
             return;
@@ -380,12 +409,13 @@ SolarProd.prototype = {
         if (level == 0) {
             this.buttons(dir).classed('disabled', true);
             this.selectDate.dir = -1;
-            for (var l = 3; l > 1; l--) {
-                if (this.selectDate()[l - 1] != 0) {
-                    this.siblingPlot(-dir, callPlot, l);
-                    break;
-                }
-            }
+
+            var l = 3;
+            while ((l > 1) && (this.selectDate()[l - 1] == 0))
+                l--;
+
+            this.selectDate.reset(l);
+            this.siblingPlot(-dir, callPlot, l);
             return;
         }
 
@@ -401,11 +431,13 @@ SolarProd.prototype = {
             return;
         }
 
-        if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], dir))) {
+        if (this.selectDate()[level - 1]*this.selectDate.dir*dir > 0) {
+            this.selectDate.update(level, this.selectDate.dir*dir);
+        } else if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], dir))) {
             this.selects()[level - 1].property('value', this.date()[level - 1]);
             this.updatePrevNext();
             this.update(callPlot, level + 1);
-        } else {
+        } else if ((level > 1) || (this.selectDate().some((x) => x != 0))) {
             this.selectDate.update(level, this.selectDate.dir*dir);
             this.siblingPlot(dir, callPlot, level - 1);
         }
