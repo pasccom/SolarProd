@@ -191,6 +191,33 @@ class BrowserTestCase(TestCase):
         'inv': 'Par onduleur', 
         'str': 'Par string'
     }
+
+    def __checkArgument(self, cache, arg):
+        if (arg == 'cache'):
+            return cache
+        if (arg == '!cache'):
+            return not cache
+        return arg
+
+    def cacheTest(fun):
+        def cacheTestFun(self, *args, **kwArgs):
+            with self.subTest(msg='Without cache'):
+                os.rename(self.cacheDir, self.cacheDir + '.del')
+                self.browser.get(self.index)
+
+                newArgs = (self.__checkArgument(False, a) for a in args)
+                newKwArgs = {k: self.__checkArgument(False, a) for k, a in kwArgs.items()}
+                fun(self, *newArgs, **newKwArgs)
+
+            with self.subTest(msg='With cache'):
+                os.rename(self.cacheDir + '.del', self.cacheDir)
+                self.browser.get(self.index)
+
+                newArgs = (self.__checkArgument(True, a) for a in args)
+                newKwArgs = {k: self.__checkArgument(True, a) for k, a in kwArgs.items()}
+                fun(self, *newArgs, **newKwArgs)
+
+        return cacheTestFun
         
     @classmethod
     def setUpClass(cls):
@@ -207,11 +234,12 @@ class BrowserTestCase(TestCase):
             cls.browser.close()
             cls.browser = None
     
-    def setUp(self):
+    def setUp(self, loadIndex=True):
         super().setUp()
 
         self.browser = self.__class__.browser
-        self.browser.get(self.index)
+        if loadIndex:
+            self.browser.get(self.index)
 
     def getLog(self):
         return self.browser.execute_script('return console.capture.get();')
@@ -917,33 +945,6 @@ class ExportTest(BrowserTestCase):
 
 class PrevNextTest(BrowserTestCase):
     
-    def __checkArgument(self, cache, arg):
-        if (arg == 'cache'):
-            return cache
-        if (arg == '!cache'):
-            return not cache
-        return arg
-    
-    def cacheTest(fun):
-        def cacheTestFun(self, *args, **kwArgs):
-            with self.subTest(msg='Without cache'):
-                os.rename(self.cacheDir, self.cacheDir + '.del')
-                self.browser.get(self.index)
-                
-                newArgs = (self.__checkArgument(False, a) for a in args)
-                newKwArgs = {k: self.__checkArgument(False, a) for k, a in kwArgs.items()}
-                fun(self, *newArgs, **newKwArgs)
-                
-            with self.subTest(msg='With cache'):
-                os.rename(self.cacheDir + '.del', self.cacheDir)
-                self.browser.get(self.index)
-                
-                newArgs = (self.__checkArgument(True, a) for a in args)
-                newKwArgs = {k: self.__checkArgument(True, a) for k, a in kwArgs.items()}
-                fun(self, *newArgs, **newKwArgs)
-                
-        return cacheTestFun
-    
     @testData([
         {'year': 2009, 'prevEnabled': False, 'nextEnabled': True },
         {'year': 2010, 'prevEnabled': True,  'nextEnabled': True },
@@ -955,7 +956,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2018, 'prevEnabled': True,  'nextEnabled': True },
         {'year': 2019, 'prevEnabled': True,  'nextEnabled': False},
     ])
-    @cacheTest
+    @BrowserTestCase.cacheTest
     def testYear(self, year, prevEnabled, nextEnabled):
         self.selectDate(year)
         
@@ -975,7 +976,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2017, 'month': 8,  'prevEnabled': True,     'nextEnabled': True    },
         {'year': 2018, 'month': 2,  'prevEnabled': True,     'nextEnabled': '!cache'},
     ])
-    @cacheTest
+    @BrowserTestCase.cacheTest
     def testMonth(self, year, month, prevEnabled, nextEnabled):
         self.selectDate(year, month)
         
@@ -993,7 +994,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2017, 'month': 8,  'day': 5,  'prevEnabled': True,     'nextEnabled': True    },
         {'year': 2017, 'month': 8,  'day': 8,  'prevEnabled': True,     'nextEnabled': '!cache'},
     ])  
-    @cacheTest
+    @BrowserTestCase.cacheTest
     def testDay(self, year, month, day, prevEnabled, nextEnabled):
         self.selectDate(year, month, day)
         
@@ -1005,7 +1006,7 @@ class PrevNextTest(BrowserTestCase):
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2009, 'prevYear': 2009, 'prevEnabled': False             },
         {'year': 2010, 'prevYear': 2009, 'prevEnabled': False             },
@@ -1046,7 +1047,7 @@ class PrevNextTest(BrowserTestCase):
    
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
         {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
@@ -1093,7 +1094,7 @@ class PrevNextTest(BrowserTestCase):
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
         {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
@@ -1137,7 +1138,7 @@ class PrevNextTest(BrowserTestCase):
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest   
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2009, 'nextYear': 2010, 'nextEnabled': True              },
         {'year': 2010, 'nextYear': 2011, 'nextEnabled': True              },
@@ -1178,7 +1179,7 @@ class PrevNextTest(BrowserTestCase):
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
         {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
@@ -1225,7 +1226,7 @@ class PrevNextTest(BrowserTestCase):
         
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @cacheTest
+    @BrowserTestCase.cacheTest
     @testData([
         {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
         {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
@@ -1267,12 +1268,10 @@ class PrevNextTest(BrowserTestCase):
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
     
-    @cacheTest
+    @BrowserTestCase.cacheTest
     def testNoPrevNext(self):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
-        
-        prevButton.click()
         
         self.assertEqual(self.browser.find_element_by_id('year').get_property('value'), '')
         self.assertEqual(self.browser.find_element_by_id('month').get_property('value'), '')
@@ -1284,6 +1283,20 @@ class PrevNextTest(BrowserTestCase):
 class SlowPrevNextTest(BrowserTestCase):
     server = None
     port = 0
+
+    def assertSelectValue(self, name, value='', wait=0):
+        while (wait != 0) and (self.browser.find_element_by_id(name).get_property('value') != str(value)):
+            time.sleep(1)
+            wait -= 1
+        if (wait == 0):
+            self.fail('Select "{}" does not have value "{}"'.format(name, value))
+        return wait
+
+    def assertDate(self, year='', month='', day='', wait=0):
+        wait = self.assertSelectValue('year', str(year), wait)
+        wait = self.assertSelectValue('month', str(month), wait)
+        wait = self.assertSelectValue('day', str(day), wait)
+        return wait
 
     @classmethod
     def setUpClass(cls):
@@ -1302,16 +1315,214 @@ class SlowPrevNextTest(BrowserTestCase):
             cls.server.server_close()
 
     def setUp(self):
+        super().setUp(False)
         self.server = self.__class__.server
-        self.browser = self.__class__.browser
         self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
         self.browser.get(self.index)
 
-    def testSleep(self):
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2011, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2013, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2014, 'prevYear': 2011, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2015, 'prevYear': 2013, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2017, 'prevYear': 2014, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2018, 'prevYear': 2015, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2017, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 7},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 8},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 9},
+    ])
+    def testPrevYear(self, year, prevYear, prevEnabled, repeat=1):
+        self.selectDate(year)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
         with self.server.hold():
-            time.sleep(5)
-            self.browser.find_element_by_id('today').click()
-            time.sleep(5)
+            self.clickButton(prevButton, repeat).perform()
+
+        self.assertDate(prevYear, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 8,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12},
+    ])
+    def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1):
+        self.selectDate(year, month)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.clearLog()
+        with self.server.hold():
+            self.clickButton(prevButton, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+        self.printLog()
+
+        self.assertDate(prevYear, prevMonth, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 29, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 3,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
+    ])
+    def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.clearLog()
+        with self.server.hold():
+            self.clickButton(prevButton, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+        self.printLog()
+
+        self.assertDate(prevYear, prevMonth, prevDay, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2017, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2015, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2014, 'nextYear': 2017, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2013, 'nextYear': 2015, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2011, 'nextYear': 2014, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2010, 'nextYear': 2013, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2011, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 7},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 8},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 9},
+    ])
+    def testNextYear(self, year, nextYear, nextEnabled, repeat=1):
+        self.selectDate(year)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        with self.server.hold():
+            self.clickButton(nextButton, repeat).perform()
+
+        self.assertDate(nextYear, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 6,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12},
+    ])
+    def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1):
+        self.selectDate(year, month)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.clearLog()
+        with self.server.hold():
+            self.clickButton(nextButton, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+        self.printLog()
+
+        self.assertDate(nextYear, nextMonth, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 3,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 29, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
+    ])
+    def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.clearLog()
+        with self.server.hold():
+            self.clickButton(nextButton, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+        self.printLog()
+
+        self.assertDate(nextYear, nextMonth, nextDay, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
 
 class LegendTest(BrowserTestCase):
     
