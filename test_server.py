@@ -22,10 +22,26 @@ from threading import Thread
 from contextlib import contextmanager
 
 import os
+import time
+
+class TestHTTPRequestHandler(http.SimpleHTTPRequestHandler):
+    def log_request(self, code='-', size='-'):
+        super().log_request(code, size)
+        if isinstance(code, http.HTTPStatus):
+            code = code.value
+        self.server.log_request({
+            'timestamp': time.time(),
+            'origin'   : self.client_address[0] + ':' + str(self.client_address[1]),
+            'command'  : self.command,
+            'path'     : self.path,
+            'code'     : code,
+            'size'     : size,
+        })
 
 class TestHTTPServer(http.HTTPServer):
-    def __init__(self, address, handler=http.SimpleHTTPRequestHandler):
+    def __init__(self, address, handler=TestHTTPRequestHandler):
         super().__init__(address, handler)
+        self.__log = []
 
     def start(self, poll_interval=0.5):
         superObj = super()
@@ -44,6 +60,16 @@ class TestHTTPServer(http.HTTPServer):
             yield None
         finally:
             self.start()
+
+    def log_request(self, requestData):
+        self.__log += [requestData]
+
+    def clear_request_log(self):
+        print('Request log cleared')
+        self.__log = []
+
+    def get_request_log(self):
+        return self.__log
 
 if __name__ == '__main__':
     os.chdir('testdata')
