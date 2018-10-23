@@ -45,6 +45,9 @@ SolarCache.prototype = {
 };
 
 function SolarProd() {
+    // pending requests:
+    this.pendingRequests = 0;
+
     // Current date:
     this.date = function() {
         var l = (arguments.length > 0) ? arguments[0] : 3;
@@ -241,11 +244,15 @@ SolarProd.prototype = {
         console.log("List file path: ", listPath);
 
         // Load data list:
+        this.pendingRequests++;
         d3.json(listPath).on('error', (error) => {
+            this.pendingRequests--;
             console.warn("Could not retrieve list: ", listPath, error);
             this.clearSelect(level);
             this.siblingPlot(Math.sign(this.selectDate()[level - 1]*this.selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
+            this.pendingRequests--;
+            // TODO Do not update selects if there are pending requests.
             data.unshift('');
 
             var text = (d) => d;
@@ -282,16 +289,14 @@ SolarProd.prototype = {
                 this.updateCache();
             this.selectDate.update(level, selectDateOffset);
 
-            if (this.selectDate()[level - 1] == 0) {
+            if (this.selectDate()[level - 1] == 0)
                 this.update(callPlot, level + 1);
-                if ((level != 3) && (callPlot) && (this.date()[level] == ''))
-                    this.plot();
-            } else {
-                if ((this.selectDate()[level - 1]*this.selectDate.dir > 0) && !this.cache.isLast(... this.date(level)))
-                    this.siblingPlot(1, callPlot, level - 1);
-                else if ((this.selectDate()[level - 1]*this.selectDate.dir < 0) && !this.cache.isFirst(... this.date(level)))
-                    this.siblingPlot(-1, callPlot, level - 1);
-            }
+            else if ((this.selectDate()[level - 1]*this.selectDate.dir > 0) && !this.cache.isLast(... this.date(level)))
+                this.siblingPlot(1, callPlot, level - 1);
+            else if ((this.selectDate()[level - 1]*this.selectDate.dir < 0) && !this.cache.isFirst(... this.date(level)))
+                this.siblingPlot(-1, callPlot, level - 1);
+            else if (callPlot)
+                this.plot();
         }).get();
     },
     // Update cache:
@@ -360,6 +365,10 @@ SolarProd.prototype = {
     },
 
     plot: function(today) {
+        // Do not plot while there are pending requests:
+        if (this.pendingRequests != 0)
+            return;
+
         // Set date of today:
         if (today) {
             this.selectDate.month = -1;
@@ -416,11 +425,8 @@ SolarProd.prototype = {
 
             this.selectDate.reset(l);
             this.siblingPlot(-dir, callPlot, l);
-            return;
-        }
-
-        if (((dir == 1 ) && this.cache.isLast(... this.date(level))) ||
-            ((dir == -1) && this.cache.isFirst(... this.date(level)))) {
+        } else if (((dir ==  1) && this.cache.isLast(... this.date(level))) ||
+                   ((dir == -1) && this.cache.isFirst(... this.date(level)))) {
             for (var l = 3; l > level; l--) {
                 if (this.selectDate()[l - 1] != 0) {
                     this.selectDate.dir = -1;
@@ -428,10 +434,7 @@ SolarProd.prototype = {
                     break;
                 }
             }
-            return;
-        }
-
-        if (this.selectDate()[level - 1]*this.selectDate.dir*dir > 0) {
+        } else if (this.selectDate()[level - 1]*this.selectDate.dir*dir > 0) {
             this.selectDate.update(level, this.selectDate.dir*dir);
         } else if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], dir))) {
             this.selects()[level - 1].property('value', this.date()[level - 1]);
