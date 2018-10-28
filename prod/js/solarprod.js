@@ -428,6 +428,8 @@ SolarProd.prototype = {
 
     siblingPlot: function()
     {
+        var l = 3;
+        var level;
         var dir = arguments[0];
         var callPlot = (arguments.length > 1) ? arguments[1] : true;
 
@@ -438,7 +440,7 @@ SolarProd.prototype = {
         }
 
         if (arguments.length < 3) {
-            for (var l = 3; l > 0; l--) {
+            for (l = 3; l > 0; l--) {
                 if ((this.date()[l - 1] != '') || (this.selectDate()[l - 1] != 0)) {
                     this.siblingPlot(dir, callPlot, l);
                     break;
@@ -447,13 +449,13 @@ SolarProd.prototype = {
             return;
         }
 
-        var level = arguments[2];
+        level = arguments[2];
 
         if (level == 0) {
             this.buttons(dir).classed('disabled', true);
             this.selectDate.dir = -1;
 
-            var l = 3;
+            l = 3;
             while ((l > 1) && (this.selectDate()[l - 1] == 0))
                 l--;
 
@@ -461,7 +463,7 @@ SolarProd.prototype = {
             this.siblingPlot(-dir, callPlot, l);
         } else if (((dir ==  1) && this.cache.isLast(... this.date(level))) ||
                    ((dir == -1) && this.cache.isFirst(... this.date(level)))) {
-            for (var l = 3; l > level; l--) {
+            for (l = 3; l > level; l--) {
                 if (this.selectDate()[l - 1] != 0) {
                     this.selectDate.dir = -1;
                     this.siblingPlot(dir, callPlot, l);
