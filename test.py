@@ -282,7 +282,7 @@ class BrowserTestCase(TestCase):
         while (wait != 0) and (self.browser.find_element_by_id(name).get_property('value') != str(value)):
             time.sleep(1)
             wait -= 1
-        if (wait == 0):
+        if (self.browser.find_element_by_id(name).get_property('value') != str(value)):
             self.fail('Select "{}" does not have value "{}"'.format(name, value))
         return wait
 
