@@ -253,7 +253,9 @@ SolarProd.prototype = {
             this.siblingPlot(Math.sign(this.selectDate()[level - 1]*this.selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
             this.pendingListRequests--;
-            // TODO Do not update selects if there are pending requests.
+            if (this.pendingListRequests > 0)
+                return;
+
             data.unshift('');
 
             var text = (d) => d;
