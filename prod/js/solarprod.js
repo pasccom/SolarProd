@@ -46,7 +46,8 @@ SolarCache.prototype = {
 
 function SolarProd() {
     // pending requests:
-    this.pendingRequests = 0;
+    this.pendingListRequests = 0;
+    this.pendingDataRequests = 0;
 
     // Current date:
     this.date = function() {
@@ -244,14 +245,14 @@ SolarProd.prototype = {
         console.log("List file path: ", listPath);
 
         // Load data list:
-        this.pendingRequests++;
+        this.pendingListRequests++;
         d3.json(listPath).on('error', (error) => {
-            this.pendingRequests--;
+            this.pendingListRequests--;
             console.warn("Could not retrieve list: ", listPath, error);
             this.clearSelect(level);
             this.siblingPlot(Math.sign(this.selectDate()[level - 1]*this.selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
-            this.pendingRequests--;
+            this.pendingListRequests--;
             // TODO Do not update selects if there are pending requests.
             data.unshift('');
 
@@ -365,8 +366,8 @@ SolarProd.prototype = {
     },
 
     plot: function(today) {
-        // Do not plot while there are pending requests:
-        if (this.pendingRequests != 0)
+        // Do not fetch plot data while there are pending list requests:
+        if (this.pendingListRequests != 0)
             return;
 
         // Set date of today:
@@ -382,8 +383,17 @@ SolarProd.prototype = {
         }
 
         var solarPromise = today ? SolarData.create() : SolarData.create(... this.date());
-        solarPromise.catch(console.warn);
+        this.pendingDataRequests++;
+        solarPromise.catch((msg) => {
+            this.pendingDataRequests--;
+            console.warn(msg);
+        });
         solarPromise.then((data) => {
+            this.pendingDataRequests--;
+            // Do not plot while there are pending data requests:
+            if (this.pendingDataRequests > 0)
+                return;
+
             this.updateVars(data);
             this.chart.setData(data);
 
