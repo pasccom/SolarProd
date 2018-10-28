@@ -177,6 +177,28 @@ function SolarProd() {
                                                 .attr('alt', 'Export CSV')
                                                 .on('click', () => {this.chart.plot.data.exportCsv();});
 
+    d3.select(document).on('keydown', () => {
+        console.log(d3.event);
+
+        if (d3.event.shiftKey || d3.event.altKey || d3.event.ctrlKey || d3.event.metaKay)
+            return;
+
+        if ((d3.event.key == 'Enter') && !d3.event.repeat)
+            this.buttons.plot.dispatch('click');
+
+        if ((d3.event.key == 'ArrowUp') && !d3.event.repeat)
+            this.buttons.today.dispatch('click');
+
+        if (d3.event.key == 'ArrowLeft')
+            this.buttons.prev.dispatch('click');
+
+        if (d3.event.key == 'ArrowRight')
+            this.buttons.next.dispatch('click');
+
+        if ((d3.event.key == 'ArrowDown') && !d3.event.repeat)
+            this.buttons.export.dispatch('click');
+    });
+
     // TODO remove?
     // WARNING Used by test.py
     this.selects.day.attr('id', 'day');
@@ -417,7 +439,7 @@ SolarProd.prototype = {
 
         if (arguments.length < 3) {
             for (var l = 3; l > 0; l--) {
-                if (this.date()[l - 1] != '') {
+                if ((this.date()[l - 1] != '') || (this.selectDate()[l - 1] != 0)) {
                     this.siblingPlot(dir, callPlot, l);
                     break;
                 }
