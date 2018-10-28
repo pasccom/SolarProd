@@ -17,6 +17,7 @@
 
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys as Key
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common import exceptions as selenium
 
@@ -350,7 +351,13 @@ class BrowserTestCase(TestCase):
         for r in range(0, repeat):
             actions.move_to_element(button)
             actions.click(button)
-        actions.pause(1)
+        return actions
+
+    def pressKey(self, key, repeat=1):
+        actions = ActionChains(self.browser)
+        for r in range(0, repeat):
+            actions.key_down(key)
+            actions.key_up(key)
         return actions
 
     def getClasses(self, element):
@@ -393,6 +400,41 @@ class BrowserTestCase(TestCase):
             return tag, self.__parseColor(value)
         return tag, value
             
+class ServerTestCase(BrowserTestCase):
+    server = None
+    port = 0
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        if cls.server is None:
+            cls.server = TestHTTPServer(('', cls.port))
+            cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+        if (cls.server is not None):
+            cls.server.stop()
+            cls.server.server_close()
+
+    def setUp(self):
+        super().setUp(False)
+        self.server = self.__class__.server
+        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
+        self.browser.get(self.index)
+
+    def assertDataRequests(self, expected, wait=0):
+        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
+        while (wait != 0) and (len(dataRequests) != len(expected)):
+            time.sleep(1)
+            wait-=1
+            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
+        print(dataRequests)
+        self.assertEqual(dataRequests, expected)
+
 class ElementsTest(BrowserTestCase):
         
     def testWindowTitle(self):
@@ -684,19 +726,20 @@ class SelectTest(BrowserTestCase):
         self.assertTrue(aggr.is_enabled())
 
 class ExportTest(BrowserTestCase):
-    def waitExport(self, var, agg, year=None, month=None, day=None, t=-1):
+    def getExportPath(self, var, agg, year=None, month=None, day=None):
         csvFilePath = self.exportPath(var, agg, year, month, day)
-        
+
         if os.path.isfile(csvFilePath):
             os.remove(csvFilePath)
-        
-        self.browser.find_element_by_id('export').click()
+        return csvFilePath
+
+    def waitExport(self, csvFilePath, t=-1):
         while not os.path.isfile(csvFilePath):
             if (t == 0):
                 break
             time.sleep(1)
             t -= 1
-        return csvFilePath
+        return os.path.isfile(csvFilePath)
     
     def getExportData(self, csvFilePath, agg='sum'):
         csvDates = []
@@ -776,11 +819,45 @@ class ExportTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum(agg)
         
-        csvFilePath = self.waitExport(var, agg, year, month, day, 5)
-        self.assertTrue(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath(var, agg, year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
         os.remove(csvFilePath)
     
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'sum'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'agg': 'inv'},
+    ])
+    def testKey(self, year, month, day, var, agg):
+        self.loadData(year, month, day)
+
+        self.selectDate(year, month, day)
+        self.pressKey(Key.ENTER).perform()
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        csvFilePath = self.getExportPath(var, agg, year, month, day)
+        self.pressKey(Key.ARROW_DOWN).perform()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
+        self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
+        os.remove(csvFilePath)
+
     @testData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -806,8 +883,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.selectDate(newYear, newMonth, newDay)
         
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertTrue(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
@@ -837,8 +915,9 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay)
         self.browser.find_element_by_id('plot').click()
 
-        csvFilePath = self.waitExport('nrj', 'sum', newYear, newMonth, newDay, 5)
-        self.assertTrue(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum',  newYear, newMonth, newDay)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
         
@@ -860,8 +939,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.browser.find_element_by_id('prev').click()
         
-        csvFilePath = self.waitExport('nrj', 'sum', prevYear, prevMonth, prevDay, 5)
-        self.assertTrue(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', prevYear, prevMonth, prevDay)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
     
@@ -883,8 +963,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.browser.find_element_by_id('next').click()
         
-        csvFilePath = self.waitExport('nrj', 'sum', nextYear, nextMonth, nextDay, 5)
-        self.assertTrue(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', nextYear, nextMonth, nextDay)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
@@ -895,8 +976,22 @@ class ExportTest(BrowserTestCase):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
 
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertFalse(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 5},
+    ])
+    def testKeyEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.pressKey(Key.ENTER).perform()
+
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.pressKey(Key.ARROW_DOWN).perform()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
@@ -911,8 +1006,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.selectDate(newYear, newMonth, newDay)
 
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertFalse(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
@@ -928,8 +1024,9 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay)
         self.browser.find_element_by_id('plot').click()
 
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertFalse(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
@@ -941,8 +1038,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.browser.find_element_by_id('prev').click()
 
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertFalse(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
@@ -954,8 +1052,9 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.browser.find_element_by_id('next').click()
 
-        csvFilePath = self.waitExport('nrj', 'sum', year, month, day, 5)
-        self.assertFalse(os.path.isfile(csvFilePath))
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
@@ -1274,42 +1373,256 @@ class PrevNextTest(BrowserTestCase):
         self.assertDate()
         self.assertEnabled(prevButton, False)
         self.assertEnabled(nextButton, False)
-     
-class SlowPrevNextTest(BrowserTestCase):
-    server = None
-    port = 0
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+class LeftRightKeyTest(BrowserTestCase):
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False             },
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False             },
+        {'year': 2011, 'prevYear': 2010, 'prevEnabled': True              },
+        {'year': 2013, 'prevYear': 2011, 'prevEnabled': True              },
+        {'year': 2014, 'prevYear': 2013, 'prevEnabled': True              },
+        {'year': 2015, 'prevYear': 2014, 'prevEnabled': True              },
+        {'year': 2017, 'prevYear': 2015, 'prevEnabled': True              },
+        {'year': 2018, 'prevYear': 2017, 'prevEnabled': True              },
+        {'year': 2019, 'prevYear': 2018, 'prevEnabled': True              },
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2011, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2},
+        {'year': 2013, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2014, 'prevYear': 2011, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2015, 'prevYear': 2013, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2017, 'prevYear': 2014, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2018, 'prevYear': 2015, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2017, 'prevEnabled': True,  'repeat': 2},
+        {'year': 2019, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 7},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 8},
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 9},
+    ])
+    def testPrevYear(self, year, prevYear, prevEnabled, repeat=1):
+        self.selectDate(year)
 
-        if cls.server is None:
-            cls.server = TestHTTPServer(('', cls.port))
-            cls.server.start()
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
 
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
+        self.pressKey(Key.ARROW_LEFT, repeat).perform()
 
-        if (cls.server is not None):
-            cls.server.stop()
-            cls.server.server_close()
+        self.assertDate(prevYear, wait=5)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
 
-    def setUp(self):
-        super().setUp(False)
-        self.server = self.__class__.server
-        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
-        self.browser.get(self.index)
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
+        {'year': 2011, 'month': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True               },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True               },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True               },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True               },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True               },
+        {'year': 2017, 'month': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True               },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True               },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True               },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 8,  'prevEnabled': True               },
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 8,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11},
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12},
+    ])
+    def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1):
+        self.selectDate(year, month)
 
-    def assertDataRequests(self, expected, wait=0):
-        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
-        while (wait != 0) and (len(dataRequests) != len(expected)):
-            time.sleep(1)
-            wait-=1
-            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
-        print(dataRequests)
-        self.assertEqual(dataRequests, expected)
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
 
+        self.browser.find_element_by_id('plot').click()
+        self.pressKey(Key.ARROW_LEFT, repeat).perform()
+
+        self.assertDate(prevYear, prevMonth)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True               },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True               },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 6,  'prevEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 29, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 3,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
+    ])
+    def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.pressKey(Key.ARROW_LEFT, repeat).perform()
+
+        self.assertDate(prevYear, prevMonth, prevDay)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2009, 'nextYear': 2010, 'nextEnabled': True              },
+        {'year': 2010, 'nextYear': 2011, 'nextEnabled': True              },
+        {'year': 2011, 'nextYear': 2013, 'nextEnabled': True              },
+        {'year': 2013, 'nextYear': 2014, 'nextEnabled': True              },
+        {'year': 2014, 'nextYear': 2015, 'nextEnabled': True              },
+        {'year': 2015, 'nextYear': 2017, 'nextEnabled': True              },
+        {'year': 2017, 'nextYear': 2018, 'nextEnabled': True              },
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False             },
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False             },
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2017, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2},
+        {'year': 2015, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2014, 'nextYear': 2017, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2013, 'nextYear': 2015, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2011, 'nextYear': 2014, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2010, 'nextYear': 2013, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2011, 'nextEnabled': True,  'repeat': 2},
+        {'year': 2009, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 7},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 8},
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 9},
+    ])
+    def testNextYear(self, year, nextYear, nextEnabled, repeat=1):
+        self.selectDate(year)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+
+        self.assertDate(nextYear)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
+        {'year': 2017, 'month': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True               },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True               },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True               },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True               },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True               },
+        {'year': 2011, 'month': 10, 'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True               },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True               },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True               },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 6,  'nextEnabled': True               },
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 6,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 10, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11},
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12},
+    ])
+    def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1):
+        self.selectDate(year, month)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+
+        self.assertDate(nextYear, nextMonth)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True               },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True               },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True               },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 26, 'nextEnabled': True               },
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 3,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 29, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
+    ])
+    def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+
+        self.assertDate(nextYear, nextMonth, nextDay)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+class SlowPrevNextTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
@@ -1526,6 +1839,229 @@ class SlowPrevNextTest(BrowserTestCase):
         self.server.clear_request_log()
         with self.server.hold():
             self.clickButton(todayButton, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+
+        self.assertDate(2017, 8, 8, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, False)
+        self.assertDataRequests([self.dataPath('today')], wait=2)
+
+class SlowKeyTest(ServerTestCase):
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2, 'requests': 0},
+        {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2               },
+        {'year': 2011, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2               },
+        {'year': 2013, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2014, 'prevYear': 2011, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2015, 'prevYear': 2013, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2017, 'prevYear': 2014, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2018, 'prevYear': 2015, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2019, 'prevYear': 2017, 'prevEnabled': True,  'repeat': 2               },
+        {'year': 2019, 'prevYear': 2010, 'prevEnabled': True,  'repeat': 7               },
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 8               },
+        {'year': 2019, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 9               },
+    ])
+    def testPrevYear(self, year, prevYear, prevEnabled, repeat=1, requests=1):
+        self.selectDate(year)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.server.clear_request_log()
+        with self.server.hold():
+            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+
+        self.assertDate(prevYear, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+        self.assertDataRequests([self.dataPath(prevYear)]*requests, wait=2)
+
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first and we have to use @cacheCheck.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2, 'requests': '!cache'},
+        {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2                      },
+        {'year': 2011, 'month': 8,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2                      },
+        {'year': 2011, 'month': 9,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 10, 'prevYear': 2011, 'prevMonth': 8,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 12, 'prevYear': 2011, 'prevMonth': 9,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 2,  'prevYear': 2011, 'prevMonth': 10, 'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 4,  'prevYear': 2011, 'prevMonth': 12, 'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 5,  'prevYear': 2017, 'prevMonth': 2,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 6,  'prevYear': 2017, 'prevMonth': 4,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 8,  'prevYear': 2017, 'prevMonth': 5,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2018, 'month': 2,  'prevYear': 2017, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 2                      },
+        {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10                     },
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11                     },
+        {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12                     },
+    ])
+    @BrowserTestCase.cacheCheck
+    def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1, requests=1):
+        self.selectDate(year, month)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.server.clear_request_log()
+        with self.server.hold():
+            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+
+        self.assertDate(prevYear, prevMonth, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+        self.assertDataRequests([self.dataPath(prevYear, prevMonth)]*int(requests), wait=2)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 27, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 25, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 28, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 30, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 1,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 29, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 3,  'prevYear': 2011, 'prevMonth': 12, 'prevDay': 31, 'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'prevYear': 2017, 'prevMonth': 2,  'prevDay': 7,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2017, 'prevMonth': 8,  'prevDay': 5,  'prevEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
+        {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
+    ])
+    def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        with self.server.hold():
+            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+
+        self.assertDate(prevYear, prevMonth, prevDay, wait=2)
+        self.assertEnabled(prevButton, prevEnabled)
+        self.assertEnabled(nextButton, True)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2, 'requests': 0},
+        {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2               },
+        {'year': 2017, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2               },
+        {'year': 2015, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2014, 'nextYear': 2017, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2013, 'nextYear': 2015, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2011, 'nextYear': 2014, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2010, 'nextYear': 2013, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2009, 'nextYear': 2011, 'nextEnabled': True,  'repeat': 2               },
+        {'year': 2009, 'nextYear': 2018, 'nextEnabled': True,  'repeat': 7               },
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 8               },
+        {'year': 2009, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 9               },
+    ])
+    def testNextYear(self, year, nextYear, nextEnabled, repeat=1, requests=1):
+        self.selectDate(year)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.server.clear_request_log()
+        with self.server.hold():
+            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+
+        self.assertDate(nextYear, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+        self.assertDataRequests([self.dataPath(nextYear)]*requests, wait=2)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first and we have to use @cacheCheck.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2, 'requests': '!cache'},
+        {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2                      },
+        {'year': 2017, 'month': 6,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2                      },
+        {'year': 2017, 'month': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 4,  'nextYear': 2017, 'nextMonth': 6,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2017, 'month': 2,  'nextYear': 2017, 'nextMonth': 5,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 12, 'nextYear': 2017, 'nextMonth': 4,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 10, 'nextYear': 2017, 'nextMonth': 2,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 9,  'nextYear': 2011, 'nextMonth': 12, 'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 8,  'nextYear': 2011, 'nextMonth': 10, 'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2011, 'month': 6,  'nextYear': 2011, 'nextMonth': 9,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2010, 'month': 12, 'nextYear': 2011, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 2                      },
+        {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10                     },
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11                     },
+        {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12                     },
+    ])
+    @BrowserTestCase.cacheCheck
+    def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1, requests=1):
+        self.selectDate(year, month)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.server.clear_request_log()
+        with self.server.hold():
+            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+
+        self.assertDate(nextYear, nextMonth, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+        self.assertDataRequests([self.dataPath(nextYear, nextMonth)]*int(requests), wait=2)
+
+    # NOTE The page should not be reloaded before each date
+    # that's why @cacheTest is first.
+    @BrowserTestCase.cacheTest
+    @testData([
+        {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 4,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 8,  'day': 2,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 5,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 7,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 4,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2017, 'month': 2,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 2,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 31, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 3,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 12, 'day': 29, 'nextYear': 2017, 'nextMonth': 2,  'nextDay': 1,  'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 30, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 28, 'nextYear': 2011, 'nextMonth': 12, 'nextDay': 25, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2011, 'nextMonth': 6,  'nextDay': 27, 'nextEnabled': True,  'repeat': 2 },
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
+        {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
+    ])
+    def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
+        self.selectDate(year, month, day)
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        with self.server.hold():
+            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+            self.browser.execute_script('console.log("Server restarts")')
+
+        self.assertDate(nextYear, nextMonth, nextDay, wait=2)
+        self.assertEnabled(prevButton, True)
+        self.assertEnabled(nextButton, nextEnabled)
+
+    @testData([1, 2])
+    def testToday(self, repeat):
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.server.clear_request_log()
+        with self.server.hold():
+            self.pressKey(Key.ARROW_UP, repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
