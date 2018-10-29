@@ -1,23 +1,56 @@
 function SolarCache() {
-    // Get cache:
-    d3.json("list/cache.json").on('error', console.log)
-                              .on('load', (data) => {
-        Object.keys(data).forEach((k) => {this[k] = data[k];});
-    }).get();
-}
+    var cache = {};
 
-SolarCache.is = function(member) {
-    return function() {
-        if (this[member] === undefined)
-            return false;
-
-        for (var i = 0; i < Math.min(this[member].length, arguments.length); i++)
-            if (this[member][i] != arguments[i])
+    var is = function(member) {
+        return function() {
+            if (cache[member] === undefined)
                 return false;
 
-        return true;
+            for (var i = 0; i < Math.min(cache[member].length, arguments.length); i++)
+                if (cache[member][i] != arguments[i])
+                    return false;
+
+            return true;
+        };
     };
-};
+
+    // Get cache:
+    d3.json("list/cache.json").on('error', console.log)
+                              .on('load', (data) => {cache = data;}).get();
+
+    this.isFirstDay   = is('firstDay');
+    this.isLastDay    = is('lastDay');
+    this.isFirstMonth = is('firstMonth');
+    this.isLastMonth  = is('lastMonth');
+    this.isFirstYear  = is('firstYear');
+    this.isLastYear   = is('lastYear');
+
+    this.update = function(dir, data) {
+        if (dir > 0) {
+            switch (data.length) {
+                case 3:
+                    cache.lastDay = data;
+                    break;
+                case 2:
+                    cache.lastMonth = data;
+                    break;
+                default:
+                    break;
+            }
+        } else if (dir < 0) {
+            switch (data.length) {
+                case 3:
+                    cache.firstDay = data;
+                    break;
+                case 2:
+                    cache.firstMonth = data;
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+}
 
 SolarCache.prototype = {
     isFirst: function(year, month, day) {
@@ -36,12 +69,6 @@ SolarCache.prototype = {
         else
             return this.isLastYear(year);
     },
-    isFirstDay: SolarCache.is('firstDay'),
-    isLastDay: SolarCache.is('lastDay'),
-    isFirstMonth: SolarCache.is('firstMonth'),
-    isLastMonth: SolarCache.is('lastMonth'),
-    isFirstYear: SolarCache.is('firstYear'),
-    isLastYear: SolarCache.is('lastYear'),
 };
 
 function SolarProd() {
@@ -327,14 +354,10 @@ SolarProd.prototype = {
     // Update cache:
     updateCache: function()
     {
-        if (this.selectDate.day > 0)
-            this.cache.lastDay = this.date(3);
-        else if (this.selectDate.day < 0)
-            this.cache.firstDay = this.date(3);
-        else if (this.selectDate.month > 0)
-            this.cache.lastMonth = this.date(2);
-        else if (this.selectDate.month < 0)
-            this.cache.firstMonth = this.date(2);
+        if (this.selectDate.day != 0)
+            this.cache.update(Math.sign(this.selectDate.day), this.date(3));
+        else if (this.selectDate.month != 0)
+            this.cache.update(Math.sign(this.selectDate.month), this.date(2));
         else
             return;
 
