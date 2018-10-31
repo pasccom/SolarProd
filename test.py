@@ -325,7 +325,7 @@ class BrowserTestCase(TestCase):
         while (len(options) == 0):
             options = select.find_elements_by_tag_name('option')
             if (t == 0):
-                raise RuntimeError('Timed out wating for options')
+                raise RuntimeError('Timed out waiting for options')
             time.sleep(1)
             t -= 1
         return options
@@ -570,13 +570,12 @@ class LayoutTest(TestCase):
 class SelectTest(BrowserTestCase):
     def testYears(self):
         select = self.browser.find_element_by_id('year')
-        options = [o.text for o in self.waitOptions(select, 5)]
-        
+
         with open(self.listPath(), 'r') as jsonFile:
             expected = json.load(jsonFile)
         expected = [''] + [str(y) for y in expected]
-        
-        self.assertEqual(options, expected)
+
+        self.assertEqual([o.text for o in self.waitOptions(select, 5)], expected)
         self.assertTrue(select.is_enabled())
         self.assertEqual(select.get_property('value'), '')
         
@@ -591,23 +590,20 @@ class SelectTest(BrowserTestCase):
     ])
     def testMonths(self, year):
         self.selectDate(year)
-        
         select = self.browser.find_element_by_id('month')
-        options = [o.text for o in self.waitOptions(select, 5)]
-        
+
         try:
             with open(self.listPath(year), 'r') as jsonFile:
                 expected = json.load(jsonFile)
             expected = [''] + [self.monthName(m) for m in expected]
-        except (FileNotFoundError):
-            expected = []
-            
-        self.assertEqual(options, expected)
-        if (len(expected) == 0):
-            self.assertFalse(select.is_enabled())
-        else:
+
+            self.assertEqual([o.text for o in self.waitOptions(select, 5)], expected)
             self.assertTrue(select.is_enabled())
             self.assertEqual(select.get_property('value'), '')
+        except (FileNotFoundError):
+            with self.assertRaises(RuntimeError):
+                self.waitOptions(select, 5)
+            self.assertFalse(select.is_enabled())
     
     @testData([
         {'year': 2010, 'month': 12},
@@ -621,23 +617,20 @@ class SelectTest(BrowserTestCase):
     ])
     def testDays(self, year, month, expected=None):
         self.selectDate(year, month)
-        
         select = self.browser.find_element_by_id('day')
-        options = [o.text for o in self.waitOptions(select, 5)]
         
         try:
             with open(self.listPath(year, month), 'r') as jsonFile:
                 expected = json.load(jsonFile)
             expected = [''] + [str(d) for d in expected]
-        except (FileNotFoundError):
-            expected = []
-        
-        self.assertEqual(options, expected)
-        if (len(expected) == 0):
-            self.assertFalse(select.is_enabled())
-        else:
+
+            self.assertEqual([o.text for o in self.waitOptions(select, 5)], expected)
             self.assertTrue(select.is_enabled())
             self.assertEqual(select.get_property('value'), '')
+        except (FileNotFoundError):
+            with self.assertRaises(RuntimeError):
+                self.waitOptions(select, 5)
+            self.assertFalse(select.is_enabled())
                 
     @testData([
         {'year': None, 'month': None, 'day': None, 'expected': set(['Énergie'])                                                             },
