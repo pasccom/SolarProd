@@ -1,14 +1,10 @@
-function SolarLegend(legendRoot)
+function SolarLegend(root)
 {
-    this.root = legendRoot;
-}
-
-SolarLegend.prototype = {
     // Update visibility in legend so that it matches the visility of the element:
-    updateVisibility: function()
+    var updateVisibility = function()
     {
         // Ensure the checkboxes match the visility of the elements:
-        this.root.selectAll('input').each(function(d) {
+        root.selectAll('input').each(function(d) {
             if (d[0] === undefined) {
                 this.checked = (d.style('display') != 'none');
             } else {
@@ -24,9 +20,10 @@ SolarLegend.prototype = {
                 this.indeterminate = !allSelected && anySelected;
             }
         });
-    },
+    };
+
     // Change the visibility of an element:
-    changeVisiblilty: function(d)
+    var changeVisibility = function(d)
     {
         // Show/hides elements:
         recForEach(d, (e) => {
@@ -36,32 +33,33 @@ SolarLegend.prototype = {
                 e.style('display', 'none');
         });
 
-        this.updateVisibility();
-    },
+        updateVisibility();
+    };
+
     // Draw the legend:
-    draw: function(agg, data, style)
+    this.draw = function(agg, data, style)
     {
         var appendLegendItem = function(element)
         {
             element.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
         };
 
-        var appendVisibilityBox = (function(element)
+        var appendVisibilityBox = function(element)
         {
             element.append('span')
-                .classed('input', true).append('input')
-                                        .attr('type', 'checkbox')
-                                        .on('change', this.changeVisiblilty.bind(this));
-        }).bind(this);
+                   .classed('input', true).append('input')
+                                          .attr('type', 'checkbox')
+                                          .on('change', changeVisibility);
+        };
 
-        this.root.append('h4').text('Légende');
+        root.append('h4').text('Légende');
         // Creates legend (using lists)
         if (agg == 'sum') {
-            this.root.call(appendLegendItem);
-            this.root.append('span').text(' Total');
+            root.call(appendLegendItem);
+            root.append('span').text(' Total');
         } else {
-            var inv = this.root.append('ul').selectAll('li')
-                                            .data(data);
+            var inv = root.append('ul').selectAll('li')
+                                       .data(data);
             inv = inv.enter().append('li');
             inv.append('span').classed('label', true);
 
@@ -82,12 +80,13 @@ SolarLegend.prototype = {
                 str.call(appendVisibilityBox);
             }
 
-            this.updateVisibility();
+            updateVisibility();
         }
-    },
+    };
+
     // Crear legend:
-    clear: function()
+    this.clear = function()
     {
-        this.root.selectAll('*').remove();
-    },
+        root.selectAll('*').remove();
+    };
 }
