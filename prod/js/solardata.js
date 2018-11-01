@@ -411,4 +411,6 @@ function EmptyData(data, year, month, day)
     this.export = function() {return null};
     this.update = function() {};
 }
-EmptyData.prototype = SolarData;
+
+EmptyData.prototype = {};
+Object.setPrototypeOf(EmptyData.prototype, SolarData);
