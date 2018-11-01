@@ -49,4 +49,6 @@ function HistData(data, year, month, day) {
     };
     this.update();
 }
-HistData.prototype = SolarData;
+
+HistData.prototype = {};
+Object.setPrototypeOf(HistData.prototype, SolarData);

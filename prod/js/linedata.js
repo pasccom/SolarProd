@@ -51,4 +51,6 @@ function LineData(data, year, month, day) {
     };
     this.update();
 }
-LineData.prototype = SolarData;
+
+LineData.prototype = {};
+Object.setPrototypeOf(LineData.prototype, SolarData);

@@ -84,12 +84,12 @@ function SolarChart(root, data) {
             this.plot.remove();
         }
         // Create new plot:
-        if (data.isEmpty())
-            this.plot = new EmptyPlot(plotRoot);
-        else if (data.type == SolarData.Type.DAY)
+        if ((data instanceof LineData) && !data.isEmpty())
             this.plot = new LinePlot(plotRoot);
-        else
+        else if ((data instanceof HistData) && !data.isEmpty())
             this.plot = new HistPlot(plotRoot);
+        else
+            this.plot = new EmptyPlot(plotRoot);
         this.plot.setData(data);
         // Resize new plot to old plot size:
         this.plot.resize(ow, oh);
