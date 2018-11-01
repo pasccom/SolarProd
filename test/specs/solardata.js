@@ -174,7 +174,36 @@ describe('SolarData', function() {
             generators.month,
             generators.day,
         ]),
-    ])
+    ]);
+
+    generators.variable = (function() {
+        const vars = [
+            {code: 'nrj',  name: 'Énergie',      unit: 'Wh'},
+            {code: 'pwr',  name: 'Puissance',    unit: 'W' },
+            {code: 'pac',  name: 'Puissance AC', unit: 'W' },
+            {code: 'uac',  name: 'Tension AC',   unit: 'V' },
+            {code: 'pdc',  name: 'Puissance DC', unit: 'W' },
+            {code: 'udc',  name: 'Tension DC',   unit: 'V' },
+            {code: 'temp', name: 'Température',  unit: '°C'},
+        ];
+
+        var ret = GenTest.types.elementOf(vars);
+        ret.code = GenTest.types.elementOf(vars.map((e) => e.code));
+        ret.codes = function() {
+            return GenTest.types.arrayOf(ret.codes, ...arguments);
+        }
+        return ret;
+    })();
+
+    generators.aggregation = (function() {
+        const aggregations = [
+            {code: 'sum', name: 'Total'},
+            {code: 'inv', name: 'Par onduleur'},
+            {code: 'str', name: 'Par string'},
+        ];
+
+        return GenTest.types.elementOf(aggregations.map((e) => e.code));
+    })();
 
     describe('prefix', function() {
         it('should return "p"', function() {
@@ -627,8 +656,8 @@ describe('SolarData', function() {
     describe('exportFilename', function() {
         it('should be "export_var_sum.csv"', [
             generators.year,
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(year, v, s) {
             var data = [{date: pad(year, 4, '0') + '-12-31'}];
             data[0][v] = [];
@@ -643,8 +672,8 @@ describe('SolarData', function() {
         it('should be "export_var_sum_%Y.csv"', [
             generators.year,
             generators.month,
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(year, month, v, s) {
             var data = [{date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-28'}];
             data[0][v] = [];
@@ -660,8 +689,8 @@ describe('SolarData', function() {
             generators.year,
             generators.month,
             generators.day,
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(year, month, day, v, s) {
             var data = [{date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0')}];
             data[0][v] = [];
@@ -678,8 +707,8 @@ describe('SolarData', function() {
             generators.month,
             generators.day,
             GenTest.types.date('%H:%M'),
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(year, month, day, time, v, s) {
             var data = {dates: [pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + time]};
             data[v] = [Math.round(1000*Math.random())];
@@ -694,8 +723,8 @@ describe('SolarData', function() {
         });
         it('should be "export_var_sum_%d-%m-%Y.csv" (lineData)', [
             generators.lineData,
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(data, v, s) {
             var date = new Date(data.dates[0]);
             data[v] = data.dates.map(() => Math.round(1000*Math.random()));
@@ -709,8 +738,8 @@ describe('SolarData', function() {
         });
         it('should be "export_var_sum_%d-%m-%Y.csv" (histData)', [
             generators.histData,
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
-            GenTest.types.elementOf(Object.keys(SolarData.aggregations.map((e) => e.code))),
+            generators.variable.code,
+            generators.aggregation,
         ], function(data, v, s) {
             var date = new Date(data[0].date);
             data.forEach((d) => {d[v] = [];});
@@ -1284,7 +1313,7 @@ describe('SolarData', function() {
     describe('validVars', function() {
         it('should return available variables', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
+            generators.variable.codes(1),
         ], function(ymd, vars) {
             jasmine.addCustomEqualityTester(setEqualityTester);
 
@@ -1300,8 +1329,8 @@ describe('SolarData', function() {
     describe('variable', function() {
         it('should set variable', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
+            generators.variable.codes(1),
+            generators.variable.code,
         ], function(ymd, vars, setVar) {
             var datum = {date: createDate(...ymd)};
             datum[setVar] = [];
@@ -1315,8 +1344,8 @@ describe('SolarData', function() {
         });
         it('should not set variable', [
             generators.any,
-            GenTest.types.arrayOf(GenTest.types.elementOf(SolarData.vars.map((e) => e.code)), 1),
-            GenTest.types.elementOf(SolarData.vars.map((e) => e.code)),
+            generators.variable.codes(1),
+            generators.variable.code,
         ],function(ymd, vars, setVar) {
             var datum = {date: createDate(...ymd)};
             for (const v of vars)
@@ -1333,7 +1362,7 @@ describe('SolarData', function() {
     describe('yLabel', function() {
         it('Should return y label text with p multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(0.000000000001, 0.000000000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1349,7 +1378,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with n multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(0.000000001, 0.000000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1364,7 +1393,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with µ multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(0.000001, 0.000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1379,7 +1408,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with m multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(0.001, 0.999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1394,7 +1423,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text without multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(1, 999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1409,7 +1438,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with k multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(1000, 999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1424,7 +1453,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with M multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(1000000, 999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1439,7 +1468,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with G multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(1000000000, 999999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
@@ -1454,7 +1483,7 @@ describe('SolarData', function() {
         });
         it('Should return y label text with T multiplier', [
             generators.any,
-            GenTest.types.elementOf(SolarData.vars),
+            generators.variable,
             GenTest.types.float(1000000000000, 999999999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
