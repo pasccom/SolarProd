@@ -42,12 +42,8 @@ function HistData(data, year, month, day) {
             for (var i = 0; i < data.length; i++)
                 this[i] = {date: data[i].date, data: this.aggregate(data[i][this.var])};
             this.length = data.length;
-
-            // Set scales padding/domain:
-            var maxData = d3.max(this, (d) => recMax(d.data));
-            this.updateDivider(maxData)
+            this.updateYDomain(this);
             this.xScale.padding((this.agg == 'sum') ? 0 : 0.1);
-            this.yScale.domain([0, maxData/this.div]);
         } else {
             this.length = 0;
         }

@@ -43,11 +43,7 @@ function LineData(data, year, month, day) {
             // Update index:
             this[0] = {x: data.dates, y: this.aggregate(data[this.var])};
             this.length = 1;
-
-            // Set scale domains:
-            var maxData = recMax(this[0].y);
-            this.updateDivider(maxData);
-            this.yScale.domain([0, maxData/this.div]);
+            this.updateYDomain(this[0]);
         } else {
             if (this.length > 0)
                 delete this[0];

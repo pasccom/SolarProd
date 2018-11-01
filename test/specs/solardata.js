@@ -1337,11 +1337,11 @@ describe('SolarData', function() {
             GenTest.types.float(0.000000000001, 0.000000000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
+                //solarData.update();
                 expect(solarData.div).toBeCloseTo(0.000000000001);
                 expect(solarData.log1000Div).toBe(-4);
                 expect(solarData.yLabel()).toBe(varData.name + ' (p' + varData.unit + ')');
@@ -1353,11 +1353,10 @@ describe('SolarData', function() {
             GenTest.types.float(0.000000001, 0.000000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(0.000000001);
                 expect(solarData.log1000Div).toBe(-3);
                 expect(solarData.yLabel()).toBe(varData.name + ' (n' + varData.unit + ')');
@@ -1369,11 +1368,10 @@ describe('SolarData', function() {
             GenTest.types.float(0.000001, 0.000999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(0.000001);
                 expect(solarData.log1000Div).toBe(-2);
                 expect(solarData.yLabel()).toBe(varData.name + ' (µ' + varData.unit + ')');
@@ -1385,11 +1383,10 @@ describe('SolarData', function() {
             GenTest.types.float(0.001, 0.999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(0.001);
                 expect(solarData.log1000Div).toBe(-1);
                 expect(solarData.yLabel()).toBe(varData.name + ' (m' + varData.unit + ')');
@@ -1401,11 +1398,10 @@ describe('SolarData', function() {
             GenTest.types.float(1, 999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(1);
                 expect(solarData.log1000Div).toBe(0);
                 expect(solarData.yLabel()).toBe(varData.name + ' (' + varData.unit + ')');
@@ -1417,11 +1413,10 @@ describe('SolarData', function() {
             GenTest.types.float(1000, 999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(1000);
                 expect(solarData.log1000Div).toBe(1);
                 expect(solarData.yLabel()).toBe(varData.name + ' (k' + varData.unit + ')');
@@ -1433,11 +1428,10 @@ describe('SolarData', function() {
             GenTest.types.float(1000000, 999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(1000000);
                 expect(solarData.log1000Div).toBe(2);
                 expect(solarData.yLabel()).toBe(varData.name + ' (M' + varData.unit + ')');
@@ -1449,11 +1443,10 @@ describe('SolarData', function() {
             GenTest.types.float(1000000000, 999999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(1000000000);
                 expect(solarData.log1000Div).toBe(3);
                 expect(solarData.yLabel()).toBe(varData.name + ' (G' + varData.unit + ')');
@@ -1465,11 +1458,10 @@ describe('SolarData', function() {
             GenTest.types.float(1000000000000, 999999999999999),
         ], function(ymd, varData, maxData) {
             var datum = {date: createDate(...ymd)};
-            datum[varData.code] = [];
+            datum[varData.code] = [maxData];
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                solarData.updateDivider(maxData)
                 expect(solarData.div).toBeCloseTo(1000000000000);
                 expect(solarData.log1000Div).toBe(4);
                 expect(solarData.yLabel()).toBe(varData.name + ' (T' + varData.unit + ')');
