@@ -12,7 +12,7 @@ function LineData(data, year, month, day) {
     
     // Available variables:
     this.validVars = Object.keys(data).filter((k) => (k != 'dates'))
-                                      .sort(this.sortVariables);
+                                      .sort(SolarData.variables.sort);
 
     // Parse dates:
     data.dates = data.dates.map(this.dateParser);

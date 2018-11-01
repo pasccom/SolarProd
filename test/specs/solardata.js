@@ -190,7 +190,7 @@ describe('SolarData', function() {
         var ret = GenTest.types.elementOf(vars);
         ret.code = GenTest.types.elementOf(vars.map((e) => e.code));
         ret.codes = function() {
-            return GenTest.types.arrayOf(ret.codes, ...arguments);
+            return GenTest.types.arrayOf(ret.code, ...arguments);
         }
         return ret;
     })();
@@ -1273,41 +1273,41 @@ describe('SolarData', function() {
         return year + '-' + month + '-' + day;
     }
 
-    describe('variableName', function() {
+    describe('variables.name', function() {
         it('should return "Énergie"', function() {
-            expect(SolarData.variableName('nrj')).toBe('Énergie');
+            expect(SolarData.variables.name('nrj')).toBe('Énergie');
         });
         it('should return "Puissance"', function() {
-            expect(SolarData.variableName('pwr')).toBe('Puissance');
+            expect(SolarData.variables.name('pwr')).toBe('Puissance');
         });
         it('should return "Puissance AC"', function() {
-            expect(SolarData.variableName('pac')).toBe('Puissance AC');
+            expect(SolarData.variables.name('pac')).toBe('Puissance AC');
         });
         it('should return "Puissance DC"', function() {
-            expect(SolarData.variableName('pdc')).toBe('Puissance DC');
+            expect(SolarData.variables.name('pdc')).toBe('Puissance DC');
         });
         it('should return "Tension AC"', function() {
-            expect(SolarData.variableName('uac')).toBe('Tension AC');
+            expect(SolarData.variables.name('uac')).toBe('Tension AC');
         });
         it('should return "Tension DC"', function() {
-            expect(SolarData.variableName('udc')).toBe('Tension DC');
+            expect(SolarData.variables.name('udc')).toBe('Tension DC');
         });
         it('should return "Température"', function() {
-            expect(SolarData.variableName('temp')).toBe('Température');
+            expect(SolarData.variables.name('temp')).toBe('Température');
         });
     });
-    describe('variableUnit', function() {
+    describe('variables.unit', function() {
         it('should return "Wh"', function() {
-            expect(SolarData.variableUnit('nrj')).toBe('Wh');
+            expect(SolarData.variables.unit('nrj')).toBe('Wh');
         });
         it('should return "W"', [GenTest.types.elementOf(['pwr', 'pac', 'pdc'])], function(v) {
-            expect(SolarData.variableUnit(v)).toBe('W');
+            expect(SolarData.variables.unit(v)).toBe('W');
         });
         it('should return "V"', [GenTest.types.elementOf(['uac', 'udc'])], function(v) {
-            expect(SolarData.variableUnit(v)).toBe('V');
+            expect(SolarData.variables.unit(v)).toBe('V');
         });
         it('should return "°C"', function() {
-            expect(SolarData.variableUnit('temp')).toBe('°C');
+            expect(SolarData.variables.unit('temp')).toBe('°C');
         });
     });
     describe('validVars', function() {
@@ -1498,15 +1498,26 @@ describe('SolarData', function() {
         });
     });
 
-    describe('aggregationName', function() {
+    describe('aggregations.name', function() {
         it('should return "Total"', function() {
-            expect(SolarData.aggregationName('sum')).toBe('Total');
+            expect(SolarData.aggregations.name('sum')).toBe('Total');
         });
         it('should return "Par onduleur"', function() {
-            expect(SolarData.aggregationName('inv')).toBe('Par onduleur');
+            expect(SolarData.aggregations.name('inv')).toBe('Par onduleur');
         });
         it('should return "Par string"', function() {
-            expect(SolarData.aggregationName('str')).toBe('Par string');
+            expect(SolarData.aggregations.name('str')).toBe('Par string');
+        });
+    });
+    describe('aggregations.index', function() {
+        it('should return 0', function() {
+            expect(SolarData.aggregations.index('sum')).toBe(0);
+        });
+        it('should return 1', function() {
+            expect(SolarData.aggregations.index('inv')).toBe(1);
+        });
+        it('should return 2', function() {
+            expect(SolarData.aggregations.index('str')).toBe(2);
         });
     });
     describe('validAggs', function() {

@@ -43,47 +43,10 @@ function recForEach(a, fun)
 };
 
 var SolarData = {
-    // Variables:
-    vars: [
-        {code: 'nrj',  name: 'Énergie',      unit: 'Wh'},
-        {code: 'pwr',  name: 'Puissance',    unit: 'W' },
-        {code: 'pac',  name: 'Puissance AC', unit: 'W' },
-        {code: 'uac',  name: 'Tension AC',   unit: 'V' },
-        {code: 'pdc',  name: 'Puissance DC', unit: 'W' },
-        {code: 'udc',  name: 'Tension DC',   unit: 'V' },
-        {code: 'temp', name: 'Température',  unit: '°C'},
-    ],
-    variableName: function(v)
-    {
-        return SolarData.vars.find((e) => (e.code == v)).name;
-    },
-    variableUnit: function(v)
-    {
-        return SolarData.vars.find((e) => (e.code == v)).unit;
-    },
-    sortVariables: function(v1, v2)
-    {
-        return SolarData.vars.findIndex((e) => (e.code == v1)) -
-               SolarData.vars.findIndex((e) => (e.code == v2))
-    },
+    isEmpty: () => true,
+    isArray: Array.isArray,
+    sumArray: d3.sum,
 
-    // Aggregation methods:
-    aggregations: [
-        {code: 'sum', name: 'Total'},
-        {code: 'inv', name: 'Par onduleur'},
-        {code: 'str', name: 'Par string'},
-    ],
-    aggregationName: function(a)
-    {
-        return SolarData.aggregations.find((e) => (e.code == a)).name;
-    },
-
-    prefixes:   ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'],
-    minPrefix: -4,
-    prefix: function(log1000Div)
-    {
-        return this.prefixes[-this.minPrefix + log1000Div];
-    },
     updateDivider: function(maxData)
     {
         this.div = 1;
@@ -98,10 +61,6 @@ var SolarData = {
             this.log1000Div -= 1;
         }
     },
-
-    isEmpty: () => true,
-    isArray: Array.isArray,
-    sumArray: d3.sum,
 
     variable: function(v) {
         if (arguments.length > 0) {
@@ -148,7 +107,7 @@ var SolarData = {
     },
     aggregate: function(datum)
     {
-        return this.aggSum(datum, this.aggregations.findIndex((a) => (a.code == this.agg)));
+        return this.aggSum(datum, SolarData.aggregations.index(this.agg));
     },
     aggSum: function(e, s)
     {
@@ -165,7 +124,7 @@ var SolarData = {
     {
         var headers = [];
 
-        var agg = this.aggregations.findIndex((a) => (a.code == this.agg));
+        var agg = SolarData.aggregations.index(this.agg);
         var formats = ['Total', 'Onduleur ', 'String '];
         for (var l = 0; l <= agg; l++)
             headers.push([''].concat(this.headLine(datum, null, formats[l], agg, l)));
@@ -296,7 +255,7 @@ var SolarData = {
 
     yLabel: function()
     {
-        return SolarData.variableName(this.var) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variableUnit(this.var) + ')';
+        return SolarData.variables.name(this.var) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variables.unit(this.var) + ')';
     },
     xRange: function(w)
     {
@@ -402,6 +361,57 @@ var SolarData = {
         DAY:   'DAY',
     },
 }
+
+SolarData.variables = (function() {
+    // Variables:
+    const vars = [
+        {code: 'nrj',  name: 'Énergie',      unit: 'Wh'},
+        {code: 'pwr',  name: 'Puissance',    unit: 'W' },
+        {code: 'pac',  name: 'Puissance AC', unit: 'W' },
+        {code: 'uac',  name: 'Tension AC',   unit: 'V' },
+        {code: 'pdc',  name: 'Puissance DC', unit: 'W' },
+        {code: 'udc',  name: 'Tension DC',   unit: 'V' },
+        {code: 'temp', name: 'Température',  unit: '°C'},
+    ];
+
+    return {
+        name: function(v) {
+            return vars.find((e) => (e.code == v)).name;
+        },
+        unit: function(v) {
+            return vars.find((e) => (e.code == v)).unit;
+        },
+        sort: function(v1, v2)
+        {
+            return vars.findIndex((e) => (e.code == v1)) -
+                   vars.findIndex((e) => (e.code == v2))
+        },
+    };
+})();
+
+SolarData.aggregations = (function() {
+    var aggs = [
+        {code: 'sum', name: 'Total'},
+        {code: 'inv', name: 'Par onduleur'},
+        {code: 'str', name: 'Par string'},
+    ];
+
+    return {
+        name: function(a) {
+            return aggs.find((e) => (e.code == a)).name;
+        },
+        index: function(agg) {
+            return aggs.findIndex((a) => (a.code == agg))
+        },
+    };
+})();
+
+SolarData.prefix = (function() {
+    var prefixes  = ['p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T'];
+    var minPrefix = -4;
+
+    return (log1000Div) => prefixes[-minPrefix + log1000Div];
+})();
 
 Object.setPrototypeOf(SolarData, Array.prototype);
 

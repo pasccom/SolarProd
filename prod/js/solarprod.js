@@ -344,7 +344,7 @@ function SolarProd() {
             var vars = selects.var.attr('disabled', null)
                                   .selectAll('option').data(data.validVars, (d) => d);
             vars.enter().append('option').attr('value', (d) => d)
-                                        .text(SolarData.variableName);
+                                         .text(SolarData.variables.name);
             vars.exit().remove();
             vars.order();
 
@@ -371,7 +371,7 @@ function SolarProd() {
             var aggs = selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
                                   .selectAll('option').data(data.validAggs, (d) => d);
             aggs.enter().append('option').attr('value', (d) => d)
-                                        .text(SolarData.aggregationName);
+                                        .text(SolarData.aggregations.name);
             aggs.exit().remove();
             aggs.order();
         }
