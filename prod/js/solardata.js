@@ -61,6 +61,11 @@ var SolarData = {
     {
         return SolarData.vars.find((e) => (e.code == v)).unit;
     },
+    sortVariables: function(v1, v2)
+    {
+        return SolarData.vars.findIndex((e) => (e.code == v1)) -
+               SolarData.vars.findIndex((e) => (e.code == v2))
+    },
 
     // Aggregation methods:
     aggregations: [
