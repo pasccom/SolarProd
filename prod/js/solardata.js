@@ -324,6 +324,12 @@ var SolarData = {
 
         return this.yScale.range();
     },
+    updateYDomain: function(data)
+    {
+        var maxData = (data[0] !== undefined) ? d3.max(data, (d) => recMax(d.data)) : recMax(data.y);
+        this.updateDivider(maxData);
+        this.yScale.domain([0, maxData/this.div]);
+    },
     xTickCenter: function()
     {
         return this.xScale.step()/2;
