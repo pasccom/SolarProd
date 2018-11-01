@@ -1,4 +1,4 @@
-function LinePlot() {
+function LinePlot(root) {
     this.lines = undefined;
 
     this.legendStyle = (function(selection) {
@@ -18,7 +18,7 @@ function LinePlot() {
     {
         // Manages all lines:
         if (this.lines === undefined)
-            this.lines = this.root.selectAll('g.nonexistent');
+            this.lines = root.selectAll('g.nonexistent');
         this.lines = this.lines.data(this.data);
         this.lines.exit().remove();
         this.lines = this.lines.enter().append('g').merge(this.lines);

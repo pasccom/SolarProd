@@ -1,4 +1,4 @@
-function HistPlot() {
+function HistPlot(root) {
     this.groups = undefined;
 
     this.legendStyle = (function(selection) {
@@ -19,7 +19,7 @@ function HistPlot() {
     {
         // Manages groups:
         if (this.groups === undefined)
-            this.groups = this.root.selectAll('g.nonexistent');
+            this.groups = root.selectAll('g.nonexistent');
         this.groups = this.groups.data(this.data);
         this.groups.exit().remove();
         this.groups = this.groups.enter().append('g').merge(this.groups);

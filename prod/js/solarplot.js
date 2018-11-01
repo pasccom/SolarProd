@@ -1,8 +1,7 @@
 var SolarPlot = {
     // Initialize plot data:
-    init: function(root, data)
+    setData: function(data)
     {   
-        this.root = root;
         this.data = data;
     },
     // Plot resize event:
@@ -30,7 +29,7 @@ var SolarPlot = {
     },
 }
 
-function EmptyPlot()
+function EmptyPlot(root)
 {
     this.legendStyle = null;
     this.remove = () => {};
