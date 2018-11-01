@@ -72,206 +72,184 @@ SolarCache.prototype = {
 };
 
 function SolarProd() {
-    // pending requests:
-    this.pendingListRequests = 0;
-    this.pendingDataRequests = 0;
+    // Pending requests:
+    var pendingListRequests = 0;
+    var pendingDataRequests = 0;
 
     // Current date:
-    this.date = function() {
-        var l = (arguments.length > 0) ? arguments[0] : 3;
-        return [this.date.year, this.date.month, this.date.day].slice(0, l);
-    };
-    this.date.year = '';
-    this.date.month = '';
-    this.date.day = '';
-    this.date.update = function(level, value) {
-        if (value === null)
-            return false;
+    var date = (function() {
+        var data = ['', '', ''];
 
-        var members = ['', 'year', 'month', 'day'];
-        console.log('Date.update:', level, members[level], value);
-        this[members[level]] = value;
-        return true;
-    };
+        var ret = function() {
+            var l = (arguments.length > 0) ? arguments[0] : 3;
+            return data.slice(0, l);
+        };
+        ret.update = function(level, value) {
+            if (value === null)
+                return false;
+
+            console.log('Date.update:', level, value);
+            data[level - 1] = value;
+            return true;
+        };
+
+        return ret;
+    })();
 
     // Date to select:
-    this.selectDate = function() {
-        var l = (arguments.length > 0) ? arguments[0] : 3;
-        return [this.selectDate.year, this.selectDate.month, this.selectDate.day].slice(0, l);
-    };
-    this.selectDate.year = 0;
-    this.selectDate.month = 0;
-    this.selectDate.day = 0;
-    this.selectDate.dir = 1;
-    this.selectDate.update = function(level, value) {
-        if (value === null)
-            return false;
+    var selectDate = (function() {
+        var data = [0, 0, 0];
 
-        var members = ['', 'year', 'month', 'day'];
-        console.log('SelectDate.update:', level, members[level], value);
-        this[members[level]] += value;
-        return true;
-    };
-    this.selectDate.reset = function() {
-        var l = arguments.length >= 1 ? arguments[0] : 3;
+        var ret = function() {
+            var l = (arguments.length > 0) ? arguments[0] : 3;
+            return data.slice(0, l);
+        };
 
-        var members = ['', 'year', 'month', 'day'];
-        while (l >= 1)
-            this[members[l--]] = 0;
-    };
+        ret.update = function(level, value) {
+            if (value === null)
+                return false;
+
+            console.log('selectDate.update:', level, value);
+            data[level - 1] += value;
+            return true;
+        };
+
+        ret.reset = function() {
+            var l = arguments.length >= 1 ? arguments[0] : 3;
+            while (l >= 1)
+                data[--l] = 0;
+        };
+
+        ret.dir = 1;
+        return ret;
+    })();
 
     // Cache:
-    this.cache = new SolarCache();
+    var cache = new SolarCache();
 
+    // Toolbar layout:
     d3.select('body').append('div');
-
     var toolbar1 = d3.select('body').select('div').append('div').classed('toolbar', true);
     var toolbar2 = d3.select('body').select('div').append('div').classed('toolbar', true);
 
     // The selectors:
-    this.selects = function() {
+    var selects = function() {
         var l = (arguments.length > 0) ? arguments[0] : 3;
-        return [this.selects.year, this.selects.month, this.selects.day].slice(0, l);
+        return [selects.year, selects.month, selects.day].slice(0, l);
     };
-    this.selects.day = toolbar1.append('select').attr('title', 'Jour')
-                                                .attr('disabled', true)
-                                                .on('change', () => {
-        this.date.day = this.selects.day.property('value');
-        this.updatePrevNext();
-    });
-    this.selects.month = toolbar1.append('select').attr('title', 'Mois')
-                                                  .attr('disabled', true)
-                                                  .on('change', () => {
-        this.date.month = this.selects.month.property('value');
-        this.updatePrevNext();
-        this.update(false, 3);
-    });
-    this.selects.year = toolbar1.append('select').attr('title', 'Année')
-                                                 .attr('disabled', true)
-                                                 .on('change', () => {
-        this.date.year = this.selects.year.property('value');
-        this.updatePrevNext();
-        this.update(false, 2);
-    });
-    this.selects.var = toolbar1.append('select').attr('title', 'Variable')
-                                                .attr('disabled', true)
-                                                .on('change', () => {
-        this.chart.plot.data.variable(this.selects.var.property('value'));
-        this.updateAggs();
-        this.chart.draw();
-    });
-    this.selects.agg = toolbar1.append('select').attr('title', 'Aggrégation')
-                                                .attr('disabled', true)
-                                                .on('change', () => {
-        this.chart.plot.data.aggregation(this.selects.agg.property('value'));
-        this.chart.draw();
-    });
+    selects.day = toolbar1.append('select').attr('title', 'Jour')
+                                           .attr('disabled', true);
+    selects.month = toolbar1.append('select').attr('title', 'Mois')
+                                             .attr('disabled', true);
+    selects.year = toolbar1.append('select').attr('title', 'Année')
+                                            .attr('disabled', true);
+    selects.var = toolbar1.append('select').attr('title', 'Variable')
+                                           .attr('disabled', true);
+    selects.agg = toolbar1.append('select').attr('title', 'Aggrégation')
+                                           .attr('disabled', true);
 
     // The buttons:
-    this.buttons = function(dir) {
+    var buttons = function(dir) {
         if (dir == 1)
-            return this.buttons.next;
+            return buttons.next;
         if (dir == -1)
-            return this.buttons.prev;
+            return buttons.prev;
     };
-
-    this.buttons.plot = toolbar1.append('img').classed('button', true)
-                                              .attr('src', 'img/plot.png')
-                                              .attr('title', 'Tracer')
-                                              .attr('alt', 'Tracer')
-                                              .on('click', () => {this.plot();});
-    this.buttons.prev = toolbar2.append('img').classed('button', true)
-                                              .classed('disabled', true)
-                                              .attr('src', 'img/prev.png')
-                                              .attr('title', 'Précédent')
-                                              .attr('alt', 'Précédent')
-                                              .on('click', () => {this.siblingPlot(-1);});
-    this.buttons.today = toolbar2.append('img').classed('button', true)
-                                               .attr('src', 'img/today.png')
-                                               .attr('title', 'Aujourd\'hui')
-                                               .attr('alt', 'Aujourd\'hui')
-                                               .on('click', () => {this.plot(true);});
-    this.buttons.next = toolbar2.append('img').classed('button', true)
-                                              .classed('disabled', true)
-                                              .attr('src', 'img/next.png')
-                                              .attr('title', 'Suivant')
-                                              .attr('alt', 'Suivant')
-                                              .on('click', () => {this.siblingPlot(1);});
-    this.buttons.export = toolbar2.append('img').classed('button', true)
-                                                .classed('disabled', true)
-                                                .attr('src', 'img/csv.png')
-                                                .attr('title', 'Export CSV')
-                                                .attr('alt', 'Export CSV')
-                                                .on('click', () => {this.chart.plot.data.exportCsv();});
-
-    d3.select(document).on('keydown', () => {
-        console.log(d3.event);
-
-        if (d3.event.shiftKey || d3.event.altKey || d3.event.ctrlKey || d3.event.metaKay)
-            return;
-
-        if ((d3.event.key == 'Enter') && !d3.event.repeat)
-            this.buttons.plot.dispatch('click');
-
-        if ((d3.event.key == 'ArrowUp') && !d3.event.repeat)
-            this.buttons.today.dispatch('click');
-
-        if (d3.event.key == 'ArrowLeft')
-            this.buttons.prev.dispatch('click');
-
-        if (d3.event.key == 'ArrowRight')
-            this.buttons.next.dispatch('click');
-
-        if ((d3.event.key == 'ArrowDown') && !d3.event.repeat)
-            this.buttons.export.dispatch('click');
-    });
+    buttons.plot = toolbar1.append('img').classed('button', true)
+                                         .attr('src', 'img/plot.png')
+                                         .attr('title', 'Tracer')
+                                         .attr('alt', 'Tracer');
+    buttons.prev = toolbar2.append('img').classed('button', true)
+                                         .classed('disabled', true)
+                                         .attr('src', 'img/prev.png')
+                                         .attr('title', 'Précédent')
+                                         .attr('alt', 'Précédent');
+    buttons.today = toolbar2.append('img').classed('button', true)
+                                          .attr('src', 'img/today.png')
+                                          .attr('title', 'Aujourd\'hui')
+                                          .attr('alt', 'Aujourd\'hui');
+    buttons.next = toolbar2.append('img').classed('button', true)
+                                         .classed('disabled', true)
+                                         .attr('src', 'img/next.png')
+                                         .attr('title', 'Suivant')
+                                         .attr('alt', 'Suivant');
+    buttons.export = toolbar2.append('img').classed('button', true)
+                                           .classed('disabled', true)
+                                           .attr('src', 'img/csv.png')
+                                           .attr('title', 'Export CSV')
+                                           .attr('alt', 'Export CSV');
 
     // TODO remove?
     // WARNING Used by test.py
-    this.selects.day.attr('id', 'day');
-    this.selects.month.attr('id', 'month');
-    this.selects.year.attr('id', 'year');
-    this.selects.var.attr('id', 'var');
-    this.selects.agg.attr('id', 'sum');
+    selects.day.attr('id', 'day');
+    selects.month.attr('id', 'month');
+    selects.year.attr('id', 'year');
+    selects.var.attr('id', 'var');
+    selects.agg.attr('id', 'sum');
 
-    this.buttons.plot.attr('id', 'plot');
-    this.buttons.prev.attr('id', 'prev');
-    this.buttons.today.attr('id', 'today');
-    this.buttons.next.attr('id', 'next');
-    this.buttons.export.attr('id', 'export');
+    buttons.plot.attr('id', 'plot');
+    buttons.prev.attr('id', 'prev');
+    buttons.today.attr('id', 'today');
+    buttons.next.attr('id', 'next');
+    buttons.export.attr('id', 'export');
 
-    this.chart = new SolarChart(d3.select('body'));
-    d3.select(window).on('resize', this.windowResize.bind(this));
-    this.windowResize();
+    var chart = new SolarChart(d3.select('body'));
+    this.chart = chart;
 
-    this.update(false, 1);
-}
-
-SolarProd.prototype = {
-    // Window resize event:
-    windowResize: function()
-    {
-        // Compute toolbar total width (currently 403):
-        //var tw = 20;
-        //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
-
-        // Plot width and height:
-        var w = window.innerWidth - 18;
-        var h = window.innerHeight - 56;
-        if (window.innerWidth < 403)
-            h -= 38;
-
-        this.chart.resize(w, h);
-    },
-
-    clearSelect: function(level) {
+    // Clears selects from level upwads:
+    var clearSelect = function(level) {
         for (var l = level; l <= 3; l++) {
-            this.date.update(l, '');
-            this.selects()[l - 1].selectAll('option').remove();
+            date.update(l, '');
+            selects()[l - 1].selectAll('option').remove();
         }
-    },
-    // Update year, month and day selector (depending on level)
-    update: function(callPlot, level) {
+    };
+
+    // Get previous option(s):
+    var siblingOption = function(dir)
+    {
+        var datum = (arguments.length > 1) ? arguments[1] : this.property('value');
+
+        if (datum == '')
+            return null;
+
+        var o = this.selectAll('option')
+                    .filter((d) => (d == datum))
+                    .selectAll(function() {return (dir == 1) ? [this.nextElementSibling] : [this.previousElementSibling];});
+
+        if (o.empty() ||  (o.attr('value') == ''))
+            return null;
+        return o.attr('value');
+    };
+    // Update the states of previous and next buttons:
+    var updatePrevNext = function()
+    {
+        buttons.prev.classed('disabled', cache.isFirst(... date()) ||
+                                       (!siblingOption.call(selects.day, -1) &&
+                                        !siblingOption.call(selects.month, -1) &&
+                                        !siblingOption.call(selects.year, -1)));
+        buttons.next.classed('disabled', cache.isLast(... date()) ||
+                                       (!siblingOption.call(selects.day, 1) &&
+                                        !siblingOption.call(selects.month, 1) &&
+                                        !siblingOption.call(selects.year, 1)));
+    };
+
+    // Update cache:
+    var updateCache = function()
+    {
+        if (selectDate()[2] != 0)
+            cache.update(Math.sign(selectDate()[2]), date(3));
+        else if (selectDate()[1] != 0)
+            cache.update(Math.sign(selectDate()[1]), date(2));
+        else
+            return;
+
+        selectDate.dir = 1;
+        console.log('Updated cache:', cache);
+        updatePrevNext();
+    };
+
+    // Update year, month and day selector (depending on level):
+    this.update = function(callPlot, level) {
         if (level == 4) {
             if (callPlot)
                 this.plot();
@@ -280,176 +258,162 @@ SolarProd.prototype = {
 
         // Disables selects above current level inclusive:
         for (var l = level; l <= 3; l++)
-            this.selects()[l - 1].attr('disabled', true);
+            selects()[l - 1].attr('disabled', true);
 
         // None selected at previous level:
-        if ((level > 1) && (this.date()[level - 2] == '')) {
-            this.clearSelect(level);
+        if ((level > 1) && (date()[level - 2] == '')) {
+            clearSelect(level);
             if (callPlot)
                 this.plot();
             return;
         }
 
-        var listPath = SolarData.listFilePath(... this.date(level - 1));
+        var listPath = SolarData.listFilePath(... date(level - 1));
         console.log("List file path: ", listPath);
 
         // Load data list:
-        this.pendingListRequests++;
+        pendingListRequests++;
         d3.json(listPath).on('error', (error) => {
-            this.pendingListRequests--;
+            pendingListRequests--;
             console.warn("Could not retrieve list: ", listPath, error);
-            this.clearSelect(level);
-            this.siblingPlot(Math.sign(this.selectDate()[level - 1]*this.selectDate.dir), callPlot, level - 1);
+            clearSelect(level);
+            this.siblingPlot(Math.sign(selectDate()[level - 1]*selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
-            this.pendingListRequests--;
-            if (this.pendingListRequests > 0)
+            pendingListRequests--;
+            if (pendingListRequests > 0)
                 return;
 
             data.unshift('');
 
             var text = (d) => d;
             if (level == 2)
-                text = (d) => (d == '' ? '' : localeLongMonth(new Date(this.date.year, d - 1)));
+                text = (d) => (d == '' ? '' : localeLongMonth(new Date(date()[0], d - 1)));
 
-            var opts = this.selects()[level - 1].attr('disabled', null)
-                                                .selectAll('option').data(data, (d) => d);
+            var opts = selects()[level - 1].attr('disabled', null)
+                                           .selectAll('option').data(data, (d) => d);
             opts.enter().append('option').attr('value', (d) => d)
                                          .text(text);
             opts.exit().remove();
 
-            this.selects()[level - 1].selectAll('option')
-                                     .filter((d) => (d == ''))
-                                     .lower();
+            selects()[level - 1].selectAll('option')
+                                .filter((d) => (d == ''))
+                                .lower();
 
-            var dateOffset = this.selectDate()[level - 1]*this.selectDate.dir;
+            var dateOffset = selectDate()[level - 1]*selectDate.dir;
             var selectDateOffset = 0;
             if (dateOffset < 0) {
                 dateOffset = Math.max(data.length + dateOffset, 1);
-                selectDateOffset = (data.length - dateOffset)*this.selectDate.dir;
+                selectDateOffset = (data.length - dateOffset)*selectDate.dir;
             } else if (dateOffset > 0) {
                 dateOffset = Math.min(dateOffset, data.length - 1);
-                selectDateOffset = -dateOffset*this.selectDate.dir;
+                selectDateOffset = -dateOffset*selectDate.dir;
             }
 
             if (dateOffset != 0) {
-                this.date.update(level, data[dateOffset]);
-                this.selects()[level - 1].property('value', this.date()[level - 1]);
-                this.updatePrevNext();
+                date.update(level, data[dateOffset]);
+                selects()[level - 1].property('value', date()[level - 1]);
+                updatePrevNext();
             }
 
-            if (((level == 3) || (this.selectDate()[level] == 0)) && (this.selectDate.dir == -1))
-                this.updateCache();
-            this.selectDate.update(level, selectDateOffset);
+            if (((level == 3) || (selectDate()[level] == 0)) && (selectDate.dir == -1))
+                updateCache();
+            selectDate.update(level, selectDateOffset);
 
-            if (this.selectDate()[level - 1] == 0)
+            if (selectDate()[level - 1] == 0)
                 this.update(callPlot, level + 1);
-            else if ((this.selectDate()[level - 1]*this.selectDate.dir > 0) && !this.cache.isLast(... this.date(level)))
+            else if ((selectDate()[level - 1]*selectDate.dir > 0) && !cache.isLast(... date(level)))
                 this.siblingPlot(1, callPlot, level - 1);
-            else if ((this.selectDate()[level - 1]*this.selectDate.dir < 0) && !this.cache.isFirst(... this.date(level)))
+            else if ((selectDate()[level - 1]*selectDate.dir < 0) && !cache.isFirst(... date(level)))
                 this.siblingPlot(-1, callPlot, level - 1);
             else if (callPlot)
                 this.plot();
         }).get();
-    },
-    // Update cache:
-    updateCache: function()
-    {
-        if (this.selectDate.day != 0)
-            this.cache.update(Math.sign(this.selectDate.day), this.date(3));
-        else if (this.selectDate.month != 0)
-            this.cache.update(Math.sign(this.selectDate.month), this.date(2));
-        else
-            return;
-
-        this.selectDate.dir = 1;
-        console.log('Updated cache:', this.cache);
-        this.updatePrevNext();
-    },
+    };
 
     // Updates the variable selector:
-    updateVars: function()
+    var updateVars = function()
     {
-        var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
+        var data = (arguments.length >= 1) ?  arguments[0] : chart.plot.data;
 
         if (data.isEmpty()) {
             // Clears variables:
-            this.selects.var.attr('disabled', true)
-                            .selectAll('option').remove();
+            selects.var.attr('disabled', true)
+                       .selectAll('option').remove();
         } else {
             // Adds the new variables using a data join:
-            var vars = this.selects.var.attr('disabled', null)
-                                    .selectAll('option').data(data.validVars, (d) => d);
+            var vars = selects.var.attr('disabled', null)
+                                  .selectAll('option').data(data.validVars, (d) => d);
             vars.enter().append('option').attr('value', (d) => d)
                                         .text(SolarData.variableName);
             vars.exit().remove();
             vars.order();
 
             // Updates sums if needed:
-            if (this.selects.var.property('value') != data.variable()) {
-                data.variable(this.selects.var.property('value'));
+            if (selects.var.property('value') != data.variable()) {
+                data.variable(selects.var.property('value'));
             }
         }
 
-        this.updateAggs(data);
-    },
+        updateAggs(data);
+    };
+
     // Updates the sum selector:
-    updateAggs: function()
+    var updateAggs = function()
     {
-        var data = (arguments.length >= 1) ?  arguments[0] : this.chart.plot.data;
+        var data = (arguments.length >= 1) ?  arguments[0] : chart.plot.data;
 
         if (data.isEmpty()) {
             // Clears sums:
-            this.selects.agg.attr('disabled', true)
-                            .selectAll('option').remove();
+            selects.agg.attr('disabled', true)
+                       .selectAll('option').remove();
         } else {
             // Adds the new sums using a data join:
-            var aggs = this.selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
-                                    .selectAll('option').data(data.validAggs, (d) => d);
+            var aggs = selects.agg.attr('disabled', (data.validAggs.length < 2) ? true : null)
+                                  .selectAll('option').data(data.validAggs, (d) => d);
             aggs.enter().append('option').attr('value', (d) => d)
                                         .text(SolarData.aggregationName);
             aggs.exit().remove();
             aggs.order();
         }
-    },
+    };
 
-    plot: function(today) {
+    this.plot = function(today) {
         // Do not fetch plot data while there are pending list requests:
-        if (this.pendingListRequests != 0)
+        if (pendingListRequests != 0)
             return;
 
         // Set date of today:
         if (today) {
-            this.selectDate.month = -1;
-            this.selectDate.day = -1;
-            this.selectDate.dir = 1;
-            this.date.year = this.selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);})
-                                                                  .attr('value');
-            this.selects.year.property('value', this.date.year);
+            selectDate.update(2, -1);
+            selectDate.update(3, -1);
+            selectDate.dir = 1;
+            date.update(1, selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);}).attr('value'));
+            selects.year.property('value', date()[0]);
             this.update(false, 2);
-            this.updatePrevNext();
+            updatePrevNext();
         }
 
-        var solarPromise = today ? SolarData.create() : SolarData.create(... this.date());
-        this.pendingDataRequests++;
+        var solarPromise = today ? SolarData.create() : SolarData.create(... date());
+        pendingDataRequests++;
         solarPromise.catch((msg) => {
-            this.pendingDataRequests--;
+            pendingDataRequests--;
             console.warn(msg);
         });
         solarPromise.then((data) => {
-            this.pendingDataRequests--;
+            pendingDataRequests--;
             // Do not plot while there are pending data requests:
-            if (this.pendingDataRequests > 0)
+            if (pendingDataRequests > 0)
                 return;
 
-            this.updateVars(data);
+            updateVars(data);
             this.chart.setData(data);
 
             // Activate export:
-            this.buttons.export.classed('disabled', data.isEmpty());
+            buttons.export.classed('disabled', data.isEmpty());
         });
-    },
+    };
 
-    siblingPlot: function()
+    this.siblingPlot = function()
     {
         var l = 3;
         var level;
@@ -464,7 +428,7 @@ SolarProd.prototype = {
 
         if (arguments.length < 3) {
             for (l = 3; l > 0; l--) {
-                if ((this.date()[l - 1] != '') || (this.selectDate()[l - 1] != 0)) {
+                if ((date()[l - 1] != '') || (selectDate()[l - 1] != 0)) {
                     this.siblingPlot(dir, callPlot, l);
                     break;
                 }
@@ -475,61 +439,109 @@ SolarProd.prototype = {
         level = arguments[2];
 
         if (level == 0) {
-            this.buttons(dir).classed('disabled', true);
-            this.selectDate.dir = -1;
+            buttons(dir).classed('disabled', true);
+            selectDate.dir = -1;
 
             l = 3;
-            while ((l > 1) && (this.selectDate()[l - 1] == 0))
+            while ((l > 1) && (selectDate()[l - 1] == 0))
                 l--;
 
-            this.selectDate.reset(l);
+            selectDate.reset(l);
             this.siblingPlot(-dir, callPlot, l);
-        } else if (((dir ==  1) && this.cache.isLast(... this.date(level))) ||
-                   ((dir == -1) && this.cache.isFirst(... this.date(level)))) {
+        } else if (((dir ==  1) && cache.isLast(... date(level))) ||
+                   ((dir == -1) && cache.isFirst(... date(level)))) {
             for (l = 3; l > level; l--) {
-                if (this.selectDate()[l - 1] != 0) {
-                    this.selectDate.dir = -1;
+                if (selectDate()[l - 1] != 0) {
+                    selectDate.dir = -1;
                     this.siblingPlot(dir, callPlot, l);
                     break;
                 }
             }
-        } else if (this.selectDate()[level - 1]*this.selectDate.dir*dir > 0) {
-            this.selectDate.update(level, this.selectDate.dir*dir);
-        } else if (this.date.update(level, this.siblingOption.call(this.selects()[level - 1], dir))) {
-            this.selects()[level - 1].property('value', this.date()[level - 1]);
-            this.updatePrevNext();
+        } else if (selectDate()[level - 1]*selectDate.dir*dir > 0) {
+            selectDate.update(level, selectDate.dir*dir);
+        } else if (date.update(level, siblingOption.call(selects()[level - 1], dir))) {
+            selects()[level - 1].property('value', date()[level - 1]);
+            updatePrevNext();
             this.update(callPlot, level + 1);
-        } else if ((level > 1) || (this.selectDate().some((x) => x != 0))) {
-            this.selectDate.update(level, this.selectDate.dir*dir);
+        } else if ((level > 1) || (selectDate().some((x) => x != 0))) {
+            selectDate.update(level, selectDate.dir*dir);
             this.siblingPlot(dir, callPlot, level - 1);
         }
-    },
-    // Get previous option(s):
-    siblingOption: function(dir)
+    };
+
+    // Window resize event:
+    this.windowResize = function()
     {
-        var datum = (arguments.length > 1) ? arguments[1] : this.property('value');
+        // Compute toolbar total width (currently 403):
+        //var tw = 20;
+        //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
 
-        if (datum == '')
-            return null;
+        // Plot width and height:
+        var w = window.innerWidth - 18;
+        var h = window.innerHeight - 56;
+        if (window.innerWidth < 403)
+            h -= 38;
 
-        var o = this.selectAll('option')
-                    .filter((d) => (d == datum))
-                    .selectAll(function() {return (dir == 1) ? [this.nextElementSibling] : [this.previousElementSibling];});
+        this.chart.resize(w, h);
+    };
 
-        if (o.empty() ||  (o.attr('value') == ''))
-            return null;
-        return o.attr('value');
-    },
-    // Update the states of previous and next buttons:
-    updatePrevNext: function()
-    {
-        this.buttons.prev.classed('disabled', this.cache.isFirst(... this.date()) ||
-                                            (!this.siblingOption.call(this.selects.day, -1) &&
-                                             !this.siblingOption.call(this.selects.month, -1) &&
-                                             !this.siblingOption.call(this.selects.year, -1)));
-        this.buttons.next.classed('disabled', this.cache.isLast(... this.date()) ||
-                                            (!this.siblingOption.call(this.selects.day, 1) &&
-                                             !this.siblingOption.call(this.selects.month, 1) &&
-                                             !this.siblingOption.call(this.selects.year, 1)));
-    },
+    // Change event:
+    selects.day.on('change', () => {
+        date.update(3, selects.day.property('value'));
+        updatePrevNext();
+    });
+    selects.month.on('change', () => {
+        date.update(2, selects.month.property('value'));
+        updatePrevNext();
+        this.update(false, 3);
+    });
+    selects.year.on('change', () => {
+        date.update(1, selects.year.property('value'));
+        updatePrevNext();
+        this.update(false, 2);
+    });
+    selects.var.on('change', () => {
+        chart.plot.data.variable(selects.var.property('value'));
+        updateAggs();
+        this.chart.draw();
+    });
+    selects.agg.on('change', () => {
+        this.chart.plot.data.aggregation(selects.agg.property('value'));
+        this.chart.draw();
+    });
+
+    // Click event:
+    buttons.plot.on('click', () => {this.plot();});
+    buttons.prev.on('click', () => {this.siblingPlot(-1);});
+    buttons.today.on('click', () => {this.plot(true);});
+    buttons.next.on('click', () => {this.siblingPlot(1);});
+    buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
+
+    // Key event:
+    d3.select(document).on('keydown', () => {
+        if (d3.event.shiftKey || d3.event.altKey || d3.event.ctrlKey || d3.event.metaKay)
+            return;
+
+        if ((d3.event.key == 'Enter') && !d3.event.repeat)
+            buttons.plot.dispatch('click');
+
+        if ((d3.event.key == 'ArrowUp') && !d3.event.repeat)
+            buttons.today.dispatch('click');
+
+        if (d3.event.key == 'ArrowLeft')
+            buttons.prev.dispatch('click');
+
+        if (d3.event.key == 'ArrowRight')
+            buttons.next.dispatch('click');
+
+        if ((d3.event.key == 'ArrowDown') && !d3.event.repeat)
+            buttons.export.dispatch('click');
+    });
+
+    // Resize event:
+    d3.select(window).on('resize', this.windowResize.bind(this));
+    this.windowResize();
+
+    // Update year selector:
+    this.update(false, 1);
 };
