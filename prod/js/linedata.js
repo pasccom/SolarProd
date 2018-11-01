@@ -32,15 +32,15 @@ function LineData(data, year, month, day) {
     this.sumArray = (a) => d3.transpose(a).map((d) => d3.sum(d));
 
     this.export = function() {
-        return {headers: this.headLines(data[this.var]),
-                data: d3.transpose([data.dates.map(this.dateFormatter)].concat(this.merge(this.aggregate(data[this.var])))),
+        return {headers: this.headLines(data[this.variable()]),
+                data: d3.transpose([data.dates.map(this.dateFormatter)].concat(this.merge(this.aggregate(data[this.variable()])))),
         };
     };
 
     this.update = function() {
-        if (this.var !== null) {
+        if (this.variable() !== null) {
             // Update index:
-            this[0] = {x: data.dates, y: this.aggregate(data[this.var])};
+            this[0] = {x: data.dates, y: this.aggregate(data[this.variable()])};
             this.length = 1;
             this.updateYDomain(this[0]);
         } else {
@@ -53,4 +53,4 @@ function LineData(data, year, month, day) {
 }
 
 LineData.prototype = {};
-Object.setPrototypeOf(LineData.prototype, SolarData);
+Object.setPrototypeOf(LineData.prototype, SolarData());

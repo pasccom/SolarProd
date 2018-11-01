@@ -49,11 +49,11 @@ function fileForDate(year, month, day)
 
     var file = '';
     if (year != '')
-        file += '/' + pad(year, 4, '0');
+        file += '/' + SolarData.pad(year, 4, '0');
     if (month != '')
-        file += '/' + pad(month, 2, '0');
+        file += '/' + SolarData.pad(month, 2, '0');
     if (day != '')
-        file += '/' + pad(day, 2, '0');
+        file += '/' + SolarData.pad(day, 2, '0');
 
     return folder + file + '.json';
 }
@@ -62,7 +62,7 @@ function createSolarData()
 {
     jasmine.Ajax.install(); //console.log('install');
 
-    var fileName = fileForDate(...arguments)
+    var fileName = fileForDate(...arguments);
     var solarPromise = SolarData.create(...arguments);
 
     return {
@@ -92,27 +92,27 @@ function createSolarData()
 }
 
 describe('Helpers ', function() {
-    describe('pad() ', function() {
+    describe('SolarData.pad ', function() {
         it('should return a string', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string]),
             GenTest.types.int.nonNegative,
             GenTest.types.constantly('0'),
         ], function(n, l, p) {
-            expect(typeof pad(n, l, p)).toBe('string');
+            expect(typeof SolarData.pad(n, l, p)).toBe('string');
         });
         it('should return a string of length larger or equal to l', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string]),
             GenTest.types.int.nonNegative,
             GenTest.types.elementOf(['0', ' ', ' 0']),
         ], function(n, l, p) {
-            expect(pad(n, l, p).length).toBeGreaterThanOrEqual(l);
+            expect(SolarData.pad(n, l, p).length).toBeGreaterThanOrEqual(l);
         });
         it('should start with p and end with n', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string.alphanumeric]),
             GenTest.types.int.nonNegative,
             GenTest.types.elementOf(['0', ' ', ' 0']),
         ], function(n, l, p) {
-            expect(pad(n, l, p)).toMatch('^(' + p + ')*' + n + '$');
+            expect(SolarData.pad(n, l, p)).toMatch('^(' + p + ')*' + n + '$');
         });
 
         it('should be parsed as the initial int', [
@@ -120,14 +120,14 @@ describe('Helpers ', function() {
             GenTest.types.int.nonNegative,
             GenTest.types.constantly('0', ' ', '00', '  '),
         ], function(n, l, p) {
-            expect(parseInt(pad(n, l, p))).toBe(n);
+            expect(parseInt(SolarData.pad(n, l, p))).toBe(n);
         });
         it('should throw when called with empty string', [
             GenTest.types.oneOf([GenTest.types.int.nonNegative, GenTest.types.string]),
             GenTest.types.int.nonNegative,
             GenTest.types.constantly(''),
         ], function(n, l, p) {
-            expect(() => pad(n, l, p)).toThrowError(RangeError, 'p should not be empty');
+            expect(() => SolarData.pad(n, l, p)).toThrowError(RangeError, 'p should not be empty');
         });
     });
 });
@@ -136,15 +136,15 @@ describe('SolarData', function() {
     var generators = {};
 
     generators.yearNumber = GenTest.types.choose(1900, 9999, 2000);
-    generators.yearString = GenTest.types.fmap((year) => pad(year, 4, '0'), generators.yearNumber);
+    generators.yearString = GenTest.types.fmap((year) => SolarData.pad(year, 4, '0'), generators.yearNumber);
     generators.year = GenTest.types.oneOf([generators.yearNumber, generators.yearString]);
 
     generators.monthNumber = GenTest.types.choose(1, 12);
-    generators.monthString = GenTest.types.fmap((month) => pad(month, 2, '0'), generators.monthNumber);
+    generators.monthString = GenTest.types.fmap((month) => SolarData.pad(month, 2, '0'), generators.monthNumber);
     generators.month = GenTest.types.oneOf([generators.monthNumber, generators.monthString]);
 
     generators.dayNumber = GenTest.types.choose(1, 28);
-    generators.dayString = GenTest.types.fmap((day) => pad(day, 2, '0'), generators.dayNumber);
+    generators.dayString = GenTest.types.fmap((day) => SolarData.pad(day, 2, '0'), generators.dayNumber);
     generators.day = GenTest.types.oneOf([generators.dayNumber, generators.dayString]);
 
     generators.histData = GenTest.types.arrayOf(GenTest.types.shape({date: GenTest.types.date('%Y-%m-%d')}), 1);
@@ -249,44 +249,6 @@ describe('SolarData', function() {
         });
     });
 
-    describe('type', function() {
-        it('should be of type ALL', function() {
-            return createSolarData('', '', '').then(function(solarData) {
-                expect(solarData.type).toBe(SolarData.Type.ALL);
-            });
-        });
-        it('should be of type YEAR', [
-            generators.year,
-        ], function(year) {
-            return createSolarData(year, '', '').then(function(solarData) {
-                expect(solarData.type).toBe(SolarData.Type.YEAR);
-            });
-        });
-        it('should be of type MONTH', [
-            generators.year,
-            generators.month,
-        ], function(year, month) {
-            return createSolarData(year, month, '').then(function(solarData) {
-                expect(solarData.type).toBe(SolarData.Type.MONTH);
-            });
-        });
-        it('should be of type DAY', [
-            generators.year,
-            generators.month,
-            generators.day,
-        ], function(year, month, day) {
-            return createSolarData(year, month, day).then(function(solarData) {
-                expect(solarData.type).toBe(SolarData.Type.DAY);
-            });
-        });
-        it('should be of type DAY', [
-            generators.data,
-        ], function(data) {
-            return createSolarData().then(function(solarData) {
-                expect(solarData.type).toBe(SolarData.Type.DAY);
-            });
-        });
-    });
     describe('isEmpty', function() {
         it('should be empty', function() {
             return createSolarData('', '', '').then(function(solarData) {
@@ -469,7 +431,7 @@ describe('SolarData', function() {
                 var formattedDate = solarData.dateFormatter(year);
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(4);
-                expect(formattedDate).toBe(pad(year, 4, '0'));
+                expect(formattedDate).toBe(SolarData.pad(year, 4, '0'));
             });
         });
         it('should return "%m/%Y"', [
@@ -480,7 +442,7 @@ describe('SolarData', function() {
                 var formattedDate = solarData.dateFormatter(month);
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(7);
-                expect(formattedDate).toBe(pad(month + 1, 2, '0') + '/' + pad(year, 4, '0'));
+                expect(formattedDate).toBe(SolarData.pad(month + 1, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
             });
         });
         it('should return "%d/%m/%Y"', [
@@ -492,7 +454,7 @@ describe('SolarData', function() {
                 var formattedDate = solarData.dateFormatter(day);
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(10);
-                expect(formattedDate).toBe(pad(day, 2, '0') + '/' + pad(month, 2, '0') + '/' + pad(year, 4, '0'));
+                expect(formattedDate).toBe(SolarData.pad(day, 2, '0') + '/' + SolarData.pad(month, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
             });
         });
         it('should return "%d/%m/%Y %H:%M"', [
@@ -506,11 +468,11 @@ describe('SolarData', function() {
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(16);
                 expect(formattedDate).toEqual(
-                    pad(date.getDate(), 2, '0') + '/' +
-                    pad(date.getMonth() + 1, 2, '0') + '/' +
-                    pad(date.getFullYear(), 4, '0') + ' ' +
-                    pad(date.getHours(), 2, '0') + ':' +
-                    pad(date.getMinutes(), 2, '0')
+                    SolarData.pad(date.getDate(), 2, '0') + '/' +
+                    SolarData.pad(date.getMonth() + 1, 2, '0') + '/' +
+                    SolarData.pad(date.getFullYear(), 4, '0') + ' ' +
+                    SolarData.pad(date.getHours(), 2, '0') + ':' +
+                    SolarData.pad(date.getMinutes(), 2, '0')
                 );
             });
         });
@@ -523,11 +485,11 @@ describe('SolarData', function() {
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(16);
                 expect(formattedDate).toEqual(
-                    pad(date.getDate(), 2, '0') + '/' +
-                    pad(date.getMonth() + 1, 2, '0') + '/' +
-                    pad(date.getFullYear(), 4, '0') + ' ' +
-                    pad(date.getHours(), 2, '0') + ':' +
-                    pad(date.getMinutes(), 2, '0')
+                    SolarData.pad(date.getDate(), 2, '0') + '/' +
+                    SolarData.pad(date.getMonth() + 1, 2, '0') + '/' +
+                    SolarData.pad(date.getFullYear(), 4, '0') + ' ' +
+                    SolarData.pad(date.getHours(), 2, '0') + ':' +
+                    SolarData.pad(date.getMinutes(), 2, '0')
                 );
             });
         });
@@ -539,13 +501,13 @@ describe('SolarData', function() {
         it('/YYYY.json', [
             generators.year,
         ], function(year) {
-            expect(SolarData.filePath(year, '', '')).toBe('/' + pad(year, 4, '0') + '.json');
+            expect(SolarData.filePath(year, '', '')).toBe('/' + SolarData.pad(year, 4, '0') + '.json');
         });
         it('/YYYY/mm.json', [
             generators.year,
             generators.month,
         ], function(year, month) {
-            expect(SolarData.filePath(year, month, '')).toBe('/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+            expect(SolarData.filePath(year, month, '')).toBe('/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '.json');
         });
         it('/YYYY/mm/dd.json', [
             generators.emptyLineData,
@@ -553,7 +515,7 @@ describe('SolarData', function() {
             generators.month,
             generators.day,
         ], function(data, year, month, day) {
-            expect(SolarData.filePath(year, month, day)).toBe('/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '/' + pad(day, 2, '0') + '.json');
+            expect(SolarData.filePath(year, month, day)).toBe('/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '/' + SolarData.pad(day, 2, '0') + '.json');
         });
     });
     describe('dataFilePath', function() {
@@ -563,13 +525,13 @@ describe('SolarData', function() {
         it('data/years/YYYY.json', [
             generators.year,
         ], function(year) {
-            expect(SolarData.dataFilePath(year, '', '')).toBe('data/years/' + pad(year, 4, '0') + '.json');
+            expect(SolarData.dataFilePath(year, '', '')).toBe('data/years/' + SolarData.pad(year, 4, '0') + '.json');
         });
         it('data/months/YYYY/mm.json', [
             generators.year,
             generators.month,
         ], function(year, month) {
-            expect(SolarData.dataFilePath(year, month, '')).toBe('data/months/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+            expect(SolarData.dataFilePath(year, month, '')).toBe('data/months/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '.json');
         });
         it('data/days/YYYY/mm/dd.json', [
             generators.emptyLineData,
@@ -577,7 +539,7 @@ describe('SolarData', function() {
             generators.month,
             generators.day,
         ], function(data, year, month, day) {
-            expect(SolarData.dataFilePath(year, month, day)).toBe('data/days/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '/' + pad(day, 2, '0') + '.json');
+            expect(SolarData.dataFilePath(year, month, day)).toBe('data/days/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '/' + SolarData.pad(day, 2, '0') + '.json');
         });
     });
     describe('listFilePath', function() {
@@ -587,13 +549,13 @@ describe('SolarData', function() {
         it('list/months/YYYY.json', [
             generators.year,
         ], function(year) {
-            expect(SolarData.listFilePath(year, '', '')).toBe('list/months/' + pad(year, 4, '0') + '.json');
+            expect(SolarData.listFilePath(year, '', '')).toBe('list/months/' + SolarData.pad(year, 4, '0') + '.json');
         });
         it('list/days/YYYY/mm.json', [
             generators.year,
             generators.month,
         ], function(year, month) {
-            expect(SolarData.listFilePath(year, month, '')).toBe('list/days/' + pad(year, 4, '0') + '/' + pad(month, 2, '0') + '.json');
+            expect(SolarData.listFilePath(year, month, '')).toBe('list/days/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '.json');
         });
     });
     describe('dateString', function() {
@@ -606,7 +568,7 @@ describe('SolarData', function() {
             generators.year,
         ], function(year) {
             return createSolarData(year, '', '').then(function(solarData) {
-                expect(solarData.dateString).toBe(pad(year, 4, '0'));
+                expect(solarData.dateString).toBe(SolarData.pad(year, 4, '0'));
             });
         });
         it('should be "%m-%Y"', [
@@ -614,7 +576,7 @@ describe('SolarData', function() {
             generators.month,
         ], function(year, month) {
             return createSolarData(year, month, '').then(function(solarData) {
-                expect(solarData.dateString).toBe(pad(month, 2, '0') + '-' + pad(year, 4, '0'));
+                expect(solarData.dateString).toBe(SolarData.pad(month, 2, '0') + '-' + SolarData.pad(year, 4, '0'));
             });
         });
         it('should be "%d-%m-%Y"', [
@@ -623,7 +585,7 @@ describe('SolarData', function() {
             generators.day,
         ], function(year, month, day) {
             return createSolarData(year, month, day).then(function(solarData) {
-                expect(solarData.dateString).toBe(pad(day, 2, '0') + '-' + pad(month, 2, '0') + '-' + pad(year, 4, '0'));
+                expect(solarData.dateString).toBe(SolarData.pad(day, 2, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(year, 4, '0'));
             });
         });
         it('should be "%d-%m-%Y"', [
@@ -633,9 +595,9 @@ describe('SolarData', function() {
 
             return createSolarData().using(data).then(function(solarData) {
                 expect(solarData.dateString).toBe(
-                    pad(date.getDate(), 2, '0') + '-' +
-                    pad(date.getMonth() + 1, 2, '0') + '-' +
-                    pad(date.getFullYear(), 4, '0')
+                    SolarData.pad(date.getDate(), 2, '0') + '-' +
+                    SolarData.pad(date.getMonth() + 1, 2, '0') + '-' +
+                    SolarData.pad(date.getFullYear(), 4, '0')
                 );
             });
         });
@@ -646,9 +608,9 @@ describe('SolarData', function() {
 
             return createSolarData().using(data).then(function(solarData) {
                 expect(solarData.dateString).toBe(
-                    pad(date.getDate(), 2, '0') + '-' +
-                    pad(date.getMonth() + 1, 2, '0') + '-' +
-                    pad(date.getFullYear(), 4, '0')
+                    SolarData.pad(date.getDate(), 2, '0') + '-' +
+                    SolarData.pad(date.getMonth() + 1, 2, '0') + '-' +
+                    SolarData.pad(date.getFullYear(), 4, '0')
                 );
             });
         });
@@ -659,7 +621,7 @@ describe('SolarData', function() {
             generators.variable.code,
             generators.aggregation,
         ], function(year, v, s) {
-            var data = [{date: pad(year, 4, '0') + '-12-31'}];
+            var data = [{date: SolarData.pad(year, 4, '0') + '-12-31'}];
             data[0][v] = [];
 
             return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -675,14 +637,14 @@ describe('SolarData', function() {
             generators.variable.code,
             generators.aggregation,
         ], function(year, month, v, s) {
-            var data = [{date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-28'}];
+            var data = [{date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-28'}];
             data[0][v] = [];
 
             return createSolarData(year, '', '').using(data).then(function(solarData) {
                 expect(solarData.variable(v)).toBe(v);
                 if (solarData.aggregation(s) != s)
                     s = solarData.aggregation();
-                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(year, 4, '0') + '.csv');
+                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + SolarData.pad(year, 4, '0') + '.csv');
             });
         });
         it('should be "export_var_sum_%m-%Y.csv"', [
@@ -692,14 +654,14 @@ describe('SolarData', function() {
             generators.variable.code,
             generators.aggregation,
         ], function(year, month, day, v, s) {
-            var data = [{date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0')}];
+            var data = [{date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0')}];
             data[0][v] = [];
 
             return createSolarData(year, month, '').using(data).then(function(solarData) {
                 expect(solarData.variable(v)).toBe(v);
                 if (solarData.aggregation(s) != s)
                     s = solarData.aggregation();
-                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(month, 2, '0') + '-' + pad(year, 4, '0') + '.csv');
+                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(year, 4, '0') + '.csv');
             });
         });
         it('should be "export_var_sum_%d-%m-%Y.csv"', [
@@ -710,14 +672,14 @@ describe('SolarData', function() {
             generators.variable.code,
             generators.aggregation,
         ], function(year, month, day, time, v, s) {
-            var data = {dates: [pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + time]};
+            var data = {dates: [SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + time]};
             data[v] = [Math.round(1000*Math.random())];
 
             return createSolarData(year, month, day).using(data).then(function(solarData) {
                 expect(solarData.variable(v)).toBe(v);
                 if (solarData.aggregation(s) != s)
                     s = solarData.aggregation();
-                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(day, 2, '0') + '-' + pad(month, 2, '0') + '-' + pad(year, 4, '0') + '.csv');
+                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + SolarData.pad(day, 2, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(year, 4, '0') + '.csv');
             });
 
         });
@@ -733,7 +695,7 @@ describe('SolarData', function() {
                 expect(solarData.variable(v)).toBe(v);
                 if (solarData.aggregation(s) != s)
                     s = solarData.aggregation();
-                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0') + '.csv');
+                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + SolarData.pad(date.getDate(), 2, '0') + '-' + SolarData.pad(date.getMonth() + 1, 2, '0') + '-' + SolarData.pad(date.getFullYear(), 4, '0') + '.csv');
             });
         });
         it('should be "export_var_sum_%d-%m-%Y.csv" (histData)', [
@@ -748,7 +710,7 @@ describe('SolarData', function() {
                 expect(solarData.variable(v)).toBe(v);
                 if (solarData.aggregation(s) != s)
                     s = solarData.aggregation();
-                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + pad(date.getDate(), 2, '0') + '-' + pad(date.getMonth() + 1, 2, '0') + '-' + pad(date.getFullYear(), 4, '0') + '.csv');
+                expect(solarData.exportFilename()).toBe('export_' + v + '_' + s + '_' + SolarData.pad(date.getDate(), 2, '0') + '-' + SolarData.pad(date.getMonth() + 1, 2, '0') + '-' + SolarData.pad(date.getFullYear(), 4, '0') + '.csv');
             });
         });
     });
@@ -805,7 +767,7 @@ describe('SolarData', function() {
             date.setHours(hour);
 
             return createSolarData().using(data).then(function(solarData) {
-                expect(solarData.xAxis.tickFormat()(date)).toBe(pad(hour, 2, ' '));
+                expect(solarData.xAxis.tickFormat()(date)).toBe(SolarData.pad(hour, 2, ' '));
             });
         });
     });
@@ -824,7 +786,7 @@ describe('SolarData', function() {
             var expectedData = [];
             for (var y = minYear; y <= maxYear; y++) {
                 var nrj = Math.round(1000*Math.random());
-                data.push({date: pad(y, 4, '0') + '-12-31', nrj: [nrj]});
+                data.push({date: SolarData.pad(y, 4, '0') + '-12-31', nrj: [nrj]});
                 expectedData.push(nrj);
             }
 
@@ -854,7 +816,7 @@ describe('SolarData', function() {
             var expectedData = [];
             for (var m = minMonth; m <= maxMonth; m++) {
                 var nrj = Math.round(1000*Math.random());
-                data.push({date: pad(year, 4, '0') + '-' + pad(m, 2, '0') + '-28', nrj: [nrj]});
+                data.push({date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(m, 2, '0') + '-28', nrj: [nrj]});
                 expectedData.push(nrj);
             }
 
@@ -885,7 +847,7 @@ describe('SolarData', function() {
             var expectedData = [];
             for (var d = minDay; d <= maxDay; d++) {
                 var nrj = Math.round(1000*Math.random());
-                data.push({date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(d, 2, '0'), nrj: [nrj]});
+                data.push({date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(d, 2, '0'), nrj: [nrj]});
                 expectedData.push(nrj);
             }
 
@@ -928,7 +890,7 @@ describe('SolarData', function() {
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
-                dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
+                dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
                 expectedX.push(new Date(year, month - 1, day, h, m));
                 expectedY.push(Math.round(1000*Math.random()));
             }
@@ -973,7 +935,7 @@ describe('SolarData', function() {
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
-                dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
+                dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
                 expectedX.push(new Date(year, month - 1, day, h, m));
                 expectedY.push(Math.round(1000*Math.random()));
             }
@@ -1004,7 +966,7 @@ describe('SolarData', function() {
 
             var data = [];
             for (var y = minYear; y <= maxYear; y++)
-                data.push({date: pad(y, 4, '0') + '-12-31'});
+                data.push({date: SolarData.pad(y, 4, '0') + '-12-31'});
 
             return createSolarData('', '', '').using(data).then(function(solarData) {
                 var domain = solarData.xScale.domain();
@@ -1026,7 +988,7 @@ describe('SolarData', function() {
 
             var data = [];
             for (var m = minMonth; m <= maxMonth; m++)
-                data.push({date: pad(year, 4, '0') + '-' + pad(m, 2, '0') + '-28'});
+                data.push({date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(m, 2, '0') + '-28'});
 
             return createSolarData(year, '', '').using(data).then(function(solarData) {
                 var domain = solarData.xScale.domain();
@@ -1049,7 +1011,7 @@ describe('SolarData', function() {
 
             var data = [];
             for (var d = minDay; d <= maxDay; d++)
-                data.push({date: pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(d, 2, '0')});
+                data.push({date: SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(d, 2, '0')});
 
             return createSolarData(year, month, '').using(data).then(function(solarData) {
                 var domain = solarData.xScale.domain();
@@ -1084,7 +1046,7 @@ describe('SolarData', function() {
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
-                dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
+                dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
             }
 
             return createSolarData(year, month, day).using({dates: dates}).then(function(solarData) {
@@ -1120,7 +1082,7 @@ describe('SolarData', function() {
             for (var hm = minHour * 60 + minMinute; hm <= maxHour * 60 + maxMinute; hm++) {
                 var h = Math.floor(hm / 60);
                 var m = hm - h * 60;
-                dates.push(pad(year, 4, '0') + '-' + pad(month, 2, '0') + '-' + pad(day, 2, '0') + ' ' + pad(h, 2, '0') + ':' + pad(m, 2, '0'));
+                dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
             }
 
             return createSolarData().using({dates: dates}).then(function(solarData) {
@@ -1261,13 +1223,13 @@ describe('SolarData', function() {
     });
 
     var createDate = function(year, month, day) {
-        year = pad(year, '0', 4);
+        year = SolarData.pad(year, '0', 4);
         if (year === '')
             year = 2017;
-        month = pad(month, '0', 2);
+        month = SolarData.pad(month, '0', 2);
         if (month === '')
             month = 12;
-        day = pad(day, '0', 2);
+        day = SolarData.pad(day, '0', 2);
         if (day === '')
             day = 28;
         return year + '-' + month + '-' + day;
@@ -1370,7 +1332,7 @@ describe('SolarData', function() {
 
             return createSolarData(...ymd).using([datum]).then(function(solarData) {
                 expect(solarData.variable(varData.code)).toBe(varData.code);
-                //solarData.update();
+                solarData.update();
                 expect(solarData.div).toBeCloseTo(0.000000000001);
                 expect(solarData.log1000Div).toBe(-4);
                 expect(solarData.yLabel()).toBe(varData.name + ' (p' + varData.unit + ')');
@@ -1697,8 +1659,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random())]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random())]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -1723,8 +1685,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0] + data[0].pdc[1]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0] + data[0].pdc[1]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -1750,8 +1712,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0], data[0].pdc[1]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [Math.round(1000*Math.random()), Math.round(1000*Math.random())]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0], data[0].pdc[1]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -1777,8 +1739,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1] + data[0].pdc[1][0] + data[0].pdc[1][1]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1] + data[0].pdc[1][0] + data[0].pdc[1][1]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -1804,8 +1766,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1], data[0].pdc[1][0] + data[0].pdc[1][1]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0][0] + data[0].pdc[0][1], data[0].pdc[1][0] + data[0].pdc[1][1]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {
@@ -1831,8 +1793,8 @@ describe('SolarData', function() {
                 var data = [];
                 var expectedData = [];
                 for (var y = maxYear; y >= minYear; y--) {
-                    data.unshift({date: pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
-                    expectedData.unshift([pad(y, 4, '0'), data[0].pdc[0][0], data[0].pdc[0][1], data[0].pdc[1][0], data[0].pdc[1][1]]);
+                    data.unshift({date: SolarData.pad(y, 4, '0') + '-12-31', pdc: [[Math.round(1000*Math.random()), Math.round(1000*Math.random())], [Math.round(1000*Math.random()), Math.round(1000*Math.random())]]});
+                    expectedData.unshift([SolarData.pad(y, 4, '0'), data[0].pdc[0][0], data[0].pdc[0][1], data[0].pdc[1][0], data[0].pdc[1][1]]);
                 }
 
                 return createSolarData('', '', '').using(data).then(function(solarData) {

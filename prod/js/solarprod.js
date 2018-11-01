@@ -374,6 +374,11 @@ function SolarProd() {
                                         .text(SolarData.aggregations.name);
             aggs.exit().remove();
             aggs.order();
+
+            // Updates aggs if needed:
+            if (selects.agg.property('value') != data.aggregation()) {
+                data.aggregation(selects.agg.property('value'));
+            }
         }
     };
 

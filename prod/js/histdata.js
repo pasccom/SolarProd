@@ -27,8 +27,8 @@ function HistData(data, year, month, day) {
     this.xAxis.scale(this.xScale);
 
     this.export = function() {
-        return {headers: this.headLines(data[0][this.var]),
-                data: data.map((d) =>  [this.dateFormatter(d.date)].concat(this.merge(this.aggregate(d[this.var])))),
+        return {headers: this.headLines(data[0][this.variable()]),
+                data: data.map((d) =>  [this.dateFormatter(d.date)].concat(this.merge(this.aggregate(d[this.variable()])))),
         };
     };
 
@@ -36,13 +36,13 @@ function HistData(data, year, month, day) {
         // Clear existing indexes:
         for (var i = 0; i < this.length; i++)
             delete this[i];
-        if (this.var !== null) {
+        if (this.variable() !== null) {
             // Create new indexes:
             for (var i = 0; i < data.length; i++)
-                this[i] = {date: data[i].date, data: this.aggregate(data[i][this.var])};
+                this[i] = {date: data[i].date, data: this.aggregate(data[i][this.variable()])};
             this.length = data.length;
             this.updateYDomain(this);
-            this.xScale.padding((this.agg == 'sum') ? 0 : 0.1);
+            this.xScale.padding((this.aggregation() == 'sum') ? 0 : 0.1);
         } else {
             this.length = 0;
         }
@@ -51,4 +51,4 @@ function HistData(data, year, month, day) {
 }
 
 HistData.prototype = {};
-Object.setPrototypeOf(HistData.prototype, SolarData);
+Object.setPrototypeOf(HistData.prototype, SolarData());

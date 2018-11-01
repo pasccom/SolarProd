@@ -1,5 +1,14 @@
 function SolarLegend(root)
 {
+    // Recursive forEach function:
+    var recForEach = function(a, fun)
+    {
+        if (!Array.isArray(a))
+            fun(a);
+        else
+            a.forEach((e) => recForEach(e, fun));
+    };
+
     // Update visibility in legend so that it matches the visility of the element:
     var updateVisibility = function()
     {
