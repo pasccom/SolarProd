@@ -313,6 +313,9 @@ function SolarProd() {
                 date.update(level, data[dateOffset]);
                 selects()[level - 1].property('value', date()[level - 1]);
                 updatePrevNext();
+            } else {
+                selects()[level - 1].property('value', date()[level - 1]);
+                date.update(level, selects()[level - 1].property('value'));
             }
 
             if (((level == 3) || (selectDate()[level] == 0)) && (selectDate.dir == -1))

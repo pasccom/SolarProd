@@ -293,18 +293,18 @@ class BrowserTestCase(TestCase):
         wait = self.assertSelectValue('day', str(day), wait)
         return wait
 
-    def selectDate(self, year, month=None, day=None):
+    def selectDate(self, year, month=None, day=None, partial=False):
         if year is not None:
             self.selectOption('year', str(year))
         else:
             self.selectOption('year', '')
         if month is not None:
             self.selectOption('month', self.monthName(month), str(month))
-        elif year is not None:
+        elif not partial and year is not None:
             self.selectOption('month', '')
         if day is not None:
             self.selectOption('day', str(day))
-        elif month is not None:
+        elif not partial and month is not None:
             self.selectOption('day', '')
     
     def selectVar(self, var):
@@ -883,6 +883,29 @@ class ExportTest(BrowserTestCase):
         os.remove(csvFilePath)
 
     @testData([
+        {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2017, 'newMonth': 2,    'newDay': None},
+    ])
+    def testPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.loadData(year, month, day)
+
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
+        self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
+        os.remove(csvFilePath)
+
+    @testData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
@@ -913,7 +936,35 @@ class ExportTest(BrowserTestCase):
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
-        
+
+    @testData([
+        {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2017, 'newMonth': 2,    'newDay': None},
+    ])
+    def testPartialTransition(self, year, month, day, newYear, newMonth, newDay):
+        self.loadData(newYear, newMonth, newDay)
+
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+        self.browser.find_element_by_id('plot').click()
+
+        csvFilePath = self.getExportPath('nrj', 'sum',  newYear, newMonth, newDay)
+        self.browser.find_element_by_id('export').click()
+        self.assertTrue(self.waitExport(csvFilePath, 5))
+        self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
+        os.remove(csvFilePath)
+
     @testData([
         {'year': 2009, 'month': None, 'day': None, 'prevYear': 2009, 'prevMonth': None, 'prevDay': None},
         {'year': 2010, 'month': None, 'day': None, 'prevYear': 2009, 'prevMonth': None, 'prevDay': None},
@@ -992,12 +1043,29 @@ class ExportTest(BrowserTestCase):
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
-        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
     ])
     def testEmptyChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
         self.selectDate(newYear, newMonth, newDay)
+
+        csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
+        self.browser.find_element_by_id('export').click()
+        self.assertFalse(self.waitExport(csvFilePath, 5))
+        with self.assertRaises(FileNotFoundError):
+            os.remove(csvFilePath)
+
+    @testData([
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testEmptyPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
         self.browser.find_element_by_id('export').click()
@@ -2444,6 +2512,20 @@ class LegendTest(BrowserTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
     @testData([
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testEmptyPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+
+        self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
+        self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
+
+    @testData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2019, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2018, 'month': 2,    'day': None},
@@ -2954,6 +3036,20 @@ class ChartTest(BrowserTestCase):
         
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testEmptyPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+
+        self.assertEqual(len(self.getLines()), 0)
+        self.assertEqual(len(self.getBars()), 0)
     
     @testData([
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
@@ -2971,6 +3067,25 @@ class ChartTest(BrowserTestCase):
         self.initMapFunction('xaxis')
         self.initMapFunction('yaxis')
         
+        self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2017, 'newMonth': 2,    'newDay': None},
+    ])
+    def testLinePartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.loadData(year, month, day)
+
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+
+        self.initMapFunction('xaxis')
+        self.initMapFunction('yaxis')
+
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
         
     @testData([
@@ -2999,6 +3114,23 @@ class ChartTest(BrowserTestCase):
         
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
     
+    @testData([
+        {'year': 2019, 'month': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+    ])
+    def testBarPartialChangeDate(self, year, month, newYear, newMonth, newDay):
+        self.loadData(year, month)
+
+        self.selectDate(year, month)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, newDay, partial=True)
+
+        self.initMapFunction('xaxis', True)
+        self.initMapFunction('yaxis')
+
+        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+
     @testData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2019, 'month': None, 'day': None},
@@ -3058,6 +3190,32 @@ class ChartTest(BrowserTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
         
+        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+
+    @testData([
+        {'newYear': None, 'newMonth': None, 'year': 2019, 'month': None, 'day': None},
+        {'newYear': None, 'newMonth': None, 'year': 2018, 'month': 2,    'day': None},
+        {'newYear': None, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 5   },
+        {'newYear': None, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 8   },
+        {'newYear': 2019, 'newMonth': None, 'year': 2018, 'month': 2,    'day': None},
+        {'newYear': 2019, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 5   },
+        {'newYear': 2019, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 8   },
+        {'newYear': 2018, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 5   },
+        {'newYear': 2018, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 8   },
+        {'newYear': 2018, 'newMonth': 2,    'year': 2017, 'month': 8,    'day': 5   },
+        {'newYear': 2018, 'newMonth': 2,    'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testBarPartialTransition(self, year, month, day, newYear, newMonth):
+        self.loadData(newYear, newMonth)
+
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectDate(newYear, newMonth, partial=True)
+        self.browser.find_element_by_id('plot').click()
+
+        self.initMapFunction('xaxis', True)
+        self.initMapFunction('yaxis')
+
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @testData([
