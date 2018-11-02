@@ -796,8 +796,8 @@ describe('SolarData', function() {
 
                 expect(solarData.length).toBe(maxYear - minYear + 1);
                 for (var y = 0; y < solarData.length; y++) {
-                    expect(solarData[y].date).toBe(minYear + y);
-                    expect(solarData[y].data).toBe(expectedData[y]);
+                    expect(solarData[y].x).toBe(minYear + y);
+                    expect(solarData[y].y).toBe(expectedData[y]);
                 }
             });
         });
@@ -826,8 +826,8 @@ describe('SolarData', function() {
 
                 expect(solarData.length).toBe(maxMonth - minMonth + 1);
                 for (var m = 0; m < solarData.length; m++) {
-                    expect(solarData[m].date).toBe(minMonth + m - 1);
-                    expect(solarData[m].data).toBe(expectedData[m]);
+                    expect(solarData[m].x).toBe(minMonth + m - 1);
+                    expect(solarData[m].y).toBe(expectedData[m]);
                 }
             });
         });
@@ -857,8 +857,8 @@ describe('SolarData', function() {
 
                 expect(solarData.length).toBe(maxDay - minDay + 1);
                 for (var d = 0; d < solarData.length; d++) {
-                    expect(solarData[d].date).toBe(minDay + d);
-                    expect(solarData[d].data).toBe(expectedData[d]);
+                    expect(solarData[d].x).toBe(minDay + d);
+                    expect(solarData[d].y).toBe(expectedData[d]);
                 }
             });
         });

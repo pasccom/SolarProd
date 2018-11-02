@@ -39,7 +39,7 @@ function HistData(data, year, month, day) {
         if (this.variable() !== null) {
             // Create new indexes:
             for (var i = 0; i < data.length; i++)
-                this[i] = {date: data[i].date, data: this.aggregate(data[i][this.variable()])};
+                this[i] = {x: data[i].date, y: this.aggregate(data[i][this.variable()])};
             this.length = data.length;
             this.updateYDomain(this);
             this.xScale.padding((this.aggregation() == 'sum') ? 0 : 0.1);

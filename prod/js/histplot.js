@@ -25,9 +25,9 @@ function HistPlot(root) {
         groups = groups.enter().append('g').merge(groups);
 
         // Manages subGroups:
-        var nGroups = d3.max(this.data, (d) => Array.isArray(d.data) ? d.data.length : 1);
+        var nGroups = d3.max(this.data, (d) => Array.isArray(d.y) ? d.y.length : 1);
         var subGroups = groups.selectAll('g');
-        subGroups = subGroups.data((d) => Array.isArray(d.data) ? d.data : [d.data]);
+        subGroups = subGroups.data((d) => Array.isArray(d.y) ? d.y : [d.y]);
         subGroups.exit().remove();
         subGroups = subGroups.enter().append('g').merge(subGroups);
         subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"))
@@ -36,7 +36,7 @@ function HistPlot(root) {
 
         // Manages bars:
         var nBars = d3.max(this.data, (d) => {
-            return Array.isArray(d.data) ? d3.max(d.data, (a) => Array.isArray(a) ? a.length : 1) : 1;
+            return Array.isArray(d.y) ? d3.max(d.y, (a) => Array.isArray(a) ? a.length : 1) : 1;
         });
         var bars = subGroups.selectAll('rect');
         bars = bars.data((d) => Array.isArray(d) ? d : [d]);
@@ -52,7 +52,7 @@ function HistPlot(root) {
             .attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars));
 
         // Places groups:
-        groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.date) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
+        groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.x) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
         // Data for legend:
         this.legendData = d3.transpose(groups.nodes().map((g1) => {
