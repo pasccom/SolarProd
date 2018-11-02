@@ -50,63 +50,54 @@ function SolarData()
             this.length = 0;
             variable = null;
             agg = null;
+            type = Type.ALL;
 
-            // Type:
-            if (year == '')
-                type = Type.ALL;
-            else if (month == '')
+            // Ensure year, month and day are well padded and find type:
+            if (year != '') {
+                year = SolarData.pad(year, 4, '0');
                 type = Type.YEAR;
-            else if (day == '')
+            }
+            if (month != '') {
+                month = SolarData.pad(month, 2, '0');
                 type = Type.MONTH;
-            else
+            }
+            if (day != '') {
+                day = SolarData.pad(day, 2, '0');
                 type = Type.DAY;
+            }
 
             // Available variables and sums:
             this.validVars = [];
             this.validAggs = [];
 
-            // X label:
+            // X label, date parser and date formatter:
             switch (type) {
                 case Type.ALL:
                     this.xLabel = 'Année';
+                    this.dateParser = ((date) => d3.isoParse(date).getFullYear());
+                    this.dateFormatter = ((date) => SolarData.pad('' + date + '', 4, '0'));
                     break;
                 case Type.YEAR:
                     this.xLabel = 'Mois';
+                    this.dateParser = ((date) => d3.isoParse(date).getMonth());
+                    this.dateFormatter = ((date) => SolarData.pad('' + (date + 1) + '', 2, '0') + '/' + SolarData.pad(year, 4, '0'));
                     break;
                 case Type.MONTH:
                     this.xLabel = 'Jour';
+                    this.dateParser = ((date) => d3.isoParse(date).getDate());
+                    this.dateFormatter = ((date) => SolarData.pad('' + date + '', 2, '0') + '/' + SolarData.pad(month, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
                     break;
                 case Type.DAY:
                     this.xLabel = 'Temps (h)';
+                    this.dateParser = d3.isoParse;
+                    this.dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
                     break;
                 default:
                     this.xLabel = '';
+                    this.dateParser = ((date) => NaN);
+                    this.dateFormatter = ((date) => '');
+                    break;
             }
-
-            // Date parser:
-            if (year == '')
-                this.dateParser = ((date) => d3.isoParse(date).getFullYear());
-            else if (month == '')
-                this.dateParser = ((date) => d3.isoParse(date).getMonth());
-            else if (day == '')
-                this.dateParser = ((date) => d3.isoParse(date).getDate());
-            else
-                this.dateParser = d3.isoParse;
-
-            // Date formatter:
-            if (year == '')
-                this.dateFormatter = ((date) => SolarData.pad('' + date + '', 4, '0'));
-            else if (month == '')
-                this.dateFormatter = ((date) => SolarData.pad('' + (date + 1) + '', 2, '0') + '/' + SolarData.pad(year, 4, '0'));
-            else if (day == '')
-                this.dateFormatter = ((date) => SolarData.pad('' + date + '', 2, '0') + '/' + SolarData.pad(month, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
-            else
-                this.dateFormatter = d3.timeFormat('%d/%m/%Y %H:%M');
-
-            // Ensure year, month and day are well padded:
-            year = (year == '') ? '' : SolarData.pad(year, 4, '0');
-            month = (month == '') ? '' : SolarData.pad(month, 2, '0');
-            day = (day == '') ? '' : SolarData.pad(day, 2, '0');
 
             // Date of data as a string:
             this.dateString = [day, month, year].filter(item => item != '').join('-');
