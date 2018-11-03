@@ -493,27 +493,61 @@ function SolarProd() {
         this.chart.resize(w, h);
     };
 
+    var setupSelectEvents = function(select, callback) {
+        var eventsBlocked = false;
+
+        select.on('change', function() {
+            if (!eventsBlocked)
+                callback.apply(this, arguments);
+        });
+
+        select.on('keydown', function() {
+            var value = select.property('value');
+
+            if (d3.event.key == 'Control')
+                eventsBlocked = true;
+
+            if (eventsBlocked) {
+                setTimeout(function() {
+                    for (var l = 3; l >= 0; l--) {
+                        if ((l !== 0) && (select == selects()[l - 1])) {
+                            select.property('value', date()[l - 1]);
+                            break;
+                        }
+                        if (l === 0)
+                            select.property('value', value);
+                    }
+                });
+            }
+        });
+
+        select.on('keyup', function() {
+           if (d3.event.key == 'Control')
+                eventsBlocked = false;
+        });
+    };
+
     // Change event:
-    selects.day.on('change', () => {
+    selects.day.call(setupSelectEvents, () => {
         date.update(3, selects.day.property('value'));
         updatePrevNext();
     });
-    selects.month.on('change', () => {
+    selects.month.call(setupSelectEvents, () => {
         date.update(2, selects.month.property('value'));
         updatePrevNext();
         this.update(false, 3);
     });
-    selects.year.on('change', () => {
+    selects.year.call(setupSelectEvents, () => {
         date.update(1, selects.year.property('value'));
         updatePrevNext();
         this.update(false, 2);
     });
-    selects.var.on('change', () => {
+    selects.var.call(setupSelectEvents, () => {
         chart.plot.data.variable(selects.var.property('value'));
         updateAggs();
         this.chart.draw();
     });
-    selects.agg.on('change', () => {
+    selects.agg.call(setupSelectEvents, () => {
         this.chart.plot.data.aggregation(selects.agg.property('value'));
         this.chart.draw();
     });
@@ -527,7 +561,7 @@ function SolarProd() {
 
     // Key event:
     d3.select(document).on('keydown', () => {
-        if (d3.event.shiftKey || d3.event.altKey || d3.event.ctrlKey || d3.event.metaKay)
+        if (d3.event.shiftKey || d3.event.altKey || !d3.event.ctrlKey || d3.event.metaKay)
             return;
 
         if ((d3.event.key == 'Enter') && !d3.event.repeat)

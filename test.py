@@ -353,11 +353,13 @@ class BrowserTestCase(TestCase):
             actions.click(button)
         return actions
 
-    def pressKey(self, key, repeat=1):
+    def pressKeys(self, keys, repeat=1):
         actions = ActionChains(self.browser)
         for r in range(0, repeat):
-            actions.key_down(key)
-            actions.key_up(key)
+            for key in keys:
+                actions.key_down(key)
+            for key in reversed(keys):
+                actions.key_up(key)
         return actions
 
     def getClasses(self, element):
@@ -727,7 +729,7 @@ class ExportTest(BrowserTestCase):
         return csvFilePath
 
     def waitExport(self, csvFilePath, t=-1):
-        while not os.path.isfile(csvFilePath):
+        while not os.path.isfile(csvFilePath) or (os.path.getsize(csvFilePath) == 0):
             if (t == 0):
                 break
             time.sleep(1)
@@ -841,12 +843,12 @@ class ExportTest(BrowserTestCase):
         self.loadData(year, month, day)
 
         self.selectDate(year, month, day)
-        self.pressKey(Key.ENTER).perform()
+        self.pressKeys([Key.CONTROL, Key.ENTER]).perform()
         self.selectVar(var)
         self.selectSum(agg)
 
         csvFilePath = self.getExportPath(var, agg, year, month, day)
-        self.pressKey(Key.ARROW_DOWN).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_DOWN]).perform()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
         os.remove(csvFilePath)
@@ -1031,10 +1033,10 @@ class ExportTest(BrowserTestCase):
     ])
     def testKeyEmpty(self, year, month, day):
         self.selectDate(year, month, day)
-        self.pressKey(Key.ENTER).perform()
+        self.pressKeys([Key.CONTROL, Key.ENTER]).perform()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.pressKey(Key.ARROW_DOWN).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_DOWN]).perform()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -1468,7 +1470,7 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.pressKey(Key.ARROW_LEFT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=5)
         self.assertEnabled(prevButton, prevEnabled)
@@ -1513,7 +1515,7 @@ class LeftRightKeyTest(BrowserTestCase):
         nextButton = self.browser.find_element_by_id('next')
 
         self.browser.find_element_by_id('plot').click()
-        self.pressKey(Key.ARROW_LEFT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth)
         self.assertEnabled(prevButton, prevEnabled)
@@ -1554,7 +1556,7 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.pressKey(Key.ARROW_LEFT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, prevDay)
         self.assertEnabled(prevButton, prevEnabled)
@@ -1592,7 +1594,7 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear)
         self.assertEnabled(prevButton, True)
@@ -1636,7 +1638,7 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth)
         self.assertEnabled(prevButton, True)
@@ -1677,7 +1679,7 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+        self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth, nextDay)
         self.assertEnabled(prevButton, True)
@@ -1933,7 +1935,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=2)
         self.assertEnabled(prevButton, prevEnabled)
@@ -1970,7 +1972,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, wait=2)
@@ -2005,7 +2007,7 @@ class SlowKeyTest(ServerTestCase):
         nextButton = self.browser.find_element_by_id('next')
 
         with self.server.hold():
-            self.pressKey(Key.ARROW_LEFT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=2)
@@ -2037,7 +2039,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, wait=2)
         self.assertEnabled(prevButton, True)
@@ -2073,7 +2075,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, wait=2)
@@ -2108,7 +2110,7 @@ class SlowKeyTest(ServerTestCase):
         nextButton = self.browser.find_element_by_id('next')
 
         with self.server.hold():
-            self.pressKey(Key.ARROW_RIGHT, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=2)
@@ -2122,7 +2124,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKey(Key.ARROW_UP, repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.ARROW_UP], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
