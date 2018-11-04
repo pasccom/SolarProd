@@ -1301,7 +1301,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(prevButton, repeat).perform()
         
-        self.assertDate(prevYear, prevMonth)
+        self.assertDate(prevYear, prevMonth, wait=5)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
     
@@ -1342,7 +1342,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(prevButton, repeat).perform()
         
-        self.assertDate(prevYear, prevMonth, prevDay)
+        self.assertDate(prevYear, prevMonth, prevDay, wait=5)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
     
@@ -1424,7 +1424,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(nextButton, repeat).perform()
         
-        self.assertDate(nextYear, nextMonth)
+        self.assertDate(nextYear, nextMonth, wait=5)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
         
@@ -1465,7 +1465,7 @@ class PrevNextTest(BrowserTestCase):
         
         self.clickButton(nextButton, repeat).perform()
         
-        self.assertDate(nextYear, nextMonth, nextDay)
+        self.assertDate(nextYear, nextMonth, nextDay, wait=5)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
     
@@ -1558,7 +1558,7 @@ class LeftRightKeyTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
-        self.assertDate(prevYear, prevMonth)
+        self.assertDate(prevYear, prevMonth, wait=5)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
 
@@ -1599,7 +1599,7 @@ class LeftRightKeyTest(BrowserTestCase):
 
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
-        self.assertDate(prevYear, prevMonth, prevDay)
+        self.assertDate(prevYear, prevMonth, prevDay, wait=5)
         self.assertEnabled(prevButton, prevEnabled)
         self.assertEnabled(nextButton, True)
 
@@ -1681,7 +1681,7 @@ class LeftRightKeyTest(BrowserTestCase):
 
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
-        self.assertDate(nextYear, nextMonth)
+        self.assertDate(nextYear, nextMonth, wait=5)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
 
@@ -1722,7 +1722,7 @@ class LeftRightKeyTest(BrowserTestCase):
 
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
-        self.assertDate(nextYear, nextMonth, nextDay)
+        self.assertDate(nextYear, nextMonth, nextDay, wait=5)
         self.assertEnabled(prevButton, True)
         self.assertEnabled(nextButton, nextEnabled)
 
