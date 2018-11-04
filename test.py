@@ -521,11 +521,19 @@ class LayoutTest(TestCase):
         self.setUpBrowser(size)
         
         chart = self.browser.find_element_by_id('chart')
-        self.assertEqual(chart.size['width'], size[0] - 274)
-        self.assertEqual(chart.size['height'], size[1] - 54)
+        self.assertEqual(chart.value_of_css_property('display'), 'inline-block')
+        self.assertEqual(chart.rect['x'], 8)
+        self.assertEqual(chart.rect['y'], 44)
+        self.assertEqual(chart.rect['width'], size[0] - 274)
+        self.assertEqual(chart.rect['height'], size[1] - 54)
+
         legend = self.browser.find_element_by_id('legend')
-        self.assertEqual(legend.size['width'], 250)
-        self.assertEqual(legend.size['height'], size[1] - 54)
+        self.assertEqual(legend.value_of_css_property('display'), 'inline-block')
+        self.assertEqual(legend.rect['x'], size[0] - 250 - 8)
+        self.assertEqual(legend.rect['y'], 44)
+        self.assertEqual(legend.rect['width'], 250)
+        self.assertEqual(legend.rect['height'], size[1] - 54)
+
         self.browser.close()
         self.browser = None
     
@@ -538,11 +546,19 @@ class LayoutTest(TestCase):
         self.setUpBrowser(size)
             
         chart = self.browser.find_element_by_id('chart')
-        self.assertEqual(chart.size['width'], size[0] - 199 - 75*(size[0] - 24 - 700)/300)
-        self.assertEqual(chart.size['height'], size[1] - 54)
+        self.assertEqual(chart.value_of_css_property('display'), 'inline-block')
+        self.assertEqual(chart.rect['x'], 8)
+        self.assertEqual(chart.rect['y'], 44)
+        self.assertEqual(chart.rect['width'], size[0] - 199 - 75*(size[0] - 24 - 700)/300)
+        self.assertEqual(chart.rect['height'], size[1] - 54)
+
         legend = self.browser.find_element_by_id('legend')
-        self.assertEqual(legend.size['width'], 175 + 75*(size[0] - 24 - 700)/300)
-        self.assertEqual(legend.size['height'], size[1] - 54)
+        self.assertEqual(legend.value_of_css_property('display'), 'inline-block')
+        self.assertEqual(legend.rect['x'], size[0] - 175 - 75*(size[0] - 24 - 700)/300 - 8)
+        self.assertEqual(legend.rect['y'], 44)
+        self.assertEqual(legend.rect['width'], 175 + 75*(size[0] - 24 - 700)/300)
+        self.assertEqual(legend.rect['height'], size[1] - 54)
+
         self.browser.close()
         self.browser = None
        
@@ -554,8 +570,15 @@ class LayoutTest(TestCase):
         self.setUpBrowser(size)
             
         chart = self.browser.find_element_by_id('chart')
-        self.assertEqual(chart.size['width'], size[0] - 16)
-        self.assertEqual(chart.size['height'], size[1] - 54)
+        self.assertEqual(chart.value_of_css_property('display'), 'inline-block')
+        self.assertEqual(chart.rect['x'], 8)
+        self.assertEqual(chart.rect['y'], 44)
+        self.assertEqual(chart.rect['width'], size[0] - 16)
+        self.assertEqual(chart.rect['height'], size[1] - 54)
+
+        legend = self.browser.find_element_by_id('legend')
+        self.assertEqual(legend.value_of_css_property('display'), 'none')
+
         self.browser.close()
         self.browser = None
 
@@ -564,8 +587,14 @@ class LayoutTest(TestCase):
         self.setUpBrowser(size)
         
         chart = self.browser.find_element_by_id('chart')
-        self.assertEqual(chart.size['width'], size[0] - 16)
-        self.assertEqual(chart.size['height'], size[1] - 92)
+        self.assertEqual(chart.rect['x'], 8)
+        self.assertEqual(chart.rect['y'], 80)
+        self.assertEqual(chart.rect['width'], size[0] - 16)
+        self.assertEqual(chart.rect['height'], size[1] - 92)
+
+        legend = self.browser.find_element_by_id('legend')
+        self.assertEqual(legend.value_of_css_property('display'), 'none')
+
         self.browser.close()
         self.browser = None
 
