@@ -178,6 +178,10 @@ function SolarProd() {
                                            .attr('src', 'img/csv.png')
                                            .attr('title', 'Export CSV')
                                            .attr('alt', 'Export CSV');
+    buttons.help = toolbar2.append('img').classed('button', true)
+                                         .attr('src', 'img/help.png')
+                                         .attr('title', 'Aide')
+                                         .attr('alt', 'Aide');
 
     // TODO remove?
     // WARNING Used by test.py
@@ -192,6 +196,7 @@ function SolarProd() {
     buttons.today.attr('id', 'today');
     buttons.next.attr('id', 'next');
     buttons.export.attr('id', 'export');
+    buttons.help.attr('id', 'help');
 
     var chart = new SolarChart(d3.select('body'));
     this.chart = chart;
@@ -561,6 +566,7 @@ function SolarProd() {
     buttons.today.on('click', () => {this.plot(true);});
     buttons.next.on('click', () => {this.siblingPlot(1);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
+    buttons.help.on('click', () => {window.location = 'help.html';});
 
     // Load event:
     buttons.plot.on('load', () => {this.windowResize();});
@@ -568,6 +574,7 @@ function SolarProd() {
     buttons.today.on('load', () => {this.windowResize();});
     buttons.next.on('load', () => {this.windowResize();});
     buttons.export.on('load', () => {this.windowResize();});
+    buttons.help.on('load', () => {this.windowResize();});
 
     // Key event:
     d3.select(document).on('keydown', () => {

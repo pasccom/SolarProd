@@ -278,8 +278,8 @@ if [ -z "$ANS" ]; then
     create_profile "1023x655" 1023 655
     create_profile  "724x500"  724 500
     create_profile  "723x500"  723 500
-    create_profile  "437x200"  437 200
-    create_profile  "436x200"  436 200
+    create_profile  "469x200"  469 200
+    create_profile  "468x200"  468 200
 fi
 
 # Delete ConsoleCapture:
@@ -315,7 +315,7 @@ if [ -z "$ANS" ]; then
     printf "Setting up test environment ...\t\t\t\t\t\t"
     cp -a "$SCRIPT_DIR/prod/img" "$TEST_DIR/testdata/"
     cp -a "$SCRIPT_DIR/prod/js" "$TEST_DIR/testdata/"
-    cp -a "$SCRIPT_DIR/prod/style.css" "$TEST_DIR/testdata/"
-    cp -a "$SCRIPT_DIR/prod/index.html" "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/"*.css "$TEST_DIR/testdata/"
+    cp -a "$SCRIPT_DIR/prod/"*.html "$TEST_DIR/testdata/"
     echo "DONE"
 fi

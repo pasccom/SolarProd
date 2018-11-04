@@ -70,6 +70,7 @@ class TestCase(unittest.TestCase):
         super().setUp()
 
         self.index = 'file://' + self.__class__.baseDir + '/testdata/index.html'
+        self.helpPage = 'file://' + self.__class__.baseDir + '/testdata/help.html'
         self.profilesDir = self.__class__.profilesDir
         self.cacheDir = os.path.join('testdata', 'list', 'cache.json')
 
@@ -461,6 +462,7 @@ class ElementsTest(BrowserTestCase):
         {'name': 'prev',    'enabled': False},
         {'name': 'next',    'enabled': False},
         {'name': 'export',  'enabled': False},
+        {'name': 'help',    'enabled': True },
     ])
     def testButtons(self, name, enabled):
         button = self.browser.find_element_by_id(name)
@@ -497,6 +499,16 @@ class ElementsTest(BrowserTestCase):
 
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, False)
+
+    def testHelp(self):
+        self.assertEqual(self.browser.current_url, self.index)
+
+        self.browser.find_element_by_id('help').click()
+        self.assertEqual(self.browser.current_url, self.helpPage)
+        self.assertIn('Ducomquet: Aide', self.browser.title)
+
+        self.browser.find_element_by_id('close').click()
+        self.assertEqual(self.browser.current_url, self.index)
 
 class LayoutTest(TestCase):
     def setUpBrowser(self, expectedSize):
@@ -564,7 +576,7 @@ class LayoutTest(TestCase):
        
     @testData([
         {'size': (723, 500)},
-        {'size': (437, 200)},
+        {'size': (469, 200)},
     ])
     def testSmallSizes(self, size):
         self.setUpBrowser(size)
@@ -582,7 +594,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @testData([{'size': (436, 200)}])
+    @testData([{'size': (468, 200)}])
     def testVerySmallSize(self, size):
         self.setUpBrowser(size)
         

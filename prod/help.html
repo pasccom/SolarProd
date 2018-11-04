@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- Copyright 2018 Pascal COMBES <pascom@orange.fr>
+
+     This file is part of SolarProd.
+
+     SolarProd is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     SolarProd is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with SolarProd. If not, see <http://www.gnu.org/licenses/>
+-->
+
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title>Ducomquet: Aide</title>
+        <style>
+#content {
+    width: 50%;
+    min-width: 350px;
+    margin: auto;
+    padding: 4px;
+    border: 1px solid #000000;
+    border-radius: 4px;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 4px;
+}
+
+h3 {
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+p, ul, dl {
+    margin-left: 20px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+dt {
+    font-weight: bold;
+    margin-right: 4px;
+    float: left;
+}
+
+dd {
+    padding-left: 50px;
+    padding-right: 4px;
+    padding-top: 1px;
+    width: auto;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+a {
+    text-decoration: underline;
+    color: inherit;
+}
+
+a:visited {
+    color: #999999;
+}
+
+a:hover {
+    color: #FF0000;
+}
+
+.button {
+    vertical-align: bottom;
+    margin-right: 4px;
+}
+
+.shortcut {
+    color: #999999;
+}
+
+#close {
+    float: right;
+}
+        </style>
+    </head>
+    <body>
+    <div id="content">
+        <a href="index.html"><img id="close" src="img/close.png" alt="X" title="Fermer"/></a>
+        <h1>
+            Aide
+        </h1>
+        <h2>Zone de traçage et légende</h2>
+        <p>Cette application permet de visualiser la production solaire et des données d'installation enregistrées au niveau des onduleurs:</p>
+        <ul>
+            <li>L'énergie produite</li>
+            <li>La puissance moyenne</li>
+            <li>La puissance instantanée en entrée de l'onduleur (DC)</li>
+            <li>La puissance instantanée en sortie des onduleurs (AC)</li>
+            <li>Les tensions d'entrée des onduleurs</li>
+            <li>Les tensions en sortie des onduleurs</li>
+            <li>Les températures des onuleurs</li>
+        </ul>
+        <p>Les valeurs journalières, mensuelles et annuelles sont affichées en barres, tandis que les données instantanées sont affichées par courbes. En fonction des variables choisies les grandeurs peuvent être affichées au niveau:</p>
+        <ul>
+            <li>De l'installation</li>
+            <li>De l'onduleur (différenciés par la couleur des courbes ou des barres)</li>
+            <li>De la string (différenciés par la transparence des courbes ou des barres)</li>
+        </ul>
+        <p>Une légende permet de relier les données affichées à leur source. Quand plusieurs courbes sont affichées (e.g. dans le cas d'un affichage par onduleur ou par string), elle permet aussi de cacher certaines courbes (en décochant la case à cocher).</p>
+        <h2>Sélecteurs</h2>
+            <h3>Date</h3>
+            <dl>
+                <dt id="day">Jour</dt><dd>Le premier sélecteur permet de sélecter le jour. Il n'est rempli qu'une fois le <a href="#month">mois</a> sélecté et il faut appuyer sur le bouton <a href="#plot">tracer</a> pour lancer l'affichage. Quand il est vide, les données du mois complet sont affichées, jour par jour.</dd>
+                <dt id="month">Mois</dt><dd>Le second sélecteur permet de sélecter le mois. Il n'est rempli qu'une fois l'<a href="#year">année</a> sélectée et il faut appuyer sur le bouton <a href="#plot">tracer</a> pour lancer l'affichage. Quand il est  vide, les données de l'année complète sont affichées, mois par mois.</dd>
+                <dt id="year">Année</dt><dd>Le troisème sélecteur permet de sélecter l'année. Il est rempli dès le chargement de la page, mais il faut appuyer sur le bouton <a href="#mois">tracer</a> pour lancer l'affichage. Quand il est  vide, toutes les données disponibles sont affichées, années par année.</dd>
+            </dl>
+            <h3>Grandeurs</h3>
+            <dl>
+                <dt id="var">Grandeur</dt><dd>Le quatrième sélecteur permet de choisir la variable à afficher. Par défaut, il s'agit de l'énergie produite. Le sélecteur est activé et son contenu est mis à jour lorsque l'on charge des données en utilisant le bouton <a href="#plot">tracer</a>.</dd>
+                <dt id="sum">Niveau</dt><dd>Le cinquième sélecteur permet de choisir le niveau de détail de l'affichage. Il est activé suivant la <a href="#var">variable</a> sélectée (certains niveaux ne sont pas pertinents pour certaines variables) et son contenu est mis à jour au moment où la <a href="#var">variable</a> est sélectée.</dd>
+            </dl>
+        <h2>Boutons</h2>
+        <dl>
+            <dt id="plot"><img class="button" src="img/plot.png" alt="Tracer" />Tracer</dt><dd>Lance l'affichage des données sélectionnées, suivant les valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + Entrée)</span>.</dd>
+            <dt id="today"><img class="button" src="img/today.png" alt="Aujourd'hui" />Aujourd'hui</dt><dd>Affiche les données de la journée et met à jour les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> en conséquence <span class="shortcut">(Ctrl + &uarr;&nbsp;)</span>.</dd>
+            <dt id="prev"><img class="button" src="img/prev.png" alt="Précédent" />Précédent</dt><dd>Affiche les données du jour, du mois ou de l'année précedents en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &larr;&nbsp;)</span>.</dd>
+            <dt id="next"><img class="button" src="img/next.png" alt="Suivant" />Suivant</dt><dd>Affiche les données du jour, du mois ou de l'année suivants en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &rarr;&nbsp;)</span>.</dd>
+            <dt id="csv"><img class="button" src="img/csv.png" alt="Exporter" />Exporter</dt><dd>Exporte les données actuellement affichées dans un fichier <acronym title="Comma-Separated Values">CSV</acronym>, qui peut être importé dans n'importe quel tableur ou lu avec un éditeur de texte. Ce bouton est activé quand on charge des données en appuyant sur le bouton <a href="#plot">tracer</a> <span class="shortcut">(Ctrl + &darr;&nbsp;)</span>.</dd>
+            <dt id="help"><img class="button" src="img/help.png" alt="Aide" />Aide</dt><dd>Affiche cette page d'aide <span class="shortcut">(Ctrl + F1)</span>.</dd>
+        </dl>
+    </div>
+    </body>
+</html>
+ 
