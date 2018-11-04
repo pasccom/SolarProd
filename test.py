@@ -564,7 +564,7 @@ class LayoutTest(TestCase):
        
     @testData([
         {'size': (723, 500)},
-        {'size': (403, 200)},
+        {'size': (437, 200)},
     ])
     def testSmallSizes(self, size):
         self.setUpBrowser(size)
@@ -582,7 +582,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @testData([{'size': (402, 200)}])
+    @testData([{'size': (436, 200)}])
     def testVerySmallSize(self, size):
         self.setUpBrowser(size)
         
@@ -590,7 +590,7 @@ class LayoutTest(TestCase):
         self.assertEqual(chart.rect['x'], 8)
         self.assertEqual(chart.rect['y'], 80)
         self.assertEqual(chart.rect['width'], size[0] - 16)
-        self.assertEqual(chart.rect['height'], size[1] - 92)
+        self.assertEqual(chart.rect['height'], size[1] - 90)
 
         legend = self.browser.find_element_by_id('legend')
         self.assertEqual(legend.value_of_css_property('display'), 'none')

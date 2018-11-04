@@ -263,6 +263,7 @@ function SolarProd() {
         // None selected at previous level:
         if ((level > 1) && (date()[level - 2] == '')) {
             clearSelect(level);
+            this.windowResize();
             if (callPlot)
                 this.plot();
             return;
@@ -277,6 +278,7 @@ function SolarProd() {
             pendingListRequests--;
             console.warn("Could not retrieve list: ", listPath, error);
             clearSelect(level);
+            this.windowResize();
             this.siblingPlot(Math.sign(selectDate()[level - 1]*selectDate.dir), callPlot, level - 1);
         }).on('load', (data) => {
             pendingListRequests--;
@@ -298,6 +300,7 @@ function SolarProd() {
             selects()[level - 1].selectAll('option')
                                 .filter((d) => (d == ''))
                                 .lower();
+            this.windowResize();
 
             var dateOffset = selectDate()[level - 1]*selectDate.dir;
             var selectDateOffset = 0;
@@ -480,15 +483,15 @@ function SolarProd() {
     // Window resize event:
     this.windowResize = function()
     {
-        // Compute toolbar total width (currently 403):
-        //var tw = 20;
-        //d3.selectAll('.toolbar').each(function() {tw += this.clientWidth;});
+        // Compute toolbar total width (defaults to 437):
+        var tw = 12;
+        d3.selectAll('.toolbar').each(function() {tw += (this.getBoundingClientRect().width + 4);});
 
         // Plot width and height:
         var w = window.innerWidth - 18;
         var h = window.innerHeight - 56;
-        if (window.innerWidth < 403)
-            h -= 38;
+        if (window.innerWidth < tw)
+            h -= 36;
 
         this.chart.resize(w, h);
     };
@@ -558,6 +561,13 @@ function SolarProd() {
     buttons.today.on('click', () => {this.plot(true);});
     buttons.next.on('click', () => {this.siblingPlot(1);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
+
+    // Load event:
+    buttons.plot.on('load', () => {this.windowResize();});
+    buttons.prev.on('load', () => {this.windowResize();});
+    buttons.today.on('load', () => {this.windowResize();});
+    buttons.next.on('load', () => {this.windowResize();});
+    buttons.export.on('load', () => {this.windowResize();});
 
     // Key event:
     d3.select(document).on('keydown', () => {
