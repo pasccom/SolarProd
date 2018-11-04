@@ -24,12 +24,20 @@ fi
 # Deploy local files:
 sed -e 's|src="js/d3.js"|src="https://d3js.org/d3.v4.min.js"|' \
     -e 's|src="js/FileSaver.js"|src="js/FileSaver.min.js"|' "prod/index.html" > "$1/index.html"
+cp "prod/help.html" "$1/"
 cp "prod/style.css" "$1/"
 cp -r "prod/img" "$1/"
 mkdir "$1/js"
-cp "prod/js/linedata.js" "$1/"
-cp "prod/js/histdata.js" "$1/"
-cp "prod/js/solardata.js" "$1/"
+cp "prod/js/locale.js" "$1/js/"
+cp "prod/js/linedata.js" "$1/js/"
+cp "prod/js/histdata.js" "$1/js/"
+cp "prod/js/solardata.js" "$1/js/"
+cp "prod/js/lineplot.js" "$1/js/"
+cp "prod/js/histplot.js" "$1/js/"
+cp "prod/js/solarplot.js" "$1/js/"
+cp "prod/js/solarlegend.js" "$1/js/"
+cp "prod/js/solarchart.js" "$1/js/"
+cp "prod/js/solarprod.js" "$1/js/"
 
 # Get FileSaver.js from GitHub:
 if [ -f 'FileSaver-version.local' ]; then
