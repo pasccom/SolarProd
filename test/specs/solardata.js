@@ -558,6 +558,155 @@ describe('SolarData', function() {
             expect(SolarData.listFilePath(year, month, '')).toBe('list/days/' + SolarData.pad(year, 4, '0') + '/' + SolarData.pad(month, 2, '0') + '.json');
         });
     });
+    describe('hasDate', function() {
+        describe('EmptyData', function() {
+            it('should return false', function() {
+                createSolarData('', '', '').then(function(solarData) {
+                    expect(solarData.hasDate('', '', '')).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.year,
+            ], function(year) {
+                createSolarData(year, '', '').then(function(solarData) {
+                    expect(solarData.hasDate(year, '', '')).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.year,
+                generators.month,
+            ], function(year, month) {
+                createSolarData(year, month, '').then(function(solarData) {
+                    expect(solarData.hasDate(year, month, '')).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.year,
+                generators.month,
+                generators.day,
+            ], function(year, month, day) {
+                createSolarData(year, month, day).then(function(solarData) {
+                    expect(solarData.hasDate(year, month, day)).toBeFalsy();
+                });
+            });
+        });
+        describe('HistData and LineData', function() {
+            it('should return true', [
+                generators.histData
+            ], function(data) {
+                createSolarData('', '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate('', '', '')).toBeTruthy();
+                });
+            });
+            it('should return true', [
+                generators.histData,
+                generators.year,
+            ], function(data, year) {
+                createSolarData(year, '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate(year, '', '')).toBeTruthy();
+                });
+            });
+            it('should return true', [
+                generators.histData,
+                generators.year,
+                generators.month,
+            ], function(data, year, month) {
+                createSolarData(year, month, '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate(year, month, '')).toBeTruthy();
+                });
+            });
+            it('should return true', [
+                generators.lineData,
+                generators.year,
+                generators.month,
+                generators.day,
+            ], function(data, year, month, day) {
+                createSolarData(year, month, day).using(data).then(function(solarData) {
+                    expect(solarData.hasDate(year, month, day)).toBeTruthy();
+                });
+            });
+            it('should return false', [
+                generators.histData,
+                generators.year,
+                generators.month,
+                generators.day,
+            ], function(data, year, month, day) {
+                createSolarData('', '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate()).toBeFalsy();
+                    expect(solarData.hasDate(year, '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, day)).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.histData,
+                generators.year,
+                generators.month,
+                generators.day,
+                generators.year,
+            ], function(data, year, month, day, otherYear) {
+                createSolarData(year, '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate()).toBeFalsy();
+                    expect(solarData.hasDate('', '', '')).toBeFalsy();
+                    expect(solarData.hasDate(otherYear, '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, day)).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.histData,
+                generators.year,
+                generators.month,
+                generators.day,
+                generators.month,
+            ], function(data, year, month, day, otherMonth) {
+                createSolarData(year, '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate()).toBeFalsy();
+                    expect(solarData.hasDate('', '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, otherMonth, '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, day)).toBeFalsy();
+                });
+            });
+            it('should return false', [
+                generators.lineData,
+                generators.year,
+                generators.month,
+                generators.day,
+                generators.day,
+            ], function(data, year, month, day, otherMonth) {
+                createSolarData(year, '', '').using(data).then(function(solarData) {
+                    expect(solarData.hasDate()).toBeFalsy();
+                    expect(solarData.hasDate('', '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, otherDay)).toBeFalsy();
+                });
+            });
+        });
+        describe('today', function() {
+            it('should return true', [
+                generators.lineData,
+            ], function(data) {
+                createSolarData().using(data).then(function(solarData) {
+                    expect(solarData.hasDate()).toBeTruthy();
+                });
+            });
+            it('should return false', [
+                generators.lineData,
+                generators.year,
+                generators.month,
+                generators.day,
+            ], function(data, year, month, day) {
+                createSolarData().using(data).then(function(solarData) {
+                    expect(solarData.hasDate('', '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, '', '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, '')).toBeFalsy();
+                    expect(solarData.hasDate(year, month, day)).toBeFalsy();
+                });
+            });
+        });
+    });
     describe('dateString', function() {
         it('should be empty', function() {
             return createSolarData('', '', '').then(function(solarData) {

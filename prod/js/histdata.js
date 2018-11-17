@@ -1,13 +1,16 @@
 function HistData(data, year, month, day) {
+    var today = false;
+
     // Ensure year, month and day are defined:
     if ((year === undefined) && (month === undefined) && (day === undefined)) {
         var date = d3.isoParse(data[0].date);
         year = date.getFullYear();
         month = (date.getMonth() + 1);
         day = date.getDate();
+        today = true;
     }
 
-    this.init(year, month, day);
+    this.init(year, month, day, today);
     
     // Available variables:
     if (data[0])

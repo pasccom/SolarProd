@@ -45,7 +45,7 @@ function SolarData()
         isArray: Array.isArray,
         sumArray: d3.sum,
 
-        init: function(year, month, day)
+        init: function(year, month, day, today)
         {
             this.length = 0;
             variable = null;
@@ -65,6 +65,16 @@ function SolarData()
                 day = SolarData.pad(day, 2, '0');
                 type = Type.DAY;
             }
+
+            this.hasDate = function() {
+                if (arguments.length == 0)
+                    return today;
+                if (arguments.length != 3)
+                    return false;
+                return (((arguments[0] === year)  || (parseInt(arguments[0]) == parseInt(year))) &&
+                        ((arguments[1] === month) || (parseInt(arguments[1]) == parseInt(month))) &&
+                        ((arguments[2] === day)   || (parseInt(arguments[2]) == parseInt(day))));
+            };
 
             // Available variables and sums:
             this.validVars = [];
@@ -436,7 +446,8 @@ Object.setPrototypeOf(SolarData, Array.prototype);
 
 function EmptyData(data, year, month, day)
 {
-    this.init(year, month, day);
+    this.init(year, month, day, false);
+    this.hasDate = function() {return false};
     this.export = function() {return null};
     this.update = function() {};
 }

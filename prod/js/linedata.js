@@ -1,4 +1,6 @@
 function LineData(data, year, month, day) {
+    var today = false;
+
     // Ensure year, month and day are defined:
     if ((year === undefined) && (month === undefined) && (day === undefined)) {
         var date = d3.isoParse(data.dates[0]);
@@ -6,9 +8,10 @@ function LineData(data, year, month, day) {
         year = date.getFullYear();
         month = (date.getMonth() + 1);
         day = date.getDate();
+        today = true;
     }
 
-    this.init(year, month, day);
+    this.init(year, month, day, today);
     
     // Available variables:
     this.validVars = Object.keys(data).filter((k) => (k != 'dates'))
