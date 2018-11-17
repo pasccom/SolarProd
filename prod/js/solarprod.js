@@ -409,6 +409,14 @@ function SolarProd() {
             updatePrevNext();
         }
 
+        if (today) {
+            if (this.chart.plot.data.hasDate())
+                return;
+        } else {
+            if (this.chart.plot.data.hasDate(... date()))
+                return;
+        }
+
         var solarPromise = today ? SolarData.create() : SolarData.create(... date());
         pendingDataRequests++;
         solarPromise.catch((msg) => {
