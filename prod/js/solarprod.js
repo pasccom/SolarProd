@@ -173,6 +173,11 @@ function SolarProd() {
                                          .attr('src', 'img/next.png')
                                          .attr('title', 'Suivant')
                                          .attr('alt', 'Suivant');
+    buttons.cursor = toolbar2.append('img').classed('button', true)
+                                           .classed('disabled', true)
+                                           .attr('src', 'img/cursor.png')
+                                           .attr('title', 'Afficher le curseur')
+                                           .attr('alt', 'Curseur');
     buttons.export = toolbar2.append('img').classed('button', true)
                                            .classed('disabled', true)
                                            .attr('src', 'img/csv.png')
@@ -195,6 +200,7 @@ function SolarProd() {
     buttons.prev.attr('id', 'prev');
     buttons.today.attr('id', 'today');
     buttons.next.attr('id', 'next');
+    buttons.cursor.attr('id', 'cursor');
     buttons.export.attr('id', 'export');
     buttons.help.attr('id', 'help');
 
@@ -432,7 +438,8 @@ function SolarProd() {
             updateVars(data);
             this.chart.setData(data);
 
-            // Activate export:
+            // Activate data cursor and export:
+            buttons.cursor.classed('disabled', data.isEmpty());
             buttons.export.classed('disabled', data.isEmpty());
         });
     };
@@ -581,6 +588,7 @@ function SolarProd() {
     buttons.prev.on('load', () => {this.windowResize();});
     buttons.today.on('load', () => {this.windowResize();});
     buttons.next.on('load', () => {this.windowResize();});
+    buttons.cursor.on('load', () => {this.windowResize();});
     buttons.export.on('load', () => {this.windowResize();});
     buttons.help.on('load', () => {this.windowResize();});
 

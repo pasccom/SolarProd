@@ -461,6 +461,7 @@ class ElementsTest(BrowserTestCase):
         {'name': 'today',   'enabled': True },
         {'name': 'prev',    'enabled': False},
         {'name': 'next',    'enabled': False},
+        {'name': 'cursor',  'enabled': False},
         {'name': 'export',  'enabled': False},
         {'name': 'help',    'enabled': True },
     ])
@@ -471,9 +472,12 @@ class ElementsTest(BrowserTestCase):
         self.assertEqual(button.size['width'], 28)
         self.assertEqual(button.size['height'], 28)
 
-    def testExportToday(self):
+    def testCursorAndExportToday(self):
         self.browser.find_element_by_id('today').click()
         
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertEnabled(cursor, True)
+
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, True)
         
@@ -483,19 +487,25 @@ class ElementsTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': None},
         {'year': 2017, 'month': 8,    'day': 8},
     ])
-    def testExportDate(self, year, month, day):
+    def testCursorAndExportDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
         
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertEnabled(cursor, True)
+
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, True)
 
     @testData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
-    def testExportEmpty(self, year, month, day):
+    def testCursorAndExportEmpty(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertEnabled(cursor, False)
 
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, False)
@@ -576,7 +586,7 @@ class LayoutTest(TestCase):
        
     @testData([
         {'size': (723, 500)},
-        {'size': (469, 200)},
+        {'size': (501, 200)},
     ])
     def testSmallSizes(self, size):
         self.setUpBrowser(size)

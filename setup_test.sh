@@ -278,7 +278,7 @@ if [ -z "$ANS" ]; then
     create_profile "1023x655" 1023 655
     create_profile  "724x500"  724 500
     create_profile  "723x500"  723 500
-    create_profile  "469x200"  469 200
+    create_profile  "501x200"  500 200
     create_profile  "468x200"  468 200
 fi
 
