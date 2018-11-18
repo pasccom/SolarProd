@@ -34,5 +34,6 @@ function EmptyPlot(root)
     this.legendStyle = null;
     this.remove = () => {};
     this.draw = () => false;
+    this.enableCursor = (enable) => false;
 }
 EmptyPlot.prototype = SolarPlot;

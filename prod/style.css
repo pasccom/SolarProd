@@ -64,6 +64,14 @@ select {
     background-color: #88BBFF;
 }
 
+.checked {
+    background-color: #FFBBBB;
+}
+
+.checked:hover {
+    background-color: #DDAAFF;
+}
+
 .disabled, .disabled:hover {
     background-color: #DDDDDD;
 }

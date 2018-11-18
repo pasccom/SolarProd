@@ -439,6 +439,7 @@ function SolarProd() {
             this.chart.setData(data);
 
             // Activate data cursor and export:
+            buttons.cursor.classed('checked', false);
             buttons.cursor.classed('disabled', data.isEmpty());
             buttons.export.classed('disabled', data.isEmpty());
         });
@@ -516,6 +517,10 @@ function SolarProd() {
         this.chart.resize(w, h);
     };
 
+    var toogleCursor = function() {
+        buttons.cursor.classed('checked', this.chart.plot.enableCursor(!buttons.cursor.classed('checked')));
+    };
+
     var setupSelectEvents = function(select, callback) {
         var eventsBlocked = false;
 
@@ -569,10 +574,12 @@ function SolarProd() {
         chart.plot.data.variable(selects.var.property('value'));
         updateAggs();
         this.chart.draw();
+        buttons.cursor.classed('checked', false);
     });
     selects.agg.call(setupSelectEvents, () => {
         this.chart.plot.data.aggregation(selects.agg.property('value'));
         this.chart.draw();
+        buttons.cursor.classed('checked', false);
     });
 
     // Click event:
@@ -580,6 +587,7 @@ function SolarProd() {
     buttons.prev.on('click', () => {this.siblingPlot(-1);});
     buttons.today.on('click', () => {this.plot(true);});
     buttons.next.on('click', () => {this.siblingPlot(1);});
+    buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
     buttons.help.on('click', () => {window.location = 'help.html';});
 

@@ -265,6 +265,12 @@ class BrowserTestCase(TestCase):
         else:
             self.assertIn('disabled', self.getClasses(obj))
      
+    def assertChecked(self, obj, checked):
+        if (checked):
+            self.assertIn('checked', self.getClasses(obj))
+        else:
+            self.assertNotIn('checked', self.getClasses(obj))
+
     def longVar(self, var):
         return self.__class__.longVars[self.__class__.shortVars.index(var)]
      
@@ -472,12 +478,9 @@ class ElementsTest(BrowserTestCase):
         self.assertEqual(button.size['width'], 28)
         self.assertEqual(button.size['height'], 28)
 
-    def testCursorAndExportToday(self):
+    def testExportToday(self):
         self.browser.find_element_by_id('today').click()
         
-        cursor = self.browser.find_element_by_id('cursor')
-        self.assertEnabled(cursor, True)
-
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, True)
         
@@ -487,12 +490,9 @@ class ElementsTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': None},
         {'year': 2017, 'month': 8,    'day': 8},
     ])
-    def testCursorAndExportDate(self, year, month, day):
+    def testExportDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
-        
-        cursor = self.browser.find_element_by_id('cursor')
-        self.assertEnabled(cursor, True)
 
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, True)
@@ -500,12 +500,9 @@ class ElementsTest(BrowserTestCase):
     @testData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
-    def testCursorAndExportEmpty(self, year, month, day):
+    def testExportEmpty(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
-
-        cursor = self.browser.find_element_by_id('cursor')
-        self.assertEnabled(cursor, False)
 
         export = self.browser.find_element_by_id('export')
         self.assertEnabled(export, False)
@@ -3480,6 +3477,188 @@ class ChartTest(BrowserTestCase):
         self.initMapFunction('yaxis')
         
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+
+class CursorTest(BrowserTestCase):
+    def loadToday(self):
+        self.browser.find_element_by_id('today').click()
+
+    def loadTodayDCPower(self):
+        self.browser.find_element_by_id('today').click()
+        self.selectVar('pdc')
+
+    def testCursorToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertChecked(cursor, False)
+        self.assertEnabled(cursor, True)
+
+        cursor.click()
+        self.assertChecked(cursor, True)
+        cursor.click()
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2017, 'month': None, 'day': None},
+        {'year': 2017, 'month': 8,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8},
+    ])
+    def testCursorDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertChecked(cursor, False)
+        self.assertEnabled(cursor, True)
+
+        cursor.click()
+        self.assertChecked(cursor, True)
+        cursor.click()
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testCursorChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.selectDate(newYear, newMonth, newDay)
+        self.browser.find_element_by_id('plot').click()
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testCursorNoChangeDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.browser.find_element_by_id('plot').click()
+        self.assertChecked(cursor, True)
+
+    @testData([
+        {'var': 'pac' },
+        {'var': 'pdc' },
+        {'var': 'udc' },
+        {'var': 'temp'},
+    ], before=loadToday)
+    def testCursorChangeVar(self, var):
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.selectVar(var)
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'agg': 'inv' },
+        {'agg': 'str' },
+    ], before=loadTodayDCPower)
+    def testCursorChangeSum(self, agg):
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.selectSum(agg)
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 6,  },
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testCursorChangeToday(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.browser.find_element_by_id('today').click()
+        self.assertChecked(cursor, False)
+
+    def testCursorNoChangeToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.browser.find_element_by_id('today').click()
+        self.assertChecked(cursor, True)
+
+    @testData([
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testCursorPrev(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.browser.find_element_by_id('prev').click()
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': 2009, 'month': None, 'day': None},
+        {'year': 2010, 'month': 12,   'day': None},
+        {'year': 2011, 'month': 6,    'day': 24  },
+    ])
+    def testCursorNext(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertChecked(cursor, True)
+
+        self.browser.find_element_by_id('next').click()
+        self.assertChecked(cursor, False)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testCursorEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertChecked(cursor, False)
+        self.assertEnabled(cursor, False)
+
+        cursor.click()
+        self.assertChecked(cursor, False)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

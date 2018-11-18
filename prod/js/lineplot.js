@@ -50,7 +50,9 @@ function LinePlot(root) {
         var line = d3.line().x((d) => this.data.xScale(d.x))
                             .y((d) => this.data.yScale(d.y/this.data.div));
         paths.attr('d', line)
-             .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()));
+             .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()))
+             .on('mouseenter', null)
+             .on('mouseleave', null);
 
         // Data for legend:
         this.legendData = d3.select(lines.node()).selectAll('g').nodes().map((g) => {
@@ -58,6 +60,17 @@ function LinePlot(root) {
         });
 
         return true;
+    };
+
+    this.enableCursor = function(enable) {
+        if (lines === undefined)
+            return;
+
+        var paths = lines.selectAll('path');
+        paths.on('mouseenter', !enable ? null : function() {d3.select(this).attr('stroke', '#FF0000');})
+             .on('mouseleave', !enable ? null : function() {d3.select(this).attr('stroke', null);});
+
+        return enable;
     };
 }
 LinePlot.prototype = SolarPlot;

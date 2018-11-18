@@ -49,7 +49,9 @@ function HistPlot(root) {
             .attr('y', (d) => this.data.yScale(d/this.data.div))
             .attr('width', 0.98*this.data.xScale.bandwidth()/nGroups/nBars)
             .attr('height', (d) => (this.data.yScale(0) - this.data.yScale(d/this.data.div)))
-            .attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars));
+            .attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars))
+            .on('mouseenter', null)
+            .on('mouseleave', null);
 
         // Places groups:
         groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.x) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
@@ -64,6 +66,17 @@ function HistPlot(root) {
         });
 
         return true;
+    };
+
+    this.enableCursor = function(enable) {
+        if (groups === undefined)
+            return;
+
+        var bars = groups.selectAll('rect');
+        bars.on('mouseenter', !enable ? null : function() {d3.select(this).attr('stroke', '#FF0000');})
+            .on('mouseleave', !enable ? null : function() {d3.select(this).attr('stroke', null);});
+
+        return enable;
     };
 }
 
