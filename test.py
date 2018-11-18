@@ -375,19 +375,11 @@ class BrowserTestCase(TestCase):
     
     def getLines(self):
         chart = self.browser.find_element_by_id('chart')
-        return [(
-            p, 
-            self.__parseColor(p.find_element_by_xpath('..').get_attribute('stroke')), 
-            float(p.get_attribute('stroke-opacity'))
-        ) for p in chart.find_elements_by_css_selector('path.line')]
+        return chart.find_elements_by_css_selector('path.line')
     
     def getBars(self):
         chart = self.browser.find_element_by_id('chart')
-        return [(
-            p,
-            self.__parseColor(p.find_element_by_xpath('..').get_attribute('fill')), 
-            float(p.get_attribute('fill-opacity'))
-        ) for p in chart.find_elements_by_css_selector('rect.bar')]
+        return chart.find_elements_by_css_selector('rect.bar')
     
     def getStyle(self, element):
         style = element.get_attribute('style')
@@ -395,7 +387,7 @@ class BrowserTestCase(TestCase):
         styles = dict([self.__parseStyle(k, v) for k, v in styles.items()])
         return styles
         
-    def __parseColor(self, value):
+    def parseColor(self, value):
         if (value.startswith('rgb(') and value.endswith(')')):
             return tuple([int(c.strip()) for c in value[4:-1].split(',')])
         elif (value.startswith('#') and len(value) == 4):
@@ -406,7 +398,7 @@ class BrowserTestCase(TestCase):
     
     def __parseStyle(self, tag, value):
         if (tag == 'color'):
-            return tag, self.__parseColor(value)
+            return tag, self.parseColor(value)
         return tag, value
             
 class ServerTestCase(BrowserTestCase):
@@ -2358,7 +2350,11 @@ class LegendTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum('sum')
 
-        lines = self.getLines()
+        lines = [(
+            l,
+            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
+            float(l.get_attribute('stroke-opacity'))
+        ) for l in self.getLines()]
         legendItems = self.getLegendItems()
         
         for legendElements in legendItems:
@@ -2384,7 +2380,11 @@ class LegendTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum('inv')
 
-        lines = self.getLines()
+        lines = [(
+            l,
+            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
+            float(l.get_attribute('stroke-opacity'))
+        ) for l in self.getLines()]
         legendItems = self.getLegendItems()
         
         for i, legendElements in enumerate(legendItems):
@@ -2426,7 +2426,11 @@ class LegendTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum('str')
 
-        lines = self.getLines()
+        lines = [(
+            l,
+            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
+            float(l.get_attribute('stroke-opacity'))
+        ) for l in self.getLines()]
         groups = set([p.find_element_by_xpath('..') for p, c, o in lines])
         legendItems = self.getLegendItems()
         
@@ -2552,7 +2556,11 @@ class LegendTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum('sum')
 
-        bars = self.getBars()
+        bars = [(
+            b,
+            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
+            float(b.get_attribute('fill-opacity'))
+        ) for b in self.getBars()]
         legendItems = self.getLegendItems()
         
         for legendElements in legendItems:
@@ -2585,7 +2593,11 @@ class LegendTest(BrowserTestCase):
         self.selectVar(var)
         self.selectSum('inv')
 
-        bars = self.getBars()
+        bars = [(
+            b,
+            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
+            float(b.get_attribute('fill-opacity'))
+        ) for b in self.getBars()]
         legendItems = self.getLegendItems()
         
         for i, legendElements in enumerate(legendItems):
@@ -2855,7 +2867,12 @@ class ChartTest(BrowserTestCase):
         # Grouping lines by color:
         # NOTE assuming they are in the right order.
         groups = []
-        lines = self.getLines()
+        lines = [(
+            l,
+            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
+            float(l.get_attribute('stroke-opacity'))
+        ) for l in self.getLines()]
+
         for p, c, o in lines:
             ok = False
             for i in range(0, len(groups)):
@@ -2873,7 +2890,12 @@ class ChartTest(BrowserTestCase):
         # Grouping bars by color and opacity:
         # NOTE assuming they are in the right order.
         groups = []
-        bars = self.getBars()
+        bars = [(
+            b,
+            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
+            float(b.get_attribute('fill-opacity'))
+        ) for b in self.getBars()]
+
         for p, c, o in bars:
             ok = False
             for i in range(0, len(groups)):
