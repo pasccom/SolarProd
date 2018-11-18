@@ -272,7 +272,10 @@ function SolarData()
                     w = w[1];
 
                 this.xScale.range([0, w]);
-                this.yGrid.tickSize(w);
+                if (type == Type.DAY)
+                    this.yGrid.tickSize(w/1.025);
+                else
+                    this.yGrid.tickSize(w);
 
                 // Adapt X axis tick labels:
                 if (type == Type.YEAR) {
@@ -300,7 +303,7 @@ function SolarData()
         {
             var maxData = (data[0] !== undefined) ? d3.max(data, (d) => recMax(d.y)) : recMax(data.y);
             this.updateDivider(maxData);
-            this.yScale.domain([0, maxData/this.div]);
+            this.yScale.domain([0, 1.025*maxData/this.div]);
         },
         xTickCenter: function()
         {

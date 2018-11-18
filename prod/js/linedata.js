@@ -1,5 +1,6 @@
 function LineData(data, year, month, day) {
     var today = false;
+    var domain;
 
     // Ensure year, month and day are defined:
     if ((year === undefined) && (month === undefined) && (day === undefined)) {
@@ -24,7 +25,11 @@ function LineData(data, year, month, day) {
     this.isEmpty = () => (data.dates.length <= 2);
 
     // X scale
-    this.xScale.domain(d3.extent(data.dates));
+    if (data.dates.length > 0) {
+        domain = d3.extent(data.dates).map((d) => d.getTime());
+        domain[1] += 0.025*(domain[1] - domain[0]);
+        this.xScale.domain(domain.map((d) => new Date(d)));
+    }
     
     // X axis
     this.xAxis.tickSizeOuter(0);

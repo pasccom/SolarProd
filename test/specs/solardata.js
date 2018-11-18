@@ -660,7 +660,8 @@ describe('SolarData', function() {
                 generators.day,
                 generators.month,
             ], function(data, year, month, day, otherMonth) {
-                createSolarData(year, '', '').using(data).then(function(solarData) {
+                console.log(data);
+                createSolarData(year, month, '').using(data).then(function(solarData) {
                     expect(solarData.hasDate()).toBeFalsy();
                     expect(solarData.hasDate('', '', '')).toBeFalsy();
                     expect(solarData.hasDate(year, '', '')).toBeFalsy();
@@ -674,8 +675,8 @@ describe('SolarData', function() {
                 generators.month,
                 generators.day,
                 generators.day,
-            ], function(data, year, month, day, otherMonth) {
-                createSolarData(year, '', '').using(data).then(function(solarData) {
+            ], function(data, year, month, day, otherDay) {
+                createSolarData(year, month, day).using(data).then(function(solarData) {
                     expect(solarData.hasDate()).toBeFalsy();
                     expect(solarData.hasDate('', '', '')).toBeFalsy();
                     expect(solarData.hasDate(year, '', '')).toBeFalsy();
@@ -821,7 +822,7 @@ describe('SolarData', function() {
             generators.variable.code,
             generators.aggregation,
         ], function(year, month, day, time, v, s) {
-            var data = {dates: [SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + time]};
+            var data = {dates: [SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + 'T' + time]};
             data[v] = [Math.round(1000*Math.random())];
 
             return createSolarData(year, month, day).using(data).then(function(solarData) {
@@ -1198,11 +1199,15 @@ describe('SolarData', function() {
                 dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
             }
 
+            var minDate = new Date(year, month - 1, day, minHour, minMinute);
+            var maxDate = new Date(year, month - 1, day, maxHour, maxMinute);
+            maxDate = new Date(maxDate.getTime() + 0.025*(maxDate.getTime() - minDate.getTime()));
+
             return createSolarData(year, month, day).using({dates: dates}).then(function(solarData) {
                 var domain = solarData.xScale.domain();
                 expect(domain.length).toBe(2);
-                expect(domain[0]).toEqual(new Date(year, month - 1, day, minHour, minMinute));
-                expect(domain[1]).toEqual(new Date(year, month - 1, day, maxHour, maxMinute));
+                expect(domain[0]).toEqual(minDate);
+                expect(domain[1]).toEqual(maxDate);
             });
         });
         it('should be dates (today)', [
@@ -1234,11 +1239,15 @@ describe('SolarData', function() {
                 dates.push(SolarData.pad(year, 4, '0') + '-' + SolarData.pad(month, 2, '0') + '-' + SolarData.pad(day, 2, '0') + ' ' + SolarData.pad(h, 2, '0') + ':' + SolarData.pad(m, 2, '0'));
             }
 
+            var minDate = new Date(year, month - 1, day, minHour, minMinute);
+            var maxDate = new Date(year, month - 1, day, maxHour, maxMinute);
+            maxDate = new Date(maxDate.getTime() + 0.025*(maxDate.getTime() - minDate.getTime()));
+
             return createSolarData().using({dates: dates}).then(function(solarData) {
                 var domain = solarData.xScale.domain();
                 expect(domain.length).toBe(2);
-                expect(domain[0]).toEqual(new Date(year, month - 1, day, minHour, minMinute));
-                expect(domain[1]).toEqual(new Date(year, month - 1, day, maxHour, maxMinute));
+                expect(domain[0]).toEqual(minDate);
+                expect(domain[1]).toEqual(maxDate);
             });
         });
     });
@@ -1253,19 +1262,26 @@ describe('SolarData', function() {
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     expect(solarData.xScale.range()).toEqual([0, w]);
-                    expect(solarData.yGrid.tickSize()).toEqual(w);
+                    if (ymd[2] == '')
+                        expect(solarData.yGrid.tickSize()).toEqual(w);
+                    else
+                        expect(solarData.yGrid.tickSize()).toEqual(w/1.025);
+
                 }),
                 createSolarData(...ymd).then(function(solarData) {
                     expect(solarData.xRange([0, w])).toEqual([0, w]);
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     expect(solarData.xScale.range()).toEqual([0, w]);
-                    expect(solarData.yGrid.tickSize()).toEqual(w);
+                    if (ymd[2] == '')
+                        expect(solarData.yGrid.tickSize()).toEqual(w);
+                    else
+                        expect(solarData.yGrid.tickSize()).toEqual(w/1.025);
                 }),
             ]);
         });
         it('should set X range and Y grid', [
-            generators.data,
+            generators.lineData,
             GenTest.types.int.positive,
         ], function(data, w) {
             return Promise.all([
@@ -1274,14 +1290,14 @@ describe('SolarData', function() {
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     expect(solarData.xScale.range()).toEqual([0, w]);
-                    expect(solarData.yGrid.tickSize()).toEqual(w);
+                    expect(solarData.yGrid.tickSize()).toEqual(w/1.025);
                 }),
                 createSolarData().using(data).then(function(solarData) {
                     expect(solarData.xRange([0, w])).toEqual([0, w]);
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     expect(solarData.xScale.range()).toEqual([0, w]);
-                    expect(solarData.yGrid.tickSize()).toEqual(w);
+                    expect(solarData.yGrid.tickSize()).toEqual(w/1.025);
                 }),
             ]);
         });

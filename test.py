@@ -2777,6 +2777,19 @@ class ChartTest(BrowserTestCase):
     
         return list(map(lambda x: scale*x, tickLabels))
     
+    def getTickLength(self, axis):
+        attr = 'y2' if axis == 'xaxis' else 'x2'
+        ticks = [t.find_element_by_tag_name('line') for t in self.getAxis(axis).find_elements_by_class_name('tick')]
+        tickLengthes = [float(t.get_attribute(attr)) for t in ticks]
+
+        length = tickLengthes[0]
+        for l in tickLengthes:
+            if not (l == length):
+                length = None
+                break
+        self.assertIsNotNone(length)
+        return length
+
     def getTickPositions(self, axis, centered=False):
         ticks = self.getAxis(axis).find_elements_by_class_name('tick')
         offsets = [self.parseTranslate(t, axis) for t in ticks]
@@ -2890,9 +2903,9 @@ class ChartTest(BrowserTestCase):
     def getDataRange(self, var, agg=None):
         data = self.getData(var, agg)
         if agg is not None:
-            return 0., float(max(map(lambda x: max(map(max, x)), data)))
+            return 0., 1.025*float(max(map(lambda x: max(map(max, x)), data)))
         else:
-            return min(data), max(data)
+            return min(data), max(data) + 0.025*(max(data) - min(data))
     
     def assertRangeEqual(self, range1, range2):
         self.assertAlmostEqual(range1[0], range2[0])
@@ -3025,9 +3038,11 @@ class ChartTest(BrowserTestCase):
         xTickLabels = self.getTickLabels('xaxis')
         self.assertEqual(xTickLabels, list(range(int(min(xTickLabels)), int(max(xTickLabels) + 1))))
         self.assertRangeEqual(self.getRange('xaxis', False), self.getDataRange('dates'))
+        self.assertEqual(self.getTickLength('xaxis'), 6.)
         
         # Check y axis:
         self.assertRangeEqual(self.getRange('yaxis', False), self.getDataRange(var, agg))
+        self.assertEqual(self.getTickLength('yaxis'), -6.)
         
     @testData([
         {'year': None, 'month': None, 'var': 'nrj',  'agg': 'sum'},
@@ -3060,9 +3075,11 @@ class ChartTest(BrowserTestCase):
         else:
             self.assertRangeEqual(self.getRange('xaxis', True), (float(min(xTickLabels)), float(max(xTickLabels) + 1)))
         self.assertEqual(self.getTickLabels('xaxis'), self.getData('dates'))
+        self.assertEqual(self.getTickLength('xaxis'), 6.)
         
         # Check y axis:
         self.assertRangeEqual(self.getRange('yaxis', False), self.getDataRange(var, agg))
+        self.assertEqual(self.getTickLength('yaxis'), -6.)
     
     def testEmptyGrid(self):
         self.selectDate(2017, 8, 5)
@@ -3071,14 +3088,6 @@ class ChartTest(BrowserTestCase):
         self.assertEqual(len(self.getAxis('grid').find_elements_by_xpath('./*')), 0)
     
     @testData([
-        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
-        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
-        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
-        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
-        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'sum'},
-        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'inv'},
-        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'sum'},
-        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'inv'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
@@ -3089,14 +3098,34 @@ class ChartTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'agg': 'str'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'agg': 'inv'},
     ])
-    def testGrid(self, year, month, day, var, agg):
+    def testLineGrid(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
         self.selectVar(var)
         self.selectSum(agg)
         
         self.assertEqual(self.getTickPositions('yaxis'), self.getTickPositions('grid'))
+        self.assertEqual(self.getTickLength('grid'), self.getDomain('xaxis', True)[1]/1.025)
     
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'sum'},
+        {'year': 2018, 'month': 2,    'day': None, 'var': 'pwr',  'agg': 'inv'},
+    ])
+    def testBarGrid(self, year, month, day, var, agg):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        self.assertEqual(self.getTickPositions('yaxis'), self.getTickPositions('grid'))
+        self.assertEqual(self.getTickLength('grid'), self.getDomain('xaxis', False)[1])
+
     def testEmptyData(self):
         self.selectDate(2017, 8, 5)
         self.browser.find_element_by_id('plot').click()
