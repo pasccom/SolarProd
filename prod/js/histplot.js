@@ -73,8 +73,8 @@ function HistPlot(root) {
             return;
 
         var bars = groups.selectAll('rect');
-        bars.on('mouseenter', !enable ? null : function() {d3.select(this).attr('stroke', '#FF0000');})
-            .on('mouseleave', !enable ? null : function() {d3.select(this).attr('stroke', null);});
+        bars.on('mouseenter', !enable ? null : function() {d3.select(this).classed('selected', true);})
+            .on('mouseleave', !enable ? null : function() {d3.select(this).classed('selected', false);});
 
         return enable;
     };
