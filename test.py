@@ -265,12 +265,6 @@ class BrowserTestCase(TestCase):
         else:
             self.assertNotIn(cls, self.getClasses(obj))
 
-    def assertEnabled(self, obj, enabled):
-        if (enabled):
-            self.assertNotIn('disabled', self.getClasses(obj))
-        else:
-            self.assertIn('disabled', self.getClasses(obj))
-
     def longVar(self, var):
         return self.__class__.longVars[self.__class__.shortVars.index(var)]
      
@@ -466,7 +460,7 @@ class ElementsTest(BrowserTestCase):
     def testButtons(self, name, enabled):
         button = self.browser.find_element_by_id(name)
         self.assertEqual(button.tag_name, 'img')
-        self.assertEnabled(button, enabled)
+        self.assertClassed(button, 'disabled', not enabled)
         self.assertEqual(button.size['width'], 28)
         self.assertEqual(button.size['height'], 28)
 
@@ -474,7 +468,7 @@ class ElementsTest(BrowserTestCase):
         self.browser.find_element_by_id('today').click()
         
         export = self.browser.find_element_by_id('export')
-        self.assertEnabled(export, True)
+        self.assertClassed(export, 'disabled', False)
         
     @testData([
         {'year': None, 'month': None, 'day': None},
@@ -487,7 +481,7 @@ class ElementsTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
 
         export = self.browser.find_element_by_id('export')
-        self.assertEnabled(export, True)
+        self.assertClassed(export, 'disabled', False)
 
     @testData([
         {'year': 2017, 'month': 8,    'day': 5},
@@ -497,7 +491,7 @@ class ElementsTest(BrowserTestCase):
         self.browser.find_element_by_id('plot').click()
 
         export = self.browser.find_element_by_id('export')
-        self.assertEnabled(export, False)
+        self.assertClassed(export, 'disabled', True)
 
     def testHelp(self):
         self.assertEqual(self.browser.current_url, self.index)
@@ -1181,8 +1175,8 @@ class PrevNextTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
     
     @testData([
         {'year': 2010, 'month': 12, 'prevEnabled': '!cache', 'nextEnabled': True    },
@@ -1201,8 +1195,8 @@ class PrevNextTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
         
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled',  not prevEnabled)
+        self.assertClassed(nextButton, 'disabled',  not nextEnabled)
         
     @testData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevEnabled': '!cache', 'nextEnabled': True    },
@@ -1219,8 +1213,8 @@ class PrevNextTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1257,8 +1251,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(prevButton, repeat).perform()
         
         self.assertDate(prevYear)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
    
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1301,8 +1295,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(prevButton, repeat).perform()
         
         self.assertDate(prevYear, prevMonth, wait=5)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1342,8 +1336,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(prevButton, repeat).perform()
         
         self.assertDate(prevYear, prevMonth, prevDay, wait=5)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1380,8 +1374,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(nextButton, repeat).perform()
         
         self.assertDate(nextYear)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
     
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1424,8 +1418,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(nextButton, repeat).perform()
         
         self.assertDate(nextYear, nextMonth, wait=5)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
         
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1465,8 +1459,8 @@ class PrevNextTest(BrowserTestCase):
         self.clickButton(nextButton, repeat).perform()
         
         self.assertDate(nextYear, nextMonth, nextDay, wait=5)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
     
     @BrowserTestCase.cacheTest
     def testNoPrevNext(self):
@@ -1474,8 +1468,8 @@ class PrevNextTest(BrowserTestCase):
         nextButton = self.browser.find_element_by_id('next')
         
         self.assertDate()
-        self.assertEnabled(prevButton, False)
-        self.assertEnabled(nextButton, False)
+        self.assertClassed(prevButton, 'disabled', True)
+        self.assertClassed(nextButton, 'disabled', True)
 
 class LeftRightKeyTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
@@ -1513,8 +1507,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=5)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1558,8 +1552,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, wait=5)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1599,8 +1593,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=5)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1637,8 +1631,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1681,8 +1675,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth, wait=5)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1722,8 +1716,8 @@ class LeftRightKeyTest(BrowserTestCase):
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=5)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
 class SlowPrevNextTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
@@ -1755,8 +1749,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.clickButton(prevButton, repeat).perform()
 
         self.assertDate(prevYear, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
         self.assertDataRequests([self.dataPath(prevYear)]*requests, wait=2)
 
 
@@ -1793,8 +1787,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
         self.assertDataRequests([self.dataPath(prevYear, prevMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -1829,8 +1823,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -1861,8 +1855,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.clickButton(nextButton, repeat).perform()
 
         self.assertDate(nextYear, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
         self.assertDataRequests([self.dataPath(nextYear)]*requests, wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -1898,8 +1892,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
         self.assertDataRequests([self.dataPath(nextYear, nextMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -1934,8 +1928,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
     @testData([1, 2])
     def testToday(self, repeat):
@@ -1951,8 +1945,8 @@ class SlowPrevNextTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, False)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', True)
         self.assertDataRequests([self.dataPath('today')], wait=2)
 
 class RepeatTest(ServerTestCase):
@@ -2069,8 +2063,8 @@ class SlowKeyTest(ServerTestCase):
             self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
         self.assertDataRequests([self.dataPath(prevYear)]*requests, wait=2)
 
 
@@ -2107,8 +2101,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
         self.assertDataRequests([self.dataPath(prevYear, prevMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -2143,8 +2137,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=2)
-        self.assertEnabled(prevButton, prevEnabled)
-        self.assertEnabled(nextButton, True)
+        self.assertClassed(prevButton, 'disabled', not prevEnabled)
+        self.assertClassed(nextButton, 'disabled', False)
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -2175,8 +2169,8 @@ class SlowKeyTest(ServerTestCase):
             self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
         self.assertDataRequests([self.dataPath(nextYear)]*requests, wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -2212,8 +2206,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
         self.assertDataRequests([self.dataPath(nextYear, nextMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -2248,8 +2242,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, nextEnabled)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
     @testData([1, 2])
     def testToday(self, repeat):
@@ -2264,8 +2258,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
-        self.assertEnabled(prevButton, True)
-        self.assertEnabled(nextButton, False)
+        self.assertClassed(prevButton, 'disabled', False)
+        self.assertClassed(nextButton, 'disabled', True)
         self.assertDataRequests([self.dataPath('today')], wait=2)
 
 class LegendTest(BrowserTestCase):
