@@ -3569,6 +3569,30 @@ class CursorTest(BrowserTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
+    def testKeyToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
     @testData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2017, 'month': None, 'day': None},
@@ -3593,6 +3617,37 @@ class CursorTest(BrowserTestCase):
         self.assertCursor(False)
 
     @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2017, 'month': None, 'day': None},
+        {'year': 2017, 'month': 8,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8},
+    ])
+    def testKeyDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
@@ -3606,7 +3661,7 @@ class CursorTest(BrowserTestCase):
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
     ])
-    def testDate(self, year, month, day, newYear, newMonth, newDay):
+    def testChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
 

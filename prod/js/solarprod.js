@@ -602,6 +602,9 @@ function SolarProd() {
 
     // Key event:
     d3.select(document).on('keydown', () => {
+        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKay && buttons.cursor.classed('checked'))
+            buttons.cursor.dispatch('click');
+
         if (d3.event.shiftKey || d3.event.altKey || !d3.event.ctrlKey || d3.event.metaKay)
             return;
 
@@ -619,6 +622,9 @@ function SolarProd() {
 
         if ((d3.event.key == 'ArrowDown') && !d3.event.repeat)
             buttons.export.dispatch('click');
+
+        if ((d3.event.key == 'c') && !buttons.cursor.classed('checked'))
+            buttons.cursor.dispatch('click');
     });
 
     // Resize event:
