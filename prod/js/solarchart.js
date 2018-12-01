@@ -135,11 +135,11 @@ function SolarChart(root, data) {
             xLabel.attr('transform', "translate(" + ((cw + margins.left - margins.right) / 2) + "," + (h - 8) + ")");
             yLabel.attr('transform', "translate(20," + ((h + margins.top - margins.bottom) / 2) + ")");
 
-            this.draw();
+            this.redraw();
         }, 100);
     };
 
-    // Draw the axes (and the grid)
+    // Draw the chart: Create the plot elements
     this.draw = function()
     {
         if (this.plot.draw()) {
@@ -150,6 +150,16 @@ function SolarChart(root, data) {
             this.hide();
             return false;
         }
+
+        return this.redraw();
+    }
+
+    // Redraw the chart: Position the plot, the axes and the grid
+    this.redraw = function()
+    {
+        // Redraw plot:
+        if (!this.plot.redraw())
+            return false;
 
         // Draw axes and grid:
         yGrid.lower().call(this.plot.data.yGrid).select('.domain').remove();

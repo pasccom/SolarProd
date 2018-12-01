@@ -30,9 +30,8 @@ function HistPlot(root) {
         subGroups = subGroups.data((d) => Array.isArray(d.y) ? d.y : [d.y]);
         subGroups.exit().remove();
         subGroups = subGroups.enter().append('g').merge(subGroups);
-        subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"))
-                .attr('fill', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups))
-                .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups));
+        subGroups.attr('fill', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups))
+                 .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups));
 
         // Manages bars:
         var nBars = d3.max(this.data, (d) => {
@@ -45,16 +44,9 @@ function HistPlot(root) {
         bars = bars.enter().append('rect').classed('bar', true).merge(bars);
 
         // Draw bars:
-        bars.attr('x', (d, i) => this.data.xScale.bandwidth()*i/nGroups/nBars)
-            .attr('y', (d) => this.data.yScale(d/this.data.div))
-            .attr('width', 0.98*this.data.xScale.bandwidth()/nGroups/nBars)
-            .attr('height', (d) => (this.data.yScale(0) - this.data.yScale(d/this.data.div)))
-            .attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars))
+        bars.attr('fill-opacity', (d, i) => (0.25 + 0.5*i/nBars))
             .on('mouseenter', null)
             .on('mouseleave', null);
-
-        // Places groups:
-        groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.x) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
         // Data for legend:
         this.legendData = d3.transpose(groups.nodes().map((g1) => {
@@ -64,6 +56,31 @@ function HistPlot(root) {
                 return d3.select(g2).selectAll('rect').nodes().map((r) => d3.select(r));
             }));
         });
+
+        return true;
+    };
+
+    this.redraw = function() {
+        if (groups === undefined)
+            return false;
+
+        var subGroups = groups.selectAll('g');
+        var bars = subGroups.selectAll('rect');
+
+        var nGroups = 0;
+        subGroups.each((d, i, n) => nGroups = nGroups < n.length ? n.length : nGroups);
+
+        var nBars = 0;
+        bars.each((d, i, n) => nBars = nBars < n.length ? n.length : nBars);
+
+        groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.x) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
+
+        subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"));
+
+        bars.attr('x', (d, i) => this.data.xScale.bandwidth()*i/nGroups/nBars)
+            .attr('y', (d) => this.data.yScale(d/this.data.div))
+            .attr('width', 0.98*this.data.xScale.bandwidth()/nGroups/nBars)
+            .attr('height', (d) => (this.data.yScale(0) - this.data.yScale(d/this.data.div)));
 
         return true;
     };

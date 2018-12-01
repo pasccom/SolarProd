@@ -47,10 +47,7 @@ function LinePlot(root) {
         paths = paths.enter().append('path').classed('line', true).merge(paths);
 
         // Draws lines:
-        var line = d3.line().x((d) => this.data.xScale(d.x))
-                            .y((d) => this.data.yScale(d.y/this.data.div));
-        paths.attr('d', line)
-             .attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()))
+        paths.attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()))
              .on('mouseenter', null)
              .on('mouseleave', null);
 
@@ -58,6 +55,20 @@ function LinePlot(root) {
         this.legendData = d3.select(lines.node()).selectAll('g').nodes().map((g) => {
             return d3.select(g).selectAll('path').nodes().map((p) => d3.select(p));
         });
+
+        return true;
+    };
+
+    this.redraw = function() {
+        if (lines === undefined)
+            return false;
+
+        var linesGroups = lines.selectAll('g');
+        var paths = linesGroups.selectAll('path');
+
+        var line = d3.line().x((d) => this.data.xScale(d.x))
+                            .y((d) => this.data.yScale(d.y/this.data.div));
+        paths.attr('d', line);
 
         return true;
     };
