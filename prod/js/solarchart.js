@@ -142,6 +142,9 @@ function SolarChart(root, data) {
     // Draw the chart: Create the plot elements
     this.draw = function()
     {
+        xAxis.selectAll('text').classed('cursor', false);
+        chartRoot.selectAll('.cursor').remove();
+
         if (this.plot.draw()) {
             legend.clear();
             if (this.plot.legendStyle)
@@ -184,6 +187,35 @@ function SolarChart(root, data) {
         yGrid.selectAll('*').remove();
         xAxis.selectAll('*').remove();
         yAxis.selectAll('*').remove();
+    };
+
+    this.enableCursor = function(enable) {
+        return this.plot.enableCursor(enable, () => {
+            var w = d3.max(this.plot.data.xScale.range());
+
+            if (d3.event.type == HistPlot.CURSOR_TYPE) {
+                var xAxisLabels = xAxis.selectAll('text');
+                xAxisLabels.classed('cursor', false);
+                plotRoot.select('text.cursor').remove();
+
+                if (d3.event.detail) {
+                    xAxisLabels.filter((d) => (d == d3.event.detail.x)).classed('cursor', true);
+                    plotRoot.append('text').classed('cursor', true)
+                                           .text(d3.event.detail.y/this.plot.data.div)
+                                           .attr('y', -5 + this.plot.data.yScale(d3.event.detail.y/this.plot.data.div))
+                                           .attr('x', (d, i, n) => {
+                        var hw = n[0].getBBox().width/2;
+                        var x = this.plot.data.xScale(d3.event.detail.x) + d3.event.detail.xFrac*this.plot.data.xScale.bandwidth();
+
+                        if (x - hw < 5)
+                            return 5 + hw;
+                        if (x + hw > w)
+                            return  w - hw;
+                        return x;
+                    });
+                }
+            }
+        });
     };
 
     this.setData(new EmptyData([], '', '', ''));

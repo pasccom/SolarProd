@@ -35,6 +35,6 @@ function EmptyPlot(root)
     this.remove = () => {};
     this.draw = () => false;
     this.redraw = () => false;
-    this.enableCursor = (enable) => false;
+    this.enableCursor = (enable, listener) => false;
 }
 EmptyPlot.prototype = SolarPlot;

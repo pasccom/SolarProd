@@ -1,5 +1,10 @@
 function HistPlot(root) {
     var groups;
+    var subGroups;
+    var bars;
+
+    var nGroups;
+    var nBars;
 
     this.legendStyle = (function(selection) {
         selection.classed('legenditem', true);
@@ -23,21 +28,23 @@ function HistPlot(root) {
         groups = groups.data(this.data);
         groups.exit().remove();
         groups = groups.enter().append('g').merge(groups);
+        groups.on('cursor', null);
 
         // Manages subGroups:
-        var nGroups = d3.max(this.data, (d) => Array.isArray(d.y) ? d.y.length : 1);
-        var subGroups = groups.selectAll('g');
+        nGroups = d3.max(this.data, (d) => Array.isArray(d.y) ? d.y.length : 1);
+        subGroups = groups.selectAll('g');
         subGroups = subGroups.data((d) => Array.isArray(d.y) ? d.y : [d.y]);
         subGroups.exit().remove();
         subGroups = subGroups.enter().append('g').merge(subGroups);
         subGroups.attr('fill', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups))
-                 .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups));
+                 .attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/nGroups))
+                 .on('cursor', null);
 
         // Manages bars:
-        var nBars = d3.max(this.data, (d) => {
+        nBars = d3.max(this.data, (d) => {
             return Array.isArray(d.y) ? d3.max(d.y, (a) => Array.isArray(a) ? a.length : 1) : 1;
         });
-        var bars = subGroups.selectAll('rect');
+        bars = subGroups.selectAll('rect');
         bars = bars.data((d) => Array.isArray(d) ? d : [d]);
         bars.style('display', 'initial');
         bars.exit().remove();
@@ -64,15 +71,6 @@ function HistPlot(root) {
         if (groups === undefined)
             return false;
 
-        var subGroups = groups.selectAll('g');
-        var bars = subGroups.selectAll('rect');
-
-        var nGroups = 0;
-        subGroups.each((d, i, n) => nGroups = nGroups < n.length ? n.length : nGroups);
-
-        var nBars = 0;
-        bars.each((d, i, n) => nBars = nBars < n.length ? n.length : nBars);
-
         groups.attr('transform', (d) => ("translate(" + (this.data.xScale(d.x) + 0.01*this.data.xScale.bandwidth()/nGroups/nBars) + ",0)"));
 
         subGroups.attr('transform', (d, i) => ("translate(" + (this.data.xScale.bandwidth()*i/nGroups) + ",0)"));
@@ -85,16 +83,32 @@ function HistPlot(root) {
         return true;
     };
 
-    this.enableCursor = function(enable) {
+    this.enableCursor = function(enable, listener) {
         if (groups === undefined)
             return;
 
-        var bars = groups.selectAll('rect');
-        bars.on('mouseenter', !enable ? null : function() {d3.select(this).classed('selected', true);})
-            .on('mouseleave', !enable ? null : function() {d3.select(this).classed('selected', false);});
+        bars.on('mouseenter', !enable ? null : function(d) {
+            var bar = d3.select(this).classed('selected', true);
+            bar.dispatch('cursor', {bubbles: true, detail: {d: d}});
+        }).on('mouseleave', !enable ? null : function() {
+            d3.select(this).classed('selected', false);
+            d3.customEvent(new Event(HistPlot.CURSOR_TYPE), listener);
+        }).on('cursor', !enable ? null : function(d, i) {
+            d3.event.detail.frac = i/nGroups/nBars;
+        });
+
+        subGroups.on('cursor', !enable ? null : function(d, i) {
+            d3.event.detail.frac += i/nGroups;
+        });
+
+        groups.on('cursor', !enable ? null : function (d) {
+            d3.event.stopPropagation();
+            d3.customEvent(new CustomEvent(HistPlot.CURSOR_TYPE, {detail: {x: d.x, xFrac: d3.event.detail.frac + 1/2/nGroups/nBars, y:d3.event.detail.d}}), listener);
+        });
 
         return enable;
     };
 }
 
+HistPlot.CURSOR_TYPE = 'HistCursor';
 HistPlot.prototype = SolarPlot;

@@ -73,7 +73,7 @@ function LinePlot(root) {
         return true;
     };
 
-    this.enableCursor = function(enable) {
+    this.enableCursor = function(enable, listener) {
         if (lines === undefined)
             return;
 

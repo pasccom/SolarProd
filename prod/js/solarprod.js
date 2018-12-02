@@ -518,7 +518,7 @@ function SolarProd() {
     };
 
     var toogleCursor = function() {
-        buttons.cursor.classed('checked', this.chart.plot.enableCursor(!buttons.cursor.classed('checked')));
+        buttons.cursor.classed('checked', this.chart.enableCursor(!buttons.cursor.classed('checked')));
     };
 
     var setupSelectEvents = function(select, callback) {

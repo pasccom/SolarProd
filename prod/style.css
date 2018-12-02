@@ -188,6 +188,12 @@ path.selected, rect.selected {
     stroke-opacity: 1;
 }
 
+text.cursor {
+    fill: #FF0000;
+    font: 12px sans-serif;
+    text-anchor: middle;
+}
+
 rect {
     stroke-width: 1;
 }

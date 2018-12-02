@@ -365,7 +365,7 @@ class BrowserTestCase(TestCase):
 
     def getClasses(self, element):
         classes = element.get_attribute('class')
-        return classes.split(' ')
+        return classes.split(' ') if not classes is None else []
     
     def getLines(self):
         chart = self.browser.find_element_by_id('chart')
@@ -3528,19 +3528,51 @@ class CursorTest(BrowserTestCase):
             for o in paths:
                 self.assertClassed(o, 'selected', False)
 
+    def __assertBarSelected(self, bar, enabled):
+        for o in self.getBars():
+            self.assertClassed(o, 'selected', enabled and (o == bar))
+
+    def __assertBarXCursorLabel(self, bar, enabled):
+        xMin = bar.find_element_by_xpath('../..').rect['x']
+        xMax = xMin + bar.find_element_by_xpath('../..').rect['width']
+        for t in self.browser.find_element_by_id('xaxis').find_elements_by_tag_name('text'):
+            self.assertClassed(t, 'cursor', enabled and (xMin < t.rect['x']) and (t.rect['x'] < xMax))
+
+    def __assertBarYCursorLabel(self, bar, enabled):
+        yLabel = None
+        # NOTE find_element_by_xpath does not work with complex XPathes (e.g. ./g/text[@class="cursor"])
+        for e1 in self.browser.find_element_by_id('chart').find_elements_by_xpath('child::*'):
+            if yLabel is not None:
+                break
+            for e2 in e1.find_elements_by_xpath('child::*'):
+                if (e2.tag_name == 'text') and ('cursor' in self.getClasses(e2)):
+                    yLabel = e2
+                    break
+
+        self.assertEqual(yLabel is not None, enabled)
+        if yLabel is not None:
+            xMin = bar.find_element_by_xpath('../..').rect['x']
+            xMax = xMin + bar.find_element_by_xpath('../..').rect['width']
+
+            self.assertTrue((xMin < yLabel.rect['x']) and (yLabel.rect['x'] < xMax))
+
     def __assertBarCursor(self, bars, enabled):
         for b in bars:
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, b.rect['height'] / 2)
             actions.perform()
-            for o in bars:
-                self.assertClassed(o, 'selected', enabled and (o == b))
+
+            self.__assertBarSelected(b, enabled)
+            self.__assertBarXCursorLabel(b, enabled)
+            self.__assertBarYCursorLabel(b, enabled)
 
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, -10)
             actions.perform()
-            for o in bars:
-                self.assertClassed(b, 'selected', False)
+
+            self.__assertBarSelected(b, False)
+            self.__assertBarXCursorLabel(b, False)
+            self.__assertBarYCursorLabel(b, False)
 
     def assertCursor(self, enabled):
         paths = self.getLines()
