@@ -20,3 +20,6 @@ __pycache__/
 *~
 *.bak
 *.kate-swp
+
+# Hidden files:
+.directory
