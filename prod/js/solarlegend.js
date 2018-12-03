@@ -48,23 +48,23 @@ function SolarLegend(root)
     // Draw the legend:
     this.draw = function(agg, data, style)
     {
-        var appendLegendItem = function(element)
+        var appendLegendItem = function()
         {
-            element.append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+            d3.select(this).append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
         };
 
-        var appendVisibilityBox = function(element)
+        var appendVisibilityBox = function()
         {
-            element.append('span')
-                   .classed('input', true).append('input')
-                                          .attr('type', 'checkbox')
-                                          .on('change', changeVisibility);
+            d3.select(this).append('span')
+                           .classed('input', true).append('input')
+                                                  .attr('type', 'checkbox')
+                                                  .on('change', changeVisibility);
         };
 
         root.append('h4').text('Légende');
         // Creates legend (using lists)
         if (agg == 'sum') {
-            root.call(appendLegendItem);
+            root.each(appendLegendItem);
             root.append('span').text(' Total');
         } else {
             var inv = root.append('ul').selectAll('li')
@@ -73,10 +73,10 @@ function SolarLegend(root)
             inv.append('span').classed('label', true);
 
             if (agg != 'str')
-                inv.select('span').call(appendLegendItem);
+                inv.select('span').each(appendLegendItem);
 
             inv.select('span').append('span').text((d, i) => ('Onduleur ' + (i + 1)));
-            inv.call(appendVisibilityBox);
+            inv.each(appendVisibilityBox);
 
             if (agg == 'str') {
                 var str = inv.append('ul').selectAll('li')
@@ -84,9 +84,9 @@ function SolarLegend(root)
                 str = str.enter().append('li');
                 str.append('span').classed('label', true);
 
-                str.select('span').call(appendLegendItem);
+                str.select('span').each(appendLegendItem);
                 str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
-                str.call(appendVisibilityBox);
+                str.each(appendVisibilityBox);
             }
 
             updateVisibility();
