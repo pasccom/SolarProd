@@ -108,6 +108,7 @@ fi
 
 # Ask user to check paths:
 ANS=
+ANY=
 echo "Test     directory: '$TEST_DIR'"
 echo "Exports  directory: '$EXPORTS_DIR'"
 echo "Profiles directory: '$PROFILES_DIR'"
@@ -137,6 +138,7 @@ if [ -d "$TEST_DIR/env" ]; then
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
             rm -R "$TEST_DIR/env"
             ANS=
+            ANY='yes'
             break
         fi
     done
@@ -190,6 +192,7 @@ if [ -d "$TEST_DIR/test/jasmine" ]; then
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
             rm -R "$TEST_DIR/test/jasmine"
             ANS=
+            ANY='yes'
             break
         fi
     done
@@ -228,6 +231,7 @@ if [ -d "$TEST_DIR/test/gentest" ]; then
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
             rm -R "$TEST_DIR/test/gentest"
             ANS=
+            ANY='yes'
             break
         fi
     done
@@ -254,6 +258,7 @@ if [ $(ls "$PROFILES_DIR" | wc -l) -gt 0 ]; then
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
             rm -R "$PROFILES_DIR"
             ANS=
+            ANY='yes'
             break
         fi
     done
@@ -289,7 +294,22 @@ fi
 
 # Delete old test data:
 ANS=
-if [ -d "$TEST_DIR/testdata" ]; then
+if [ -d "$TEST_DIR/testdata" -a -z "$ANY" ]; then
+    echo "Folder $TEST_DIR/testdata already exists. Do you want to delete it (Y/n)?"
+    while true; do
+        read ANS
+        if [ -z "$ANS" -o "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
+            rm -R "$TEST_DIR/testdata"
+            ANS=
+            break
+        fi
+        if [ "$ANS" == 'n' -o "$ANS" == 'N' ]; then
+            echo "OK, skipping"
+            ANS='skip'
+            break
+        fi
+    done
+elif [ -d "$TEST_DIR/testdata" ]; then
     echo "Folder $TEST_DIR/testdata already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
