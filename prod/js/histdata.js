@@ -29,6 +29,8 @@ function HistData(data, year, month, day) {
     // X axis
     this.xAxis.scale(this.xScale);
 
+    this.isLegendArray = (a) => (Array.isArray(a) && Array.isArray(a[0]));
+
     this.export = function() {
         return {headers: this.headLines(data[0][this.variable()]),
                 data: data.map((d) =>  [this.dateFormatter(d.date)].concat(this.merge(this.aggregate(d[this.variable()])))),

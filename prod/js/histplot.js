@@ -56,13 +56,13 @@ function HistPlot(root) {
             .on('mouseleave', null);
 
         // Data for legend:
-        this.legendData = d3.transpose(groups.nodes().map((g1) => {
+        this.legendData = this.data.aggregateLegend(d3.transpose(groups.nodes().map((g1) => {
             return d3.select(g1).selectAll('g').nodes();
         })).map((g1) => {
             return d3.transpose(g1.map((g2) => {
                 return d3.select(g2).selectAll('rect').nodes().map((r) => d3.select(r));
             }));
-        });
+        }));
 
         return true;
     };

@@ -43,6 +43,7 @@ function SolarData()
     return {
         isEmpty: () => true,
         isArray: Array.isArray,
+        isLegendArray: Array.isArray,
         sumArray: d3.sum,
 
         init: function(year, month, day, today)
@@ -199,6 +200,25 @@ function SolarData()
             else
                 return e;
         },
+
+        aggregateLegend: function(legendData)
+        {
+            return this.aggLegend(legendData, SolarData.aggregations.index(agg));
+        },
+        aggLegend: function(e, s)
+        {
+            if (!e || !this.isLegendArray(e)) {
+                var d = e;
+                d.isLeaf = true;
+                return d;
+            }
+
+            if (s <= 0)
+                return this.aggLegend(e[0], s - 1);
+            else
+                return e.map((d) => this.aggLegend(d, s - 1));
+        },
+
 
         headLine: function(datum, i, format, a, l)
         {

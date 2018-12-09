@@ -52,9 +52,9 @@ function LinePlot(root) {
              .on('mouseleave', null);
 
         // Data for legend:
-        this.legendData = d3.selectAll(lines.nodes()).selectAll('g').nodes().map((g) => {
+        this.legendData = this.data.aggregateLegend(d3.selectAll(lines.nodes()).selectAll('g').nodes().map((g) => {
             return d3.select(g).selectAll('path').nodes().map((p) => d3.select(p));
-        });
+        }));
 
         return true;
     };
