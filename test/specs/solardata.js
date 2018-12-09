@@ -235,20 +235,6 @@ describe('SolarData', function() {
         });
     });
 
-    describe('divider', function() {
-        it('should return previous power of 1000', [GenTest.types.float(-15, 15, 0)], function(N) {
-            var powN = Math.pow(10, N);
-            var log1000Div = Math.floor(N/3);
-            var powD = Math.pow(1000, log1000Div);
-
-            return createSolarData('', '', '').then(function(solarData) {
-                solarData.updateDivider(powN);
-                expect(solarData.div).toBeCloseTo(powD);
-                expect(solarData.log1000Div).toBe(log1000Div);
-            });
-        });
-    });
-
     describe('isEmpty', function() {
         it('should be empty', function() {
             return createSolarData('', '', '').then(function(solarData) {

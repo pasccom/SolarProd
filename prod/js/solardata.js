@@ -40,6 +40,62 @@ function SolarData()
     var variable;
     var agg;
 
+    var updateDivider = function(maxData)
+    {
+        this.div = 1;
+        this.log1000Div = 0;
+
+        while (maxData/this.div >= 1000) {
+            this.div *= 1000;
+            this.log1000Div += 1;
+        }
+        while (maxData/this.div < 1) {
+            this.div /= 1000;
+            this.log1000Div -= 1;
+        }
+    };
+
+    var aggSum = function(e, s)
+    {
+        if (!e || !this.isArray(e))
+            return e;
+
+        e = e.map((d) => aggSum.call(this, d, s - 1));
+        if (s <= 0)
+            return this.sumArray(e);
+        else
+            return e;
+    };
+
+    var aggLegend = function(e, s)
+    {
+        if (!e || !this.isLegendArray(e)) {
+            var d = e;
+            d.isLeaf = true;
+            return d;
+        }
+
+        if (s <= 0)
+            return aggLegend.call(this, e[0], s - 1);
+        else
+            return e.map((d) => aggLegend.call(this, d, s - 1));
+    };
+
+    var headLine = function(datum, i, format, a, l)
+    {
+        if (l == 0)
+            format = format + ((i !== null) ? (i + 1) : '');
+
+        if ((a == 0) || !datum || !this.isArray(datum))
+            return format;
+
+        datum = datum.map((d, j) => headLine.call(this, d, j, format, a - 1, l - 1));
+        if (Array.isArray(datum[0]))
+            return d3.merge(datum);
+        else
+            return datum;
+    };
+
     return {
         isEmpty: () => true,
         isArray: Array.isArray,
@@ -126,21 +182,6 @@ function SolarData()
             this.yGrid = d3.axisRight().scale(this.yScale);
         },
 
-        updateDivider: function(maxData)
-        {
-            this.div = 1;
-            this.log1000Div = 0;
-
-            while (maxData/this.div >= 1000) {
-                this.div *= 1000;
-                this.log1000Div += 1;
-            }
-            while (maxData/this.div < 1) {
-                this.div /= 1000;
-                this.log1000Div -= 1;
-            }
-        },
-
         variable: function(v) {
             if (arguments.length > 0) {
                 if (this.validVars.includes(v) && (variable != v)) {
@@ -187,53 +228,13 @@ function SolarData()
         },
         aggregate: function(datum)
         {
-            return this.aggSum(datum, SolarData.aggregations.index(agg));
+            return aggSum.call(this, datum, SolarData.aggregations.index(agg));
         },
-        aggSum: function(e, s)
-        {
-            if (!e || !this.isArray(e))
-                return e;
-
-            e = e.map((d) => this.aggSum(d, s - 1));
-            if (s <= 0)
-                return this.sumArray(e);
-            else
-                return e;
-        },
-
         aggregateLegend: function(legendData)
         {
-            return this.aggLegend(legendData, SolarData.aggregations.index(agg));
-        },
-        aggLegend: function(e, s)
-        {
-            if (!e || !this.isLegendArray(e)) {
-                var d = e;
-                d.isLeaf = true;
-                return d;
-            }
-
-            if (s <= 0)
-                return this.aggLegend(e[0], s - 1);
-            else
-                return e.map((d) => this.aggLegend(d, s - 1));
+            return aggLegend.call(this, legendData, SolarData.aggregations.index(agg));
         },
 
-
-        headLine: function(datum, i, format, a, l)
-        {
-            if (l == 0)
-                format = format + ((i !== null) ? (i + 1) : '');
-
-            if ((a == 0) || !datum || !this.isArray(datum))
-                return format;
-
-            datum = datum.map((d, j) => this.headLine(d, j, format, a - 1, l - 1));
-            if (Array.isArray(datum[0]))
-                return d3.merge(datum);
-            else
-                return datum;
-        },
         headLines: function(datum)
         {
             var headers = [];
@@ -241,7 +242,7 @@ function SolarData()
             var a = SolarData.aggregations.index(agg);
             var formats = ['Total', 'Onduleur ', 'String '];
             for (var l = 0; l <= a; l++)
-                headers.push([''].concat(this.headLine(datum, null, formats[l], a, l)));
+                headers.push([''].concat(headLine.call(this, datum, null, formats[l], a, l)));
 
             if (headers.length > 1)
                 headers.shift();
@@ -319,10 +320,10 @@ function SolarData()
 
             return this.yScale.range();
         },
-        updateYDomain: function(data)
+        updateYDomain: function(data) // TODO test and use virtual max function
         {
             var maxData = (data[0] !== undefined) ? d3.max(data, (d) => recMax(d.y)) : recMax(data.y);
-            this.updateDivider(maxData);
+            updateDivider.call(this, maxData);
             this.yScale.domain([0, 1.025*maxData/this.div]);
         },
         xTickCenter: function()
