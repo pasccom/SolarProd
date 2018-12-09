@@ -46,11 +46,15 @@ function SolarLegend(root)
     };
 
     // Draw the legend:
-    this.draw = function(agg, data, style)
+    this.draw = function(data, style)
     {
-        var appendLegendItem = function()
+        var appendLegendItem = function(d)
         {
-            d3.select(this).append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+            if (d === undefined)
+                d = data;
+
+            if (d.isLeaf)
+                d3.select(this).append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
         };
 
         var appendVisibilityBox = function()
@@ -63,34 +67,33 @@ function SolarLegend(root)
 
         root.append('h4').text('Légende');
         // Creates legend (using lists)
-        if (agg == 'sum') {
+        var list = root.selectAll('ul')
+                       .data([data]);
+        list = list.enter().append('ul');
+
+        var inv = list.selectAll('li')
+                        .data((d) => d.isLeaf ? [] : d);
+        inv = inv.enter().append('li');
+        inv.append('span').classed('label', true);
+        inv.select('span').each(appendLegendItem);
+        inv.select('span').append('span').text((d, i) => ('Onduleur ' + (i + 1)));
+        inv.each(appendVisibilityBox);
+
+        var str = inv.append('ul').selectAll('li')
+                                .data((d) => d.isLeaf ? [] : d);
+        str = str.enter().append('li');
+        str.append('span').classed('label', true);
+
+        str.select('span').each(appendLegendItem);
+        str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
+        str.each(appendVisibilityBox);
+
+        if (list.selectAll('li').empty()) {
             root.each(appendLegendItem);
             root.append('span').text(' Total');
-        } else {
-            var inv = root.append('ul').selectAll('li')
-                                       .data(data);
-            inv = inv.enter().append('li');
-            inv.append('span').classed('label', true);
-
-            if (agg != 'str')
-                inv.select('span').each(appendLegendItem);
-
-            inv.select('span').append('span').text((d, i) => ('Onduleur ' + (i + 1)));
-            inv.each(appendVisibilityBox);
-
-            if (agg == 'str') {
-                var str = inv.append('ul').selectAll('li')
-                                        .data((d) => d);
-                str = str.enter().append('li');
-                str.append('span').classed('label', true);
-
-                str.select('span').each(appendLegendItem);
-                str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
-                str.each(appendVisibilityBox);
-            }
-
-            updateVisibility();
         }
+
+        updateVisibility();
     };
 
     // Crear legend:

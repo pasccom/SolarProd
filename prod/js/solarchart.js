@@ -47,7 +47,7 @@ function SolarChart(root, data) {
     yLabel.append('text').attr('transform', 'rotate(-90)');
 
     // Create legend:
-    legend = new SolarLegend(legendRoot);
+    var legend = new SolarLegend(legendRoot);
 
     // Draw an axis:
     var drawAxis = function(selection, axis) {
@@ -148,7 +148,7 @@ function SolarChart(root, data) {
         if (this.plot.draw()) {
             legend.clear();
             if (this.plot.legendStyle)
-                legend.draw(this.plot.data.aggregation(), this.plot.legendData, this.plot.legendStyle);
+                legend.draw(this.plot.legendData, this.plot.legendStyle);
         } else {
             this.hide();
             return false;
