@@ -2,7 +2,7 @@ function LinePlot(root) {
     var lines;
 
     this.legendStyle = (function(selection) {
-        selection.classed('legenditem', true);
+        selection.classed('line', true);
         selection.style('color', (d) => this.getD3(d).style('stroke'));
         selection.style('opacity', (d) => this.getD3(d).style('stroke-opacity'));
     }).bind(this);

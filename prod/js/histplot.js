@@ -7,10 +7,22 @@ function HistPlot(root) {
     var nBars;
 
     this.legendStyle = (function(selection) {
-        selection.classed('legenditem', true);
-        selection.style('color', (d) => this.getD3(d).style('fill'));
-        selection.style('background-color', (d) => this.getD3(d).style('fill'));
-        selection.style('opacity', (d) => this.getD3(d).style('fill-opacity'));
+        selection.classed('bar', true);
+
+        var color = function(e) {
+            var color = d3.color(e.style('fill'));
+            if (arguments[1] !== undefined)
+                color.opacity = arguments[1];
+            else
+                color.opacity = e.style('fill-opacity');
+            return color;
+        };
+
+        selection.style('color', (d) => color(this.getD3(d), 0));
+        selection.style('background-color', (d) => color(this.getD3(d)));
+        selection.style('border-width', '1px');
+        selection.style('border-style', 'solid');
+        selection.style('border-color', (d) => color(this.getD3(d), 1));
     }).bind(this);
 
     this.remove = function()

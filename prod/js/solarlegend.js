@@ -53,8 +53,23 @@ function SolarLegend(root)
             if (d === undefined)
                 d = data;
 
-            if (d.isLeaf)
-                d3.select(this).append('span').html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;').call(style);
+            if (!d.isLeaf)
+                return;
+            if (!Array.isArray(d))
+                d = [d];
+
+            var item = d3.select(this).append('span').classed('legenditem', true)
+                                                     .html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;')
+                                                     .call(style);
+            var observer = new MutationObserver(function(mutations, observer) {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName != 'class')
+                        return;
+                    item.classed('selected', d3.select(mutation.target).classed('selected'));
+                    console.log('Mutation:', item.classed('selected'));
+                });
+            });
+            d.forEach((e) => {observer.observe(e.node(), {attributes: true})});
         };
 
         var appendVisibilityBox = function()
@@ -83,7 +98,6 @@ function SolarLegend(root)
                                 .data((d) => d.isLeaf ? [] : d);
         str = str.enter().append('li');
         str.append('span').classed('label', true);
-
         str.select('span').each(appendLegendItem);
         str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
         str.each(appendVisibilityBox);

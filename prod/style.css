@@ -188,6 +188,15 @@ path.selected, rect.selected {
     stroke-opacity: 1;
 }
 
+.legenditem.line.selected {
+    color: red !important;
+    opacity: 1 !important;
+}
+
+.legenditem.bar.selected {
+    border: 1px solid red !important;
+}
+
 text.cursor {
     fill: #FF0000;
     font: 12px sans-serif;
