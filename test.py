@@ -375,6 +375,47 @@ class BrowserTestCase(TestCase):
         chart = self.browser.find_element_by_id('chart')
         return chart.find_elements_by_css_selector('rect.bar')
     
+    def __removeChildren(self, elements, src=None):
+        children = []
+        for item in elements:
+            if src is None:
+                children += item.find_elements_by_tag_name(item.tag_name)
+            else:
+                for srcItem in src:
+                    children += srcItem.find_elements_by_tag_name(item.tag_name)
+        for child in children:
+            try:
+                elements.remove(child)
+            except (ValueError):
+                pass
+        return elements
+
+    def __removeParents(self, elements):
+        return [e for e in elements if len(e.find_elements_by_tag_name(e.tag_name)) == 0]
+
+    def getLegendListItems(self, parent):
+        if parent is None:
+            parent = self.browser.find_element_by_id('legend')
+        legendItemList = parent.find_elements_by_tag_name('ul')
+        self.__removeChildren(legendItemList)
+        self.assertLessEqual(len(legendItemList), 1)
+
+        legendItems = []
+        for item in legendItemList:
+            legendItems += item.find_elements_by_xpath('child::li')
+        return legendItems
+
+    def getLegendItems(self, parent=None):
+        legendItems = self.getLegendListItems(parent)
+        if (len(legendItems) == 0) and (parent is None):
+            return [tuple(self.browser.find_element_by_id('legend').find_elements_by_tag_name('span') + [[]])]
+
+        return [
+            (self.__removeParents(self.__removeChildren(e.find_elements_by_tag_name('span'),
+                                                    e.find_elements_by_tag_name('li'))) + \
+            [self.getLegendItems(e)]) for e in legendItems
+        ]
+
     def getStyle(self, element):
         style = element.get_attribute('style')
         styles = dict([tuple([i.strip() for i in s.strip().split(':')]) for s in style.split(';') if len(s.strip()) > 0])
@@ -384,14 +425,16 @@ class BrowserTestCase(TestCase):
     def parseColor(self, value):
         if (value.startswith('rgb(') and value.endswith(')')):
             return tuple([int(c.strip()) for c in value[4:-1].split(',')])
+        elif (value.startswith('rgba(') and value.endswith(')')):
+            return tuple([(float(c.strip()) if '.' in c else int(c.strip())) for c in value[5:-1].split(',')])
         elif (value.startswith('#') and len(value) == 4):
             return tuple([17*int(c, 16) for c in value[1:]])
         elif (value.startswith('#') and len(value) == 7):
             return int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16) 
         return value
-    
+
     def __parseStyle(self, tag, value):
-        if (tag == 'color'):
+        if (tag == 'color') or (tag == 'background-color') or (tag == 'border-color'):
             return tag, self.parseColor(value)
         return tag, value
             
@@ -2263,47 +2306,6 @@ class SlowKeyTest(ServerTestCase):
         self.assertDataRequests([self.dataPath('today')], wait=2)
 
 class LegendTest(BrowserTestCase):
-    
-    def removeChildren(self, elements, src=None):
-        children = []
-        for item in elements:
-            if src is None:
-                children += item.find_elements_by_tag_name(item.tag_name)
-            else:
-                for srcItem in src:
-                    children += srcItem.find_elements_by_tag_name(item.tag_name)
-        for child in children:
-            try:
-                elements.remove(child)
-            except (ValueError):
-                pass
-        return elements
-    
-    def removeParents(self, elements):
-        return [e for e in elements if len(e.find_elements_by_tag_name(e.tag_name)) == 0]
-    
-    def getLegendListItems(self, parent):
-        if parent is None:
-            parent = self.browser.find_element_by_id('legend')
-        legendItemList = parent.find_elements_by_tag_name('ul')
-        self.removeChildren(legendItemList)
-        self.assertLessEqual(len(legendItemList), 1)
-            
-        legendItems = []
-        for item in legendItemList:
-            legendItems += item.find_elements_by_xpath('child::li')
-        return legendItems
-    
-    def getLegendItems(self, parent=None):
-        legendItems = self.getLegendListItems(parent)
-        if (len(legendItems) == 0) and (parent is None):
-            return [tuple(self.browser.find_element_by_id('legend').find_elements_by_tag_name('span') + [[]])]
-        
-        return [
-            (self.removeParents(self.removeChildren(e.find_elements_by_tag_name('span'), 
-                                                    e.find_elements_by_tag_name('li'))) + \
-            [self.getLegendItems(e)]) for e in legendItems
-        ]
             
     def assertLegendTitleStyle(self, title):
         self.assertEqual(title.value_of_css_property('font-family'), 'sans-serif')
@@ -2380,6 +2382,11 @@ class LegendTest(BrowserTestCase):
             legendItemStyle = self.getStyle(legendItem)
             path = [p for p, c, o in lines if (c == legendItemStyle['color']) and (abs(o - float(legendItemStyle['opacity'])) < 1e-12)]
             self.assertEqual(len(path), 1)
+
+        # For each line, find associated legend item:
+        legendItemStyles = [self.getStyle(i) for i, t, c in legendItems]
+        for p, c, o in lines:
+            legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
     
     @testData(['nrj', 'pac', 'pdc', 'temp'], before=loadToday)
     def testLinePerInverter(self, var):
@@ -2426,6 +2433,11 @@ class LegendTest(BrowserTestCase):
             self.assertTrue(checkbox.get_property('checked'))
             self.assertFalse(checkbox.get_property('indeterminate'))
             self.assertTrue(('display' not in self.getStyle(path).keys()) or (self.getStyle(path)['display'] != 'none'))
+
+        # For each line, find associated legend item:
+        legendItemStyles = [self.getStyle(i) for i, t, b, c in legendItems]
+        for p, c, o in lines:
+            legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
           
     @testData(['pdc', 'udc'], before=loadToday)
     def testLinePerString(self, var):
@@ -2528,6 +2540,11 @@ class LegendTest(BrowserTestCase):
             self.assertFalse(checkbox.get_property('indeterminate'))
             self.assertTrue(all([('display' not in self.getStyle(p).keys()) or (self.getStyle(p)['display'] != 'none') for p in subPaths]))
         
+        # For each line, find associated legend item:
+        legendItemStyles = [self.getStyle(c) for i, b, children in legendItems for c, t, b, x in children]
+        for p, c, o in lines:
+            legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
+
     @testData([
         {'year': None, 'month': None, 'var': 'nrj', 'agg': 'sum'},
         {'year': None, 'month': None, 'var': 'nrj', 'agg': 'inv'},
@@ -2584,8 +2601,20 @@ class LegendTest(BrowserTestCase):
             
             # Find associated line:
             legendItemStyle = self.getStyle(legendItem)
-            pathes = [p for p, c, o in bars if (c == legendItemStyle['color']) and (abs(o - float(legendItemStyle['opacity'])) < 1e-12)]
-            self.assertGreater(len(pathes), 0)
+            rects = [r for r, c, o in bars if (c == legendItemStyle['background-color'][0:3]) and (abs(o - legendItemStyle['background-color'][3]) < 1e-12)]
+            self.assertGreater(len(rects), 0)
+
+        # For each bar, find associated legend item:
+        legendItemStyles = [self.getStyle(i) for i, t, c in legendItems]
+        for r, c, o in bars:
+            legendItemStyle = [s for s in legendItemStyles if (s['background-color'][0:3] == c) and abs(s['background-color'][3] - o) < 1e-12]
+            self.assertEqual(len(legendItemStyle), 1)
+            self.assertEqual(legendItemStyle[0]['color'][0:3], c)
+            self.assertEqual(legendItemStyle[0]['color'][3], 0)
+            self.assertEqual(legendItemStyle[0]['border-color'][0:3], c)
+            self.assertEqual(len(legendItemStyle[0]['border-color']), 3)
+            self.assertEqual(legendItemStyle[0]['border-width'], '1px')
+            self.assertEqual(legendItemStyle[0]['border-style'], 'solid')
 
     @testData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj'},
@@ -2621,8 +2650,8 @@ class LegendTest(BrowserTestCase):
             
             # Find associated line:
             legendItemStyle = self.getStyle(legendItem)
-            pathes = [p for p, c, o in bars if (c == legendItemStyle['color']) and (abs(o - float(legendItemStyle['opacity'])) < 1e-12)]
-            self.assertGreater(len(pathes), 0)
+            rects = [r for r, c, o in bars if (c == legendItemStyle['background-color'][0:3]) and (abs(o - float(legendItemStyle['background-color'][3])) < 1e-12)]
+            self.assertGreater(len(rects), 0)
             
             # Check legend input:
             self.assertIn('input', self.getClasses(legendCheckbox))
@@ -2633,11 +2662,23 @@ class LegendTest(BrowserTestCase):
             checkbox.click()
             self.assertFalse(checkbox.get_property('checked'))
             self.assertFalse(checkbox.get_property('indeterminate'))
-            self.assertTrue(all([('display' in self.getStyle(p).keys()) and (self.getStyle(p)['display'] == 'none') for p in pathes]))
+            self.assertTrue(all([('display' in self.getStyle(p).keys()) and (self.getStyle(p)['display'] == 'none') for p in rects]))
             checkbox.click()
             self.assertTrue(checkbox.get_property('checked'))
             self.assertFalse(checkbox.get_property('indeterminate'))
-            self.assertTrue(all([('display' not in self.getStyle(p).keys()) or (self.getStyle(p)['display'] != 'none') for p in pathes]))
+            self.assertTrue(all([('display' not in self.getStyle(p).keys()) or (self.getStyle(p)['display'] != 'none') for p in rects]))
+
+        # For each bar, find associated legend item:
+        legendItemStyles = [self.getStyle(i) for i, t, b, c in legendItems]
+        for r, c, o in bars:
+            legendItemStyle = [s for s in legendItemStyles if (s['background-color'][0:3] == c) and abs(s['background-color'][3] - o) < 1e-12]
+            self.assertEqual(len(legendItemStyle), 1)
+            self.assertEqual(legendItemStyle[0]['color'][0:3], c)
+            self.assertEqual(legendItemStyle[0]['color'][3], 0)
+            self.assertEqual(legendItemStyle[0]['border-color'][0:3], c)
+            self.assertEqual(len(legendItemStyle[0]['border-color']), 3)
+            self.assertEqual(legendItemStyle[0]['border-width'], '1px')
+            self.assertEqual(legendItemStyle[0]['border-style'], 'solid')
 
     @testData([
         {'year': 2017, 'month': 8,    'day': 5},
@@ -3519,14 +3560,40 @@ class CursorTest(BrowserTestCase):
         return [tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')]
 
     def __assertLineCursor(self, paths, enabled):
+        legendItems = self.getLegendItems()
+        if all([len(i) == 4 for i in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
+        elif all([len(c) == 0 for t, b, c in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
+        else:
+            legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+
         for p in paths:
+            c = self.parseColor(p.find_element_by_xpath('..').get_attribute('stroke'))
+            o = float(p.get_attribute('stroke-opacity'))
+            legendItem = [i for i, s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
+            self.assertEqual(len(legendItem), 1)
+
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseenter');", p)
             for o in paths:
                 self.assertClassed(o, 'selected', enabled and (o == p))
+            for o, s in legendItemStyles:
+                self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseleave');", p)
             for o in paths:
                 self.assertClassed(o, 'selected', False)
+            for o, s in legendItemStyles:
+                self.assertClassed(o, 'selected', False)
+
+    def __assertBarLegendItemSelected(self, bar, legendItemStyles, enabled):
+        c = self.parseColor(bar.find_element_by_xpath('..').get_attribute('fill'))
+        o = float(bar.get_attribute('fill-opacity'))
+        legendItem = [i for i, s in legendItemStyles if (s['background-color'][0:3] == c) and abs(s['background-color'][3] - o) < 1e-12]
+        self.assertEqual(len(legendItem), 1)
+
+        for o, s in legendItemStyles:
+            self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
 
     def __assertBarSelected(self, bar, enabled):
         for o in self.getBars():
@@ -3540,7 +3607,7 @@ class CursorTest(BrowserTestCase):
 
     def __assertBarYCursorLabel(self, bar, enabled):
         yLabel = None
-        # NOTE find_element_by_xpath does not work with complex XPathes (e.g. ./g/text[@class="cursor"])
+        # NOTE find_element_by_xpath does not work with SVG
         for e1 in self.browser.find_element_by_id('chart').find_elements_by_xpath('child::*'):
             if yLabel is not None:
                 break
@@ -3551,18 +3618,28 @@ class CursorTest(BrowserTestCase):
 
         self.assertEqual(yLabel is not None, enabled)
         if yLabel is not None:
-            xMin = bar.find_element_by_xpath('../..').rect['x']
-            xMax = xMin + bar.find_element_by_xpath('../..').rect['width']
-
-            self.assertTrue((xMin < yLabel.rect['x']) and (yLabel.rect['x'] < xMax))
+            xLabelMin = yLabel.rect['x']
+            xLabelMax = xLabelMin + yLabel.rect['width']
+            xBarMin = bar.rect['x']
+            xBarMax = xBarMin + bar.rect['width']
+            self.assertTrue((xBarMin < xLabelMax) and (xLabelMin < xBarMax))
 
     def __assertBarCursor(self, bars, enabled):
+        legendItems = self.getLegendItems()
+        if all([len(i) == 4 for i in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
+        elif all([len(c) == 0 for t, b, c in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
+        else:
+            legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+
         for b in bars:
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, b.rect['height'] / 2)
             actions.perform()
 
             self.__assertBarSelected(b, enabled)
+            self.__assertBarLegendItemSelected(b, legendItemStyles, enabled)
             self.__assertBarXCursorLabel(b, enabled)
             self.__assertBarYCursorLabel(b, enabled)
 
@@ -3571,6 +3648,7 @@ class CursorTest(BrowserTestCase):
             actions.perform()
 
             self.__assertBarSelected(b, False)
+            self.__assertBarLegendItemSelected(b, legendItemStyles, False)
             self.__assertBarXCursorLabel(b, False)
             self.__assertBarYCursorLabel(b, False)
 
@@ -3634,6 +3712,44 @@ class CursorTest(BrowserTestCase):
     def testDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'pwr',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'pwr',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'agg': 'inv'},
+    ])
+    def testVarAndSum(self, year, month, day, var, agg):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectVar(var)
+        self.selectSum(agg)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
@@ -3727,32 +3843,57 @@ class CursorTest(BrowserTestCase):
         self.assertCursor(True)
 
     @testData([
-        {'var': 'pac' },
-        {'var': 'pdc' },
-        {'var': 'udc' },
-        {'var': 'temp'},
+        {'var': 'nrj',  'newVar': 'pac',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'pdc',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'nrj',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'pdc',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'nrj',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'pac',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'udc',  'newVar': 'nrj',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'pac',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'pdc',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'temp', 'agg': 'str'},
+        {'var': 'temp', 'newVar': 'nrj',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'pac',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'pdc',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'udc',  'agg': 'inv'},
     ], before=loadToday)
-    def testChangeVar(self, var):
+    def testChangeVar(self, var, newVar, agg):
+        self.selectVar(var)
+        self.selectSum(agg)
+
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.selectVar(var)
+        self.selectVar(newVar)
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
     @testData([
-        {'agg': 'inv' },
-        {'agg': 'str' },
+        {'agg': 'sum', 'newAgg': 'inv'},
+        {'agg': 'sum', 'newAgg': 'str'},
+        {'agg': 'inv', 'newAgg': 'sum'},
+        {'agg': 'inv', 'newAgg': 'str'},
+        {'agg': 'str', 'newAgg': 'sum'},
+        {'agg': 'str', 'newAgg': 'inv'},
     ], before=loadTodayDCPower)
-    def testChangeSum(self, agg):
+    def testChangeSum(self, agg, newAgg):
+        self.selectSum(agg)
+
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.selectSum(agg)
+        self.selectSum(newAgg)
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
