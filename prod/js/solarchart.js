@@ -146,7 +146,7 @@ function SolarChart(root, data) {
         chartRoot.on('mousemove', null)
                  .on('click', null);
         chartRoot.selectAll('.cursor').remove();
-        chartRoot.selectAll('.measured').classed('measured', false);
+        chartRoot.selectAll('.selected').classed('selected', false);
 
         if (this.plot.draw()) {
             legend.clear();
@@ -218,12 +218,12 @@ function SolarChart(root, data) {
                     });
                 }
             } else if (d3.event.type == LinePlot.CURSOR_TYPE) {
-                var measuredLine = d3.event.detail.line;
+                var selectedLine = d3.event.detail.line;
 
-                chartRoot.selectAll('.measured').classed('measured', false);
-                measuredLine.classed('measured', true);
+                chartRoot.selectAll('.selected').classed('selected', false);
+                selectedLine.classed('selected', true);
 
-                console.log('Cursor', measuredLine.data());
+                console.log('Cursor', selectedLine.data());
 
                 chartRoot.on('mousemove', () => {
                 });
@@ -233,7 +233,7 @@ function SolarChart(root, data) {
                     chartRoot.on('mousemove', null);
                     chartRoot.on('click', null);
 
-                    measuredLine.classed('measured', false);
+                    selectedLine.classed('selected', false);
                 });
             }
         });
@@ -241,7 +241,7 @@ function SolarChart(root, data) {
         if (!enabled) {
             chartRoot.on('mousemove', null);
             chartRoot.on('click', null);
-            chartRoot.selectAll('.measured').classed('measured', false);
+            chartRoot.selectAll('.selected').classed('selected', false);
         }
         legend.enableCursor(enabled);
         return enabled;

@@ -3572,27 +3572,27 @@ class CursorTest(BrowserTestCase):
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseenter');", p)
             for o in paths:
-                self.assertClassed(o, 'selected', enabled and (o == p))
+                self.assertClassed(o, 'hovered', enabled and (o == p))
             for o, s in legendItemStyles:
-                self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
+                self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseleave');", p)
             for o in paths:
-                self.assertClassed(o, 'selected', False)
+                self.assertClassed(o, 'hovered', False)
             for o, s in legendItemStyles:
-                self.assertClassed(o, 'selected', False)
+                self.assertClassed(o, 'hovered', False)
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", p)
             for o in paths:
-                self.assertClassed(o, 'measured', enabled and (o == p))
+                self.assertClassed(o, 'selected', enabled and (o == p))
             for o, s in legendItemStyles:
-                self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
+                self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", self.browser.find_element_by_id('chart'))
             for o in paths:
-                self.assertClassed(o, 'measured', False)
-            for o, s in legendItemStyles:
                 self.assertClassed(o, 'selected', False)
+            for o, s in legendItemStyles:
+                self.assertClassed(o, 'hovered', False)
 
     def __assertBarLegendItemSelected(self, bar, legendItemStyles, enabled):
         c = self.parseColor(bar.find_element_by_xpath('..').get_attribute('fill'))
@@ -3601,11 +3601,11 @@ class CursorTest(BrowserTestCase):
         self.assertEqual(len(legendItem), 1)
 
         for o, s in legendItemStyles:
-            self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
+            self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
     def __assertBarSelected(self, bar, enabled):
         for o in self.getBars():
-            self.assertClassed(o, 'selected', enabled and (o == bar))
+            self.assertClassed(o, 'hovered', enabled and (o == bar))
 
     def __assertBarXCursorLabel(self, bar, enabled):
         xMin = bar.find_element_by_xpath('../..').rect['x']
@@ -4040,26 +4040,26 @@ class LegendCursorTest(BrowserTestCase):
             actions.perform()
 
             for oi, os in legendItemStyles:
-                self.assertClassed(oi, 'selected', enabled and (oi in [i, prevI]))
+                self.assertClassed(oi, 'hovered', enabled and (oi in [i, prevI]))
             for r, c, o in bars:
-                self.assertClassed(r, 'selected', enabled and (r in elems))
-                self.assertClassed(r, 'measured', enabled and (r in prevElems))
+                self.assertClassed(r, 'hovered', enabled and (r in elems))
+                self.assertClassed(r, 'selected', enabled and (r in prevElems))
             for p, c, o in lines:
-                self.assertClassed(p, 'selected', enabled and (p in elems))
-                self.assertClassed(p, 'measured', enabled and (p in prevElems))
+                self.assertClassed(p, 'hovered', enabled and (p in elems))
+                self.assertClassed(p, 'selected', enabled and (p in prevElems))
 
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(i, -10, i.rect['height'] / 2)
             actions.perform()
 
             for oi, os in legendItemStyles:
-                self.assertClassed(oi, 'selected', enabled and (oi == prevI))
+                self.assertClassed(oi, 'hovered', enabled and (oi == prevI))
             for r, c, o in bars:
-                self.assertClassed(r, 'selected', False)
-                self.assertClassed(r, 'measured', enabled and (r in prevElems))
+                self.assertClassed(r, 'hovered', False)
+                self.assertClassed(r, 'selected', enabled and (r in prevElems))
             for p, c, o in lines:
-                self.assertClassed(p, 'selected', False)
-                self.assertClassed(p, 'measured', enabled and (p in prevElems))
+                self.assertClassed(p, 'hovered', False)
+                self.assertClassed(p, 'selected', enabled and (p in prevElems))
 
             if testMeasure and (len(lines) != 0):
                 prevElems = elems
@@ -4071,18 +4071,18 @@ class LegendCursorTest(BrowserTestCase):
                 actions.perform()
 
                 for oi, os in legendItemStyles:
-                    self.assertClassed(oi, 'selected', oi == i)
+                    self.assertClassed(oi, 'hovered', oi == i)
                 for p, c, o in lines:
-                    self.assertClassed(p, 'measured', p in prevElems)
+                    self.assertClassed(p, 'selected', p in prevElems)
 
                 actions = ActionChains(self.browser)
                 actions.move_to_element_with_offset(i, -10, i.rect['height'] / 2)
                 actions.perform()
 
                 for oi, os in legendItemStyles:
-                    self.assertClassed(oi, 'selected', oi == i)
+                    self.assertClassed(oi, 'hovered', oi == i)
                 for p, c, o in lines:
-                    self.assertClassed(p, 'measured', p in prevElems)
+                    self.assertClassed(p, 'selected', p in prevElems)
 
     def testToday(self):
         self.browser.find_element_by_id('today').click()

@@ -61,8 +61,8 @@ function SolarLegend(root)
                 });
             };
 
-            legendItemOn('mouseenter', (e) => {e.classed('selected', true);});
-            legendItemOn('mouseleave', (e) => {e.classed('selected', false);});
+            legendItemOn('mouseenter', (e) => {e.classed('hovered', true);});
+            legendItemOn('mouseleave', (e) => {e.classed('hovered', false);});
             legendItemOn('click', (e) => {e.dispatch('click');});
         };
 
@@ -86,7 +86,7 @@ function SolarLegend(root)
                 mutations.forEach((mutation) => {
                     if (mutation.attributeName != 'class')
                         return;
-                    item.classed('selected', d3.select(mutation.target).classed('selected') || d3.select(mutation.target).classed('measured'));
+                    item.classed('hovered', d3.select(mutation.target).classed('hovered') || d3.select(mutation.target).classed('selected'));
                 });
             });
             d.forEach((e) => {observer.observe(e.node(), {attributes: true})});

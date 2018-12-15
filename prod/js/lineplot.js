@@ -79,8 +79,8 @@ function LinePlot(root) {
             return;
 
         var paths = lines.selectAll('path');
-        paths.on('mouseenter', !enable ? null : function() {d3.select(this).classed('selected', true);})
-             .on('mouseleave', !enable ? null : function() {d3.select(this).classed('selected', false);})
+        paths.on('mouseenter', !enable ? null : function() {d3.select(this).classed('hovered', true);})
+             .on('mouseleave', !enable ? null : function() {d3.select(this).classed('hovered', false);})
              .on('click', !enable ? null : function(d) {
                  d3.event.stopPropagation();
                  d3.customEvent(new CustomEvent(LinePlot.CURSOR_TYPE, {detail: {data: d, line: d3.select(this)}}), listener);

@@ -100,10 +100,10 @@ function HistPlot(root) {
             return;
 
         bars.on('mouseenter', !enable ? null : function(d) {
-            var bar = d3.select(this).classed('selected', true);
+            var bar = d3.select(this).classed('hovered', true);
             bar.dispatch('cursor', {bubbles: true, detail: {d: d}});
         }).on('mouseleave', !enable ? null : function() {
-            d3.select(this).classed('selected', false);
+            d3.select(this).classed('hovered', false);
             d3.customEvent(new Event(HistPlot.CURSOR_TYPE), listener);
         }).on('cursor', !enable ? null : function(d, i) {
             d3.event.detail.frac = i/nGroups/nBars;
