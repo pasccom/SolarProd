@@ -3555,10 +3555,6 @@ class CursorTest(BrowserTestCase):
         self.browser.find_element_by_id('today').click()
         self.selectVar('pdc')
 
-    def parsePath(self, path):
-        self.assertRegex(path, r'^M([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?)(?:L([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?))*$')
-        return [tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')]
-
     def __assertLineCursor(self, paths, enabled):
         legendItems = self.getLegendItems()
         if all([len(i) == 4 for i in legendItems]):
@@ -3662,6 +3658,393 @@ class CursorTest(BrowserTestCase):
             self.__assertBarCursor(bars, enabled)
         else:
             self.assertFalse(enabled)
+
+    def testToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    def testKeyToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2017, 'month': None, 'day': None},
+        {'year': 2017, 'month': 8,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8},
+    ])
+    def testDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'pwr',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': None, 'var': 'pwr',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'sum'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'inv'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'pdc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'udc',  'agg': 'str'},
+        {'year': 2017, 'month': 8,    'day': 8,    'var': 'temp', 'agg': 'inv'},
+    ])
+    def testVarAndSum(self, year, month, day, var, agg):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2017, 'month': None, 'day': None},
+        {'year': 2017, 'month': 8,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8},
+    ])
+    def testKeyDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.CONTROL, 'c']).perform()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.pressKeys([Key.ESCAPE]).perform()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
+        {'year': 2019, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2018, 'month': 2,    'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
+        {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
+    ])
+    def testChangeDate(self, year, month, day, newYear, newMonth, newDay):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.selectDate(newYear, newMonth, newDay)
+        self.browser.find_element_by_id('plot').click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testNoChangeDate(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.browser.find_element_by_id('plot').click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+    @testData([
+        {'var': 'nrj',  'newVar': 'pac',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'pdc',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'nrj',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'nrj',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'pdc',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'pac',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'nrj',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'pac',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'udc',  'agg': 'sum'},
+        {'var': 'pdc',  'newVar': 'temp', 'agg': 'sum'},
+        {'var': 'udc',  'newVar': 'nrj',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'pac',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'pdc',  'agg': 'str'},
+        {'var': 'udc',  'newVar': 'temp', 'agg': 'str'},
+        {'var': 'temp', 'newVar': 'nrj',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'pac',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'pdc',  'agg': 'inv'},
+        {'var': 'temp', 'newVar': 'udc',  'agg': 'inv'},
+    ], before=loadToday)
+    def testChangeVar(self, var, newVar, agg):
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.selectVar(newVar)
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'agg': 'sum', 'newAgg': 'inv'},
+        {'agg': 'sum', 'newAgg': 'str'},
+        {'agg': 'inv', 'newAgg': 'sum'},
+        {'agg': 'inv', 'newAgg': 'str'},
+        {'agg': 'str', 'newAgg': 'sum'},
+        {'agg': 'str', 'newAgg': 'inv'},
+    ], before=loadTodayDCPower)
+    def testChangeSum(self, agg, newAgg):
+        self.selectSum(agg)
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.selectSum(newAgg)
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': None, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 6,  },
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testChangeToday(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.browser.find_element_by_id('today').click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    # TODO This test does not pass
+    def testNoChangeToday(self):
+        self.browser.find_element_by_id('today').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.browser.find_element_by_id('today').click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+    @testData([
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2018, 'month': 2,    'day': None},
+        {'year': 2017, 'month': 8,    'day': 8   },
+    ])
+    def testPrev(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.browser.find_element_by_id('prev').click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': 2009, 'month': None, 'day': None},
+        {'year': 2010, 'month': 12,   'day': None},
+        {'year': 2011, 'month': 6,    'day': 24  },
+    ])
+    def testNext(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.browser.find_element_by_id('next').click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @testData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testEmpty(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.browser.find_element_by_id('plot').click()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', True)
+        self.assertCursor(False)
+
+        cursor.click()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+class LegendCursorTest(BrowserTestCase):
+    def loadToday(self):
+        self.browser.find_element_by_id('today').click()
+
+    def loadTodayDCPower(self):
+        self.browser.find_element_by_id('today').click()
+        self.selectVar('pdc')
+
+    def assertCursor(self, enabled):
+        legendItems = self.getLegendItems()
+
+
+        if all([len(i) == 1 for i in legendItems]):
+            legendItemStyles = []
+        elif all([len(i) == 4 for i in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
+        elif all([len(c) == 0 for t, b, c in legendItems]):
+            legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
+        else:
+            legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+
+        if (len(legendItemStyles) == 0):
+            self.assertFalse(enabled)
+
+        bars = [(
+            r,
+            self.parseColor(r.find_element_by_xpath('..').get_attribute('fill')),
+            float(r.get_attribute('fill-opacity'))
+        ) for r in self.getBars()]
+        lines = [(
+            p,
+            self.parseColor(p.find_element_by_xpath('..').get_attribute('stroke')),
+            float(p.get_attribute('stroke-opacity'))
+        ) for p in self.getLines()]
+
+        for i, s in legendItemStyles:
+            if not (len(bars) == 0):
+                elems = [r for r, c, o in bars if (s['background-color'][0:3] == c) and (abs(float(s['background-color'][3]) - o) < 1e-12)]
+            elif not (len(lines) == 0):
+                elems = [p for p, c, o in lines if (s['color'] == c) and (abs(float(s['opacity']) - o) < 1e-12)]
+            else:
+                self.fail('There should be bars or lines')
+            self.assertGreater(len(elems), 0)
+
+            actions = ActionChains(self.browser)
+            actions.move_to_element_with_offset(i, i.rect['width'] / 2, i.rect['height'] / 2)
+            actions.perform()
+            time.sleep(1)
+
+            for oi, os in legendItemStyles:
+                self.assertClassed(oi, 'selected', enabled and (oi == i))
+            for r, c, o in bars:
+                self.assertClassed(r, 'selected', enabled and (r in elems))
+            for p, c, o in lines:
+                self.assertClassed(p, 'selected', enabled and (p in elems))
+
+            actions = ActionChains(self.browser)
+            actions.move_to_element_with_offset(i, -10, i.rect['height'] / 2)
+            actions.perform()
+            time.sleep(1)
+
+            for oi, os in legendItemStyles:
+                self.assertClassed(oi, 'selected', False)
+            for r, c, o in bars:
+                self.assertClassed(r, 'selected', False)
+            for p, c, o in lines:
+                self.assertClassed(p, 'selected', False)
 
     def testToday(self):
         self.browser.find_element_by_id('today').click()

@@ -190,7 +190,7 @@ function SolarChart(root, data) {
     };
 
     this.enableCursor = function(enable) {
-        return this.plot.enableCursor(enable, () => {
+        var enabled = this.plot.enableCursor(enable, () => {
             var w = d3.max(this.plot.data.xScale.range());
 
             if (d3.event.type == HistPlot.CURSOR_TYPE) {
@@ -216,6 +216,9 @@ function SolarChart(root, data) {
                 }
             }
         });
+
+        legend.enableCursor(enabled);
+        return enabled;
     };
 
     this.setData(new EmptyData([], '', '', ''));

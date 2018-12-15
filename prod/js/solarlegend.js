@@ -48,6 +48,27 @@ function SolarLegend(root)
     // Draw the legend:
     this.draw = function(data, style)
     {
+        this.enableCursor = function(enable)
+        {
+            var legendItems = root.selectAll('.legenditem');
+
+            legendItems.on('mouseenter', !enable ? null : function(d) {
+                if (d === undefined)
+                    d = data;
+                if (!Array.isArray(d))
+                    d = [d];
+
+                d.forEach((e) => {e.classed('selected', true);});
+            }).on('mouseleave', !enable ? null : function(d) {
+                if (d === undefined)
+                    d = data;
+                if (!Array.isArray(d))
+                    d = [d];
+
+                d.forEach((e) => {e.classed('selected', false);});
+            })
+        };
+
         var appendLegendItem = function(d)
         {
             if (d === undefined)
@@ -60,13 +81,15 @@ function SolarLegend(root)
 
             var item = d3.select(this).append('span').classed('legenditem', true)
                                                      .html('&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;')
+                                                     .on('mouseenter', null)
+                                                     .on('mouseleave', null)
                                                      .call(style);
+
             var observer = new MutationObserver(function(mutations, observer) {
                 mutations.forEach((mutation) => {
                     if (mutation.attributeName != 'class')
                         return;
                     item.classed('selected', d3.select(mutation.target).classed('selected'));
-                    console.log('Mutation:', item.classed('selected'));
                 });
             });
             d.forEach((e) => {observer.observe(e.node(), {attributes: true})});
@@ -115,4 +138,6 @@ function SolarLegend(root)
     {
         root.selectAll('*').remove();
     };
+
+    this.enableCursor = function(enable, listener) {};
 }
