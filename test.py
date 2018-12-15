@@ -3582,6 +3582,18 @@ class CursorTest(BrowserTestCase):
             for o, s in legendItemStyles:
                 self.assertClassed(o, 'selected', False)
 
+            self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", p)
+            for o in paths:
+                self.assertClassed(o, 'measured', enabled and (o == p))
+            for o, s in legendItemStyles:
+                self.assertClassed(o, 'selected', enabled and (o == legendItem[0]))
+
+            self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", self.browser.find_element_by_id('chart'))
+            for o in paths:
+                self.assertClassed(o, 'measured', False)
+            for o, s in legendItemStyles:
+                self.assertClassed(o, 'selected', False)
+
     def __assertBarLegendItemSelected(self, bar, legendItemStyles, enabled):
         c = self.parseColor(bar.find_element_by_xpath('..').get_attribute('fill'))
         o = float(bar.get_attribute('fill-opacity'))
@@ -3913,7 +3925,6 @@ class CursorTest(BrowserTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    # TODO This test does not pass
     def testNoChangeToday(self):
         self.browser.find_element_by_id('today').click()
 
@@ -3986,7 +3997,7 @@ class LegendCursorTest(BrowserTestCase):
         self.browser.find_element_by_id('today').click()
         self.selectVar('pdc')
 
-    def assertCursor(self, enabled):
+    def assertCursor(self, enabled, testMeasure=False):
         legendItems = self.getLegendItems()
 
 
@@ -4013,6 +4024,8 @@ class LegendCursorTest(BrowserTestCase):
             float(p.get_attribute('stroke-opacity'))
         ) for p in self.getLines()]
 
+        prevElems = []
+        prevI = None
         for i, s in legendItemStyles:
             if not (len(bars) == 0):
                 elems = [r for r, c, o in bars if (s['background-color'][0:3] == c) and (abs(float(s['background-color'][3]) - o) < 1e-12)]
@@ -4025,26 +4038,51 @@ class LegendCursorTest(BrowserTestCase):
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(i, i.rect['width'] / 2, i.rect['height'] / 2)
             actions.perform()
-            time.sleep(1)
 
             for oi, os in legendItemStyles:
-                self.assertClassed(oi, 'selected', enabled and (oi == i))
+                self.assertClassed(oi, 'selected', enabled and (oi in [i, prevI]))
             for r, c, o in bars:
                 self.assertClassed(r, 'selected', enabled and (r in elems))
+                self.assertClassed(r, 'measured', enabled and (r in prevElems))
             for p, c, o in lines:
                 self.assertClassed(p, 'selected', enabled and (p in elems))
+                self.assertClassed(p, 'measured', enabled and (p in prevElems))
 
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(i, -10, i.rect['height'] / 2)
             actions.perform()
-            time.sleep(1)
 
             for oi, os in legendItemStyles:
-                self.assertClassed(oi, 'selected', False)
+                self.assertClassed(oi, 'selected', enabled and (oi == prevI))
             for r, c, o in bars:
                 self.assertClassed(r, 'selected', False)
+                self.assertClassed(r, 'measured', enabled and (r in prevElems))
             for p, c, o in lines:
                 self.assertClassed(p, 'selected', False)
+                self.assertClassed(p, 'measured', enabled and (p in prevElems))
+
+            if testMeasure and (len(lines) != 0):
+                prevElems = elems
+                prevI = i
+
+                actions = ActionChains(self.browser)
+                actions.move_to_element_with_offset(i, i.rect['width'] / 2, i.rect['height'] / 2)
+                actions.click()
+                actions.perform()
+
+                for oi, os in legendItemStyles:
+                    self.assertClassed(oi, 'selected', oi == i)
+                for p, c, o in lines:
+                    self.assertClassed(p, 'measured', p in prevElems)
+
+                actions = ActionChains(self.browser)
+                actions.move_to_element_with_offset(i, -10, i.rect['height'] / 2)
+                actions.perform()
+
+                for oi, os in legendItemStyles:
+                    self.assertClassed(oi, 'selected', oi == i)
+                for p, c, o in lines:
+                    self.assertClassed(p, 'measured', p in prevElems)
 
     def testToday(self):
         self.browser.find_element_by_id('today').click()
@@ -4056,7 +4094,7 @@ class LegendCursorTest(BrowserTestCase):
 
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         cursor.click()
         self.assertClassed(cursor, 'checked', False)
@@ -4080,7 +4118,7 @@ class LegendCursorTest(BrowserTestCase):
 
         self.pressKeys([Key.CONTROL, 'c']).perform()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.pressKeys([Key.ESCAPE]).perform()
         self.assertClassed(cursor, 'checked', False)
@@ -4103,7 +4141,7 @@ class LegendCursorTest(BrowserTestCase):
 
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         cursor.click()
         self.assertClassed(cursor, 'checked', False)
@@ -4141,7 +4179,7 @@ class LegendCursorTest(BrowserTestCase):
 
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         cursor.click()
         self.assertClassed(cursor, 'checked', False)
@@ -4172,7 +4210,7 @@ class LegendCursorTest(BrowserTestCase):
 
         self.pressKeys([Key.CONTROL, 'c']).perform()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.pressKeys([Key.ESCAPE]).perform()
         self.assertClassed(cursor, 'checked', False)
@@ -4199,7 +4237,7 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.selectDate(newYear, newMonth, newDay)
         self.browser.find_element_by_id('plot').click()
@@ -4254,7 +4292,7 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.selectVar(newVar)
         self.assertClassed(cursor, 'checked', False)
@@ -4274,7 +4312,7 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.selectSum(newAgg)
         self.assertClassed(cursor, 'checked', False)
@@ -4294,13 +4332,12 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.browser.find_element_by_id('today').click()
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    # TODO This test does not pass
     def testNoChangeToday(self):
         self.browser.find_element_by_id('today').click()
 
@@ -4325,7 +4362,7 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.browser.find_element_by_id('prev').click()
         self.assertClassed(cursor, 'checked', False)
@@ -4343,7 +4380,7 @@ class LegendCursorTest(BrowserTestCase):
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, True)
 
         self.browser.find_element_by_id('next').click()
         self.assertClassed(cursor, 'checked', False)

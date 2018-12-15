@@ -49,7 +49,8 @@ function LinePlot(root) {
         // Draws lines:
         paths.attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()))
              .on('mouseenter', null)
-             .on('mouseleave', null);
+             .on('mouseleave', null)
+             .on('click', null);
 
         // Data for legend:
         this.legendData = this.data.aggregateLegend(d3.selectAll(lines.nodes()).selectAll('g').nodes().map((g) => {
@@ -79,9 +80,15 @@ function LinePlot(root) {
 
         var paths = lines.selectAll('path');
         paths.on('mouseenter', !enable ? null : function() {d3.select(this).classed('selected', true);})
-             .on('mouseleave', !enable ? null : function() {d3.select(this).classed('selected', false);});
+             .on('mouseleave', !enable ? null : function() {d3.select(this).classed('selected', false);})
+             .on('click', !enable ? null : function(d) {
+                 d3.event.stopPropagation();
+                 d3.customEvent(new CustomEvent(LinePlot.CURSOR_TYPE, {detail: {data: d, line: d3.select(this)}}), listener);
+            });
 
         return enable;
     };
 }
+
+LinePlot.CURSOR_TYPE = 'LineCursor';
 LinePlot.prototype = SolarPlot;

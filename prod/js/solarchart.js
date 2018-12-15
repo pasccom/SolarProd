@@ -143,7 +143,10 @@ function SolarChart(root, data) {
     this.draw = function()
     {
         xAxis.selectAll('text').classed('cursor', false);
+        chartRoot.on('mousemove', null)
+                 .on('click', null);
         chartRoot.selectAll('.cursor').remove();
+        chartRoot.selectAll('.measured').classed('measured', false);
 
         if (this.plot.draw()) {
             legend.clear();
@@ -214,9 +217,32 @@ function SolarChart(root, data) {
                         return x;
                     });
                 }
+            } else if (d3.event.type == LinePlot.CURSOR_TYPE) {
+                var measuredLine = d3.event.detail.line;
+
+                chartRoot.selectAll('.measured').classed('measured', false);
+                measuredLine.classed('measured', true);
+
+                console.log('Cursor', measuredLine.data());
+
+                chartRoot.on('mousemove', () => {
+                });
+
+                chartRoot.on('click', () => {
+                    console.log('Cursor disabled');
+                    chartRoot.on('mousemove', null);
+                    chartRoot.on('click', null);
+
+                    measuredLine.classed('measured', false);
+                });
             }
         });
 
+        if (!enabled) {
+            chartRoot.on('mousemove', null);
+            chartRoot.on('click', null);
+            chartRoot.selectAll('.measured').classed('measured', false);
+        }
         legend.enableCursor(enabled);
         return enabled;
     };

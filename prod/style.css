@@ -183,7 +183,7 @@ path {
     stroke-width: 3;
 }
 
-path.selected, rect.selected {
+path.selected, path.measured, rect.selected {
     stroke: #FF0000;
     stroke-opacity: 1;
 }

@@ -63,6 +63,7 @@ function SolarLegend(root)
 
             legendItemOn('mouseenter', (e) => {e.classed('selected', true);});
             legendItemOn('mouseleave', (e) => {e.classed('selected', false);});
+            legendItemOn('click', (e) => {e.dispatch('click');});
         };
 
         var appendLegendItem = function(d)
@@ -85,7 +86,7 @@ function SolarLegend(root)
                 mutations.forEach((mutation) => {
                     if (mutation.attributeName != 'class')
                         return;
-                    item.classed('selected', d3.select(mutation.target).classed('selected'));
+                    item.classed('selected', d3.select(mutation.target).classed('selected') || d3.select(mutation.target).classed('measured'));
                 });
             });
             d.forEach((e) => {observer.observe(e.node(), {attributes: true})});
