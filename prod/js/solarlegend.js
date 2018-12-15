@@ -50,23 +50,19 @@ function SolarLegend(root)
     {
         this.enableCursor = function(enable)
         {
-            var legendItems = root.selectAll('.legenditem');
+            var legendItemOn = function(event, callback) {
+                root.selectAll('.legenditem').on(event, !enable ? null : function(d) {
+                    if (d === undefined)
+                        d = data;
+                    if (!Array.isArray(d))
+                        d = [d];
 
-            legendItems.on('mouseenter', !enable ? null : function(d) {
-                if (d === undefined)
-                    d = data;
-                if (!Array.isArray(d))
-                    d = [d];
+                    d.forEach(callback);
+                });
+            };
 
-                d.forEach((e) => {e.classed('selected', true);});
-            }).on('mouseleave', !enable ? null : function(d) {
-                if (d === undefined)
-                    d = data;
-                if (!Array.isArray(d))
-                    d = [d];
-
-                d.forEach((e) => {e.classed('selected', false);});
-            })
+            legendItemOn('mouseenter', (e) => {e.classed('selected', true);});
+            legendItemOn('mouseleave', (e) => {e.classed('selected', false);});
         };
 
         var appendLegendItem = function(d)
