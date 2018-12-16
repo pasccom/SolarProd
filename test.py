@@ -3607,7 +3607,7 @@ class CursorTest(BrowserTestCase):
             for o, s in legendItemStyles:
                 self.assertClassed(o, 'hovered', False)
 
-    def __assertBarLegendItemSelected(self, bar, legendItemStyles, enabled):
+    def __assertBarLegendItemHovered(self, bar, legendItemStyles, enabled):
         c = self.parseColor(bar.find_element_by_xpath('..').get_attribute('fill'))
         o = float(bar.get_attribute('fill-opacity'))
         legendItem = [i for i, s in legendItemStyles if (s['background-color'][0:3] == c) and abs(s['background-color'][3] - o) < 1e-12]
@@ -3616,7 +3616,7 @@ class CursorTest(BrowserTestCase):
         for o, s in legendItemStyles:
             self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
-    def __assertBarSelected(self, bar, enabled):
+    def __assertBarHovered(self, bar, enabled):
         for o in self.getBars():
             self.assertClassed(o, 'hovered', enabled and (o == bar))
 
@@ -3659,8 +3659,8 @@ class CursorTest(BrowserTestCase):
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, b.rect['height'] / 2)
             actions.perform()
 
-            self.__assertBarSelected(b, enabled)
-            self.__assertBarLegendItemSelected(b, legendItemStyles, enabled)
+            self.__assertBarHovered(b, enabled)
+            self.__assertBarLegendItemHovered(b, legendItemStyles, enabled)
             self.__assertBarXCursorLabel(b, enabled)
             self.__assertBarYCursorLabel(b, enabled)
 
@@ -3668,8 +3668,8 @@ class CursorTest(BrowserTestCase):
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, -10)
             actions.perform()
 
-            self.__assertBarSelected(b, False)
-            self.__assertBarLegendItemSelected(b, legendItemStyles, False)
+            self.__assertBarHovered(b, False)
+            self.__assertBarLegendItemHovered(b, legendItemStyles, False)
             self.__assertBarXCursorLabel(b, False)
             self.__assertBarYCursorLabel(b, False)
 
