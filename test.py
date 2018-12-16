@@ -38,6 +38,18 @@ def formatDatum(datum):
     datum['date'] = datetime.strptime(datum['date'], '%Y-%m-%d')
     return datum
 
+def recMin(data):
+    try:
+        return min(map(lambda x: recMin(x), data))
+    except:
+        return min(data)
+
+def recMax(data):
+    try:
+        return max(map(lambda x: recMax(x), data))
+    except:
+        return max(data)
+
 def mapSum(data):
     try:
         map(lambda *x: x, *data)
@@ -61,6 +73,30 @@ class HelperTest(unittest.TestCase):
     def testMapSum4(self):
         self.assertEqual(mapSum([[[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]],
                                  [[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]]), [40, 40, 40])
+
+    def testRecMin0(self):
+        self.assertEqual(recMin([1]), 1)
+    def testRecMin1(self):
+        self.assertEqual(recMin([4, 5, 6]), 4)
+    def testRecMin2(self):
+        self.assertEqual(recMin([[1, 2, 3], [6, 5, 4]]), 1)
+    def testRecMin3(self):
+        self.assertEqual(recMin([[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]), 1)
+    def testRecMin4(self):
+        self.assertEqual(recMin([[[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]],
+                                 [[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]]), 1)
+
+    def testRecMax0(self):
+        self.assertEqual(recMax([1]), 1)
+    def testRecMax1(self):
+        self.assertEqual(recMax([1, 2, 3]), 3)
+    def testRecMax2(self):
+        self.assertEqual(recMax([[1, 2, 3], [6, 5, 4]]), 6)
+    def testRecMax3(self):
+        self.assertEqual(recMax([[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]), 9)
+    def testRecMax4(self):
+        self.assertEqual(recMax([[[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]],
+                                 [[[1, 2, 3], [6, 5, 4]], [[9, 8, 7], [4, 5, 6]]]]), 9)
 
 class TestCase(unittest.TestCase):
     baseDir = os.path.dirname(os.path.abspath(__file__))
@@ -3626,7 +3662,7 @@ class CursorTest(BrowserTestCase):
         for t in self.browser.find_element_by_id('xaxis').find_elements_by_tag_name('text'):
             self.assertClassed(t, 'cursor', enabled and (xMin < t.rect['x']) and (t.rect['x'] < xMax))
 
-    def __assertBarYCursorLabel(self, bar, enabled):
+    def __assertBarYCursorLabel(self, bar, data):
         yLabel = None
         # NOTE find_element_by_xpath does not work with SVG
         for e1 in self.browser.find_element_by_id('chart').find_elements_by_xpath('child::*'):
@@ -3637,15 +3673,17 @@ class CursorTest(BrowserTestCase):
                     yLabel = e2
                     break
 
-        self.assertEqual(yLabel is not None, enabled)
+        self.assertEqual(yLabel is not None, data is not None)
         if yLabel is not None:
+            self.assertLess(abs(float(yLabel.text) - data), 1e-12)
+
             xLabelMin = yLabel.rect['x']
             xLabelMax = xLabelMin + yLabel.rect['width']
             xBarMin = bar.rect['x']
             xBarMax = xBarMin + bar.rect['width']
             self.assertTrue((xBarMin < xLabelMax) and (xLabelMin < xBarMax))
 
-    def __assertBarCursor(self, bars, enabled):
+    def __assertBarCursor(self, bars, enabled, var, agg):
         legendItems = self.getLegendItems()
         if all([len(i) == 4 for i in legendItems]):
             legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
@@ -3653,6 +3691,20 @@ class CursorTest(BrowserTestCase):
             legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
         else:
             legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+
+        o = 0
+        s = 0
+        i = 0
+        data = self.getData(var, agg)
+
+        maxData = recMax(data)
+        div = 1
+        while (abs(maxData) >= 1000):
+            div = div*1000
+            maxData = maxData / 1000
+        while (abs(maxData) <= 1):
+            div = div / 1000
+            maxData = maxData * 1000
 
         for b in bars:
             actions = ActionChains(self.browser)
@@ -3662,7 +3714,7 @@ class CursorTest(BrowserTestCase):
             self.__assertBarHovered(b, enabled)
             self.__assertBarLegendItemHovered(b, legendItemStyles, enabled)
             self.__assertBarXCursorLabel(b, enabled)
-            self.__assertBarYCursorLabel(b, enabled)
+            self.__assertBarYCursorLabel(b, data[o][s][i] / div if enabled else None)
 
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, -10)
@@ -3671,16 +3723,25 @@ class CursorTest(BrowserTestCase):
             self.__assertBarHovered(b, False)
             self.__assertBarLegendItemHovered(b, legendItemStyles, False)
             self.__assertBarXCursorLabel(b, False)
-            self.__assertBarYCursorLabel(b, False)
+            self.__assertBarYCursorLabel(b, None)
 
-    def assertCursor(self, enabled):
+            s = s + 1
+            if (s >= len(data[o])):
+                s = 0
+                o = o + 1
+                if (o >= len(data)):
+                    o = 0
+                    i = i + 1
+
+
+    def assertCursor(self, enabled, var='nrj', agg='sum'):
         paths = self.getLines()
         bars = self.getBars()
 
         if not (len(paths) == 0):
             self.__assertLineCursor(paths, enabled)
         elif not (len(bars) == 0):
-            self.__assertBarCursor(bars, enabled)
+            self.__assertBarCursor(bars, enabled, var, agg)
         else:
             self.assertFalse(enabled)
 
@@ -3733,6 +3794,7 @@ class CursorTest(BrowserTestCase):
     def testDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
@@ -3769,21 +3831,22 @@ class CursorTest(BrowserTestCase):
     def testVarAndSum(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
         self.selectVar(var)
         self.selectSum(agg)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
         self.assertClassed(cursor, 'disabled', False)
-        self.assertCursor(False)
+        self.assertCursor(False, var, agg)
 
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
-        self.assertCursor(True)
+        self.assertCursor(True, var, agg)
 
         cursor.click()
         self.assertClassed(cursor, 'checked', False)
-        self.assertCursor(False)
+        self.assertCursor(False, var, agg)
 
     @testData([
         {'year': None, 'month': None, 'day': None},
@@ -3794,6 +3857,7 @@ class CursorTest(BrowserTestCase):
     def testKeyDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
@@ -3833,6 +3897,7 @@ class CursorTest(BrowserTestCase):
     def testChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
@@ -3853,6 +3918,7 @@ class CursorTest(BrowserTestCase):
     def testNoChangeDate(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
@@ -3928,6 +3994,7 @@ class CursorTest(BrowserTestCase):
     def testChangeToday(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
@@ -3958,6 +4025,7 @@ class CursorTest(BrowserTestCase):
     def testPrev(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
@@ -3976,6 +4044,7 @@ class CursorTest(BrowserTestCase):
     def testNext(self, year, month, day):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
+        self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
