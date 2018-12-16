@@ -3588,7 +3588,20 @@ class CursorTest(BrowserTestCase):
             for o, s in legendItemStyles:
                 self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
+            actions = ActionChains(self.browser)
+            actions.move_to_element_with_offset(self.browser.find_element_by_id('chart'), 200, 200)
+            actions.perform()
+
+            if enabled:
+                self.assertEqual(len(self.browser.find_element_by_id('xcursor').get_attribute('style')), 0)
+                self.assertEqual(len(self.browser.find_element_by_id('ycursor').get_attribute('style')), 0)
+            else:
+                with self.assertRaises(selenium.NoSuchElementException):
+                    self.browser.find_element_by_class_name('cursor')
+
             self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", self.browser.find_element_by_id('chart'))
+            with self.assertRaises(selenium.NoSuchElementException):
+                self.browser.find_element_by_class_name('cursor')
             for o in paths:
                 self.assertClassed(o, 'selected', False)
             for o, s in legendItemStyles:
@@ -4083,6 +4096,17 @@ class LegendCursorTest(BrowserTestCase):
                     self.assertClassed(oi, 'hovered', oi == i)
                 for p, c, o in lines:
                     self.assertClassed(p, 'selected', p in prevElems)
+
+                actions = ActionChains(self.browser)
+                actions.move_to_element_with_offset(self.browser.find_element_by_id('chart'), 200, 200)
+                actions.perform()
+
+                if enabled:
+                    self.assertEqual(len(self.browser.find_element_by_id('xcursor').get_attribute('style')), 0)
+                    self.assertEqual(len(self.browser.find_element_by_id('ycursor').get_attribute('style')), 0)
+                else:
+                    with self.assertRaises(selenium.NoSuchElementException):
+                        self.browser.find_element_by_class_name('cursor')
 
     def testToday(self):
         self.browser.find_element_by_id('today').click()

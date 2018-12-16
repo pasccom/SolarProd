@@ -28,6 +28,12 @@ function SolarChart(root, data) {
                               .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z')
                                              .style('fill', '#000000');
 
+    // Create label:
+    var xLabel = chartRoot.append('g').classed('label', true);
+    xLabel.append('text');
+    var yLabel = chartRoot.append('g').classed('label', true);
+    yLabel.append('text').attr('transform', 'rotate(-90)');
+
     // Create plot root element:
     var plotRoot = chartRoot.append('g').attr('transform', "translate(" + margins.left + "," + margins.top + ")");
 
@@ -39,12 +45,6 @@ function SolarChart(root, data) {
                                     .attr('id', 'xaxis');
     var yAxis = plotRoot.append('g').classed('axis', true)
                                     .attr('id', 'yaxis');
-
-    // Create label:
-    var xLabel = chartRoot.append('g').classed('label', true);
-    xLabel.append('text');
-    var yLabel = chartRoot.append('g').classed('label', true);
-    yLabel.append('text').attr('transform', 'rotate(-90)');
 
     // Create legend:
     var legend = new SolarLegend(legendRoot);
@@ -195,11 +195,12 @@ function SolarChart(root, data) {
     this.enableCursor = function(enable) {
         var enabled = this.plot.enableCursor(enable, () => {
             var w = d3.max(this.plot.data.xScale.range());
+            var h = d3.max(this.plot.data.yScale.range());
 
             if (d3.event.type == HistPlot.CURSOR_TYPE) {
                 var xAxisLabels = xAxis.selectAll('text');
                 xAxisLabels.classed('cursor', false);
-                plotRoot.select('text.cursor').remove();
+                plotRoot.select('.cursor').remove();
 
                 if (d3.event.detail) {
                     xAxisLabels.filter((d) => (d == d3.event.detail.x)).classed('cursor', true);
@@ -220,12 +221,68 @@ function SolarChart(root, data) {
             } else if (d3.event.type == LinePlot.CURSOR_TYPE) {
                 var selectedLine = d3.event.detail.line;
 
+                var xCursor = plotRoot.select('#xcursor');
+                var yCursor = plotRoot.select('#ycursor');
+
+                if (xCursor.empty()) {
+                    xCursor = plotRoot.append('g').classed('cursor', true)
+                                                  .attr('id', 'xcursor')
+                                                  .style('display', 'none');
+                    xCursor.append('line').attr('y2', -h);
+                    xCursor.append('line').attr('y2', 6).style('stroke-dasharray', 'none');
+                    xCursor.append('rect').attr('fill', 'background');
+                    xCursor.append('text').attr('y', 10)
+                                        .attr('dy', '0.71em')
+                                        .style('text-anchor', 'middle');
+                }
+
+                if (yCursor.empty()) {
+                    yCursor = plotRoot.append('g').classed('cursor', true)
+                                                  .attr('id', 'ycursor')
+                                                  .style('display', 'none');
+                    yCursor.append('line').attr('x2', w / 1.025);
+                    yCursor.append('line').attr('x2', -6).style('stroke-dasharray', 'none');
+                    yCursor.append('rect').attr('fill', 'background');
+                    yCursor.append('text').attr('x', -9)
+                                        .attr('dy', '0.32em')
+                                        .style('text-anchor', 'end');
+                }
+
                 chartRoot.selectAll('.selected').classed('selected', false);
                 selectedLine.classed('selected', true);
 
-                console.log('Cursor', selectedLine.data());
-
                 chartRoot.on('mousemove', () => {
+                    var data = selectedLine.data()[0];
+                    xCursor.style('display', 'none');
+                    yCursor.style('display', 'none');
+
+                    var mousePos = d3.mouse(plotRoot.node());
+
+                    if ((mousePos[0] < 0) ||
+                        (mousePos[0] > w / 1.025) ||
+                        (mousePos[1] < 0) ||
+                        (mousePos[1] > h))
+                        return;
+
+                    var x = this.plot.data.xScale.invert(mousePos[0]);
+                    var bisector = d3.bisector((d) => d.x);
+                    var i = bisector.left(data, x);
+                    var y = (i == 0) ? data[i].y : data[i].y + (data[i - 1].y - data[i].y) / (data[i - 1].x - data[i].x) * (x - data[i].x);
+                    y /= this.plot.data.div;
+
+                    xCursor.style('display', null).attr('transform', 'translate(' + this.plot.data.xScale(x) + ', ' + h + ')');
+                    yCursor.style('display', null).attr('transform', 'translate(0, ' + this.plot.data.yScale(y) + ')');
+
+                    xCursor.select('text').text(x.toLocaleTimeString());
+                    yCursor.select('text').text(y);
+
+                    plotRoot.selectAll('.cursor text').each(function() {
+                        var bBox = this.getBBox();
+                        d3.select(this.parentNode).select('rect').attr('x', bBox.x - 3)
+                                                                 .attr('y', bBox.y)
+                                                                 .attr('width', bBox.width + 6)
+                                                                 .attr('height', bBox.height);
+                    });
                 });
 
                 chartRoot.on('click', () => {
@@ -234,6 +291,8 @@ function SolarChart(root, data) {
                     chartRoot.on('click', null);
 
                     selectedLine.classed('selected', false);
+                    xCursor.remove();
+                    yCursor.remove();
                 });
             }
         });
@@ -241,6 +300,7 @@ function SolarChart(root, data) {
         if (!enabled) {
             chartRoot.on('mousemove', null);
             chartRoot.on('click', null);
+            chartRoot.selectAll('.cursor').remove();
             chartRoot.selectAll('.selected').classed('selected', false);
         }
         legend.enableCursor(enabled);
