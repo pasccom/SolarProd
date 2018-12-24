@@ -72,7 +72,7 @@ class TestHTTPServer(http.HTTPServer):
         return self.__log
 
 if __name__ == '__main__':
-    os.chdir('testdata')
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prod'))
 
     with TestHTTPServer(('localhost', 2222)) as httpd:
         print('Server listening on port {}'.format(httpd.server_port))

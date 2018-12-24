@@ -62,9 +62,10 @@ is supported and tested against.
 
 The tests are run in a Python virtual environment, so that no system-wide package
 installation is needed. To easily setup the test environment, you can use the script
-[setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/setup_test.sh),
+[test/setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/test/setup_test.sh),
 which takes as optional arguments:
-1. The path to the test directory (defaults to working directory)
+1. The path to the code directory (defaults to `test/../prod/`)
+1. The path to the test directory (defaults to the script directory)
 2. The path to the directory where profiles will be generated (defaults to `profiles`
 in test directory)
 3. The path to the directory where exported data will be saved (defaults to `export`
@@ -76,13 +77,14 @@ the marionnette to use. Unfortunatlety, I was not able to locate a compatibility
 so you will have to try various versions of the marionnette until it works. Release dates
 may be a good heuristic.
 
-To run the tests, the most handy manner is
+To run the tests, the most handy manner is to invoke
 ```
-python -m unittest -v [testsuite[.testcase[.testfixture]]]
+python -m unittest -v test[.testcase[.testfixture]]
 ```
-See [test.py](https://github.com/pasccom/SolarProd/blob/master/test.py) for a list of 
-test cases and test fixtures. Running all the test fixtures for version 1.0.0 takes 
-approximately *25min* on my PC.
+from the root directory.
+See [the module init file](https://github.com/pasccom/SolarProd/blob/master/__init__.py)
+for a list of test cases and test fixtures. Running all the test fixtures for version 
+1.0.0 takes approximately *25min* on my PC.
 
 ## Unit testing
 
@@ -91,7 +93,7 @@ unit testing uses [Jasmine](https://jasmine.github.io/), which allows to automat
 run all the tests by opening `test/testrunner.html` in a web browser.
 
 The setup of the test environment should be done automatically when running
-[setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/setup_test.sh)
+[test/setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/test/setup_test.sh)
 as proposed in the previous section.
 
 If you want to use another version than the latest version of

@@ -22,29 +22,45 @@ cd "$SCRIPT_DIR"
 SCRIPT_DIR="$PWD"
 cd - > /dev/null
 
-# Absolute path to test directory
-TEST_DIR="$PWD"
+# Absolute path to code directory
+CODE_DIR="$SCRIPT_DIR/../prod"
 if [ $# -ge 1 ]; then
-    mkdir -p "$1"
+    if [ -d "$1" ]; then
+        echo "Provided code dir '$1' does not exit" >&2
+        exit -1
+    fi
     cd "$1"
+    CODE_DIR="$PWD"
+    cd - > /dev/null
+else
+    cd "$CODE_DIR"
+    CODE_DIR="$PWD"
+    cd - > /dev/null
+fi
+
+# Absolute path to test directory
+TEST_DIR="$SCRIPT_DIR"
+if [ $# -ge 2 ]; then
+    mkdir -p "$2"
+    cd "$2"
     TEST_DIR="$PWD"
     cd - > /dev/null
 fi
 
 # Directory where to write profiles (absolute path):
 PROFILES_DIR="$TEST_DIR/profiles"
-if [ $# -ge 2 ]; then
-    mkdir -p "$2"
-    cd "$2"
+if [ $# -ge 3 ]; then
+    mkdir -p "$3"
+    cd "$3"
     PROFILES_DIR="$PWD"
     cd - > /dev/null
 fi
 
 # Download directory (absolute path):
 EXPORTS_DIR="$TEST_DIR/export"
-if [ $# -ge 3 ]; then
-    mkdir -p "$3"
-    cd "$3"
+if [ $# -ge 4 ]; then
+    mkdir -p "$4"
+    cd "$4"
     EXPORTS_DIR="$PWD"
     cd - > /dev/null
 elif [ ! -d "$EXPORTS_DIR" ]; then
@@ -89,7 +105,7 @@ create_profile() {
     cp "$SCRIPT_DIR/mimeTypes.rdf" "$PROFILES_DIR/$1/"
     
     # Install console capture:
-    cp "$SCRIPT_DIR/console_capture.xpi" "$PROFILES_DIR/$1/extensions/console_capture@pas.com.xpi"
+    cp console_capture.xpi "$PROFILES_DIR/$1/extensions/console_capture@pas.com.xpi"
 
     # Change size:
     if [ $# -gt 1 ]; then
@@ -109,6 +125,7 @@ fi
 # Ask user to check paths:
 ANS=
 ANY=
+echo "Code     directory: '$CODE_DIR'"
 echo "Test     directory: '$TEST_DIR'"
 echo "Exports  directory: '$EXPORTS_DIR'"
 echo "Profiles directory: '$PROFILES_DIR'"
@@ -180,8 +197,8 @@ fi
 
 # Delete existing Jasmine files:
 ANS=
-if [ -d "$TEST_DIR/test/jasmine" ]; then
-    echo "Folder $TEST_DIR/test/jasmine already exists. Do you want to delete it (y/N)?"
+if [ -d "$TEST_DIR/jasmine" ]; then
+    echo "Folder $TEST_DIR/jasmine already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
@@ -190,7 +207,7 @@ if [ -d "$TEST_DIR/test/jasmine" ]; then
             break
         fi
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/test/jasmine"
+            rm -R "$TEST_DIR/jasmine"
             ANS=
             ANY='yes'
             break
@@ -200,7 +217,7 @@ fi
 
 # Get Jasmine files:
 if [ -z "$ANS" ]; then
-    mkdir "$TEST_DIR/test/jasmine"
+    mkdir "$TEST_DIR/jasmine"
     if [ -f "$SCRIPT_DIR/jasmine-version.local" ]; then
         JASMINE_VERSION=$(cat "$SCRIPT_DIR/jasmine-version.local")
     else
@@ -212,15 +229,31 @@ if [ -z "$ANS" ]; then
     cd "Jasmine"
     mv "../jasmine-standalone-$JASMINE_VERSION.zip" .
     unzip "jasmine-standalone-$JASMINE_VERSION.zip"
-    mv "lib/jasmine-$JASMINE_VERSION/"* "$TEST_DIR/test/jasmine"
+    mv "lib/jasmine-$JASMINE_VERSION/"* "$TEST_DIR/jasmine"
     cd ..
     rm -R "Jasmine"
 fi
-    
+
+# Get Jasmine Ajax files:
+if [ -z "$ANS" ]; then
+    mkdir "$TEST_DIR/jasmine"
+    if [ -f "$SCRIPT_DIR/jasmine-ajax-version.local" ]; then
+        JASMINE_AJAX_VERSION=$(cat "$SCRIPT_DIR/jasmine-ajax-version.local")
+    else
+        JASMINE_AJAX_VERSION=$(curl "https://github.com/jasmine/jasmine-ajax/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/jasmine/jasmine-ajax/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
+    fi
+    rm "v$JASMINE_AJAX_VERSION.tar.gz" 2> /dev/null
+    wget "https://github.com/jasmine/jasmine-ajax/archive/v$JASMINE_AJAX_VERSION.tar.gz"
+    tar -xzf "v$JASMINE_AJAX_VERSION.tar.gz"
+    cp "jasmine-ajax-$JASMINE_AJAX_VERSION/lib/mock-ajax.js" "$TEST_DIR/jasmine"
+    rm -R "jasmine-ajax-$JASMINE_AJAX_VERSION"
+    rm "v$JASMINE_AJAX_VERSION.tar.gz"
+fi
+
 # Delete existing GenTest files:
 ANS=
-if [ -d "$TEST_DIR/test/gentest" ]; then
-    echo "Folder $TEST_DIR/test/gentest already exists. Do you want to delete it (y/N)?"
+if [ -d "$TEST_DIR/gentest" ]; then
+    echo "Folder $TEST_DIR/gentest already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
@@ -229,7 +262,7 @@ if [ -d "$TEST_DIR/test/gentest" ]; then
             break
         fi
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/test/gentest"
+            rm -R "$TEST_DIR/gentest"
             ANS=
             ANY='yes'
             break
@@ -239,9 +272,9 @@ fi
 
 # Copy GenTest files:
 if [ -z "$ANS" ]; then
-    mkdir "$TEST_DIR/test/gentest"
-    cp "$SCRIPT_DIR/GenTest/jasmine/jasmine-gentest.js" "$TEST_DIR/test/gentest"
-    cp "$SCRIPT_DIR/GenTest/lib/"* "$TEST_DIR/test/gentest"
+    mkdir "$TEST_DIR/gentest"
+    cp "$SCRIPT_DIR/GenTest/jasmine/jasmine-gentest.js" "$TEST_DIR/gentest"
+    cp "$SCRIPT_DIR/GenTest/lib/"* "$TEST_DIR/gentest"
 fi
 
 # Deletes exisiting profiles:
@@ -294,12 +327,12 @@ fi
 
 # Delete old test data:
 ANS=
-if [ -d "$TEST_DIR/testdata" -a -z "$ANY" ]; then
-    echo "Folder $TEST_DIR/testdata already exists. Do you want to delete it (Y/n)?"
+if [ -d "$TEST_DIR/data" -a -z "$ANY" ]; then
+    echo "Folder $TEST_DIR/data already exists. Do you want to delete it (Y/n)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/testdata"
+            rm -R "$TEST_DIR/data"
             ANS=
             break
         fi
@@ -309,8 +342,8 @@ if [ -d "$TEST_DIR/testdata" -a -z "$ANY" ]; then
             break
         fi
     done
-elif [ -d "$TEST_DIR/testdata" ]; then
-    echo "Folder $TEST_DIR/testdata already exists. Do you want to delete it (y/N)?"
+elif [ -d "$TEST_DIR/prod" ]; then
+    echo "Folder $TEST_DIR/prod already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
@@ -319,7 +352,7 @@ elif [ -d "$TEST_DIR/testdata" ]; then
             break
         fi
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/testdata"
+            rm -R "$TEST_DIR/prod"
             ANS=
             break
         fi
@@ -330,12 +363,12 @@ fi
 if [ -z "$ANS" ]; then
     printf "Extracting testdata ...\t\t\t\t\t\t\t"
     tar -xzf "$SCRIPT_DIR/testdata.tar.gz"
-    mv "$SCRIPT_DIR/testdata" "$TEST_DIR" 2> /dev/null
+    mv testdata "$TEST_DIR/prod" 2> /dev/null
     echo "DONE"
     printf "Setting up test environment ...\t\t\t\t\t\t"
-    cp -a "$SCRIPT_DIR/prod/img" "$TEST_DIR/testdata/"
-    cp -a "$SCRIPT_DIR/prod/js" "$TEST_DIR/testdata/"
-    cp -a "$SCRIPT_DIR/prod/"*.css "$TEST_DIR/testdata/"
-    cp -a "$SCRIPT_DIR/prod/"*.html "$TEST_DIR/testdata/"
+    cp -a "$CODE_DIR/img" "$TEST_DIR/prod/"
+    cp -a "$CODE_DIR/js" "$TEST_DIR/prod/"
+    cp -a "$CODE_DIR/"*.css "$TEST_DIR/prod/"
+    cp -a "$CODE_DIR/"*.html "$TEST_DIR/prod/"
     echo "DONE"
 fi

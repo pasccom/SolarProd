@@ -21,10 +21,10 @@ from selenium.webdriver.common.keys import Keys as Key
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common import exceptions as selenium
 
-from test_server import TestHTTPServer
+from .server import TestHTTPServer
 
 import unittest
-from PythonUtils.testdata import testData
+from .PythonUtils.testdata import testData
 
 from datetime import datetime as datetime
 import os
@@ -105,13 +105,13 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.index = 'file://' + self.__class__.baseDir + '/testdata/index.html'
-        self.helpPage = 'file://' + self.__class__.baseDir + '/testdata/help.html'
+        self.index = 'file://' + self.__class__.baseDir + '/prod/index.html'
+        self.helpPage = 'file://' + self.__class__.baseDir + '/prod/help.html'
         self.profilesDir = self.__class__.profilesDir
-        self.cacheDir = os.path.join('testdata', 'list', 'cache.json')
+        self.cacheDir = os.path.join(self.__class__.baseDir, 'prod', 'list', 'cache.json')
 
     def listPath(self, year=None, month=None):
-        listDir = os.path.join('testdata', 'list') 
+        listDir = os.path.join('test', 'prod', 'list')
         if year is None:
             return os.path.join(listDir, 'years.json')
         elif month is None:
@@ -120,7 +120,7 @@ class TestCase(unittest.TestCase):
             return os.path.join(listDir, 'days/{:04d}/{:02d}.json'.format(year, month))
         
     def dataPath(self, year=None, month=None, day=None):
-        dataDir = os.path.join('testdata', 'data') 
+        dataDir = os.path.join('test', 'prod', 'data')
         if (year == 'today'):
             return os.path.join(dataDir, 'today.json')
         if year is None:
@@ -133,7 +133,7 @@ class TestCase(unittest.TestCase):
             return os.path.join(dataDir, 'days/{:04d}/{:02d}/{:02d}.json'.format(year, month, day))
         
     def exportPath(self, var, agg, year=None, month=None, day=None):
-        exportDir = 'export'
+        exportDir = os.path.join(self.__class__.baseDir, 'export')
         if year is None:
             return os.path.join(exportDir, 'export_{}_{}.csv'.format(var, agg))
         elif month is None:
@@ -497,15 +497,15 @@ class ServerTestCase(BrowserTestCase):
     def setUp(self):
         super().setUp(False)
         self.server = self.__class__.server
-        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/testdata'
+        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/test/prod'
         self.browser.get(self.index)
 
     def assertDataRequests(self, expected, wait=0):
-        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
+        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/test/prod/data/')]
         while (wait != 0) and (len(dataRequests) != len(expected)):
             time.sleep(1)
             wait-=1
-            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/testdata/data/')]
+            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/test/prod/data/')]
         print(dataRequests)
         self.assertEqual(dataRequests, expected)
 

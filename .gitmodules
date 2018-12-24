@@ -1,6 +1,6 @@
 [submodule "PythonUtils"]
-	path = PythonUtils
+	path = test/PythonUtils
 	url = git@github.com:pasccom/PythonUtils.git
 [submodule "GenTest"]
-	path = GenTest
+	path = test/GenTest
 	url = https://github.com/pasccom/gentest.git

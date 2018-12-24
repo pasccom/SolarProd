@@ -1,10 +1,10 @@
 # Directories automatically created by setup test:
-env/
-exports/
-profiles/
-testdata/
-test/jasmine/
-test/gentest/
+/test/env/
+/test/exports/
+/test/profiles/
+/test/prod/
+/test/jasmine/
+/test/gentest/
 
 # Python auto-generated files and folders:
 __pycache__/
