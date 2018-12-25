@@ -111,7 +111,7 @@ class TestCase(unittest.TestCase):
         self.cacheDir = os.path.join(self.__class__.baseDir, 'prod', 'list', 'cache.json')
 
     def listPath(self, year=None, month=None):
-        listDir = os.path.join('test', 'prod', 'list')
+        listDir = os.path.join('autotest', 'prod', 'list')
         if year is None:
             return os.path.join(listDir, 'years.json')
         elif month is None:
@@ -120,7 +120,7 @@ class TestCase(unittest.TestCase):
             return os.path.join(listDir, 'days/{:04d}/{:02d}.json'.format(year, month))
         
     def dataPath(self, year=None, month=None, day=None):
-        dataDir = os.path.join('test', 'prod', 'data')
+        dataDir = os.path.join('autotest', 'prod', 'data')
         if (year == 'today'):
             return os.path.join(dataDir, 'today.json')
         if year is None:
@@ -497,15 +497,15 @@ class ServerTestCase(BrowserTestCase):
     def setUp(self):
         super().setUp(False)
         self.server = self.__class__.server
-        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/test/prod'
+        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/autotest/prod'
         self.browser.get(self.index)
 
     def assertDataRequests(self, expected, wait=0):
-        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/test/prod/data/')]
+        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
         while (wait != 0) and (len(dataRequests) != len(expected)):
             time.sleep(1)
             wait-=1
-            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/test/prod/data/')]
+            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
         print(dataRequests)
         self.assertEqual(dataRequests, expected)
 

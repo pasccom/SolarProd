@@ -62,13 +62,13 @@ is supported and tested against.
 
 The tests are run in a Python virtual environment, so that no system-wide package
 installation is needed. To easily setup the test environment, you can use the script
-[test/setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/test/setup_test.sh),
+[autotest/setup.sh](https://github.com/pasccom/SolarProd/blob/master/autotest/setup.sh),
 which takes as optional arguments:
-1. The path to the code directory (defaults to `test/../prod/`)
 1. The path to the test directory (defaults to the script directory)
-2. The path to the directory where profiles will be generated (defaults to `profiles`
+2. The path to the code directory (defaults to `autotest/../prod/`)
+3. The path to the directory where profiles will be generated (defaults to `profiles`
 in test directory)
-3. The path to the directory where exported data will be saved (defaults to `export`
+4. The path to the directory where exported data will be saved (defaults to `export`
 in test directory)
 
 If you are not using the latest version of [Firefox](https://www.mozilla.org/fr/firefox/)
@@ -79,9 +79,12 @@ may be a good heuristic.
 
 To run the tests, the most handy manner is to invoke
 ```
-python -m unittest -v test[.testcase[.testfixture]]
+python -m unittest -v autotest[.testcase[.testfixture]]
 ```
-from the root directory.
+from the root directory after having sourced the virtual environment using
+```
+source autotest/env/bin/activate
+```
 See [the module init file](https://github.com/pasccom/SolarProd/blob/master/__init__.py)
 for a list of test cases and test fixtures. Running all the test fixtures for version 
 1.0.0 takes approximately *25min* on my PC.
@@ -90,15 +93,23 @@ for a list of test cases and test fixtures. Running all the test fixtures for ve
 
 The repository includes unit test for Javascript objects and functions. Javascript
 unit testing uses [Jasmine](https://jasmine.github.io/), which allows to automatically
-run all the tests by opening `test/testrunner.html` in a web browser.
+run all the tests by opening `unittest/testrunner.html` in a web browser.
 
 The setup of the test environment should be done automatically when running
-[test/setup_test.sh](https://github.com/pasccom/SolarProd/blob/master/test/setup_test.sh)
-as proposed in the previous section.
+[unittest/setup.sh](https://github.com/pasccom/SolarProd/blob/master/unittest/setup.sh),
+which takes as optional arguments:
+1. The path to the test directory (defaults to the script directory)
+2. The path to the GenTest source directory (defaults to `GenTest` in script directory)
+3. The path to the directory where Jasmine will be installed (defaults to `jasmine`
+in test directory)
+4. The path to the directory where GenTest will be installed (defaults to `gentest`
+in test directory)
 
 If you want to use another version than the latest version of
 [Jasmine](https://jasmine.github.io/), create a `jasmine-version.local` file containing
-the desired version number.
+the desired version number and if you want to use another version than the latest version of
+[Jasmine Ajax](https://github.com/jasmine/jasmine-ajax), create a `jasmine-ajax-version.local`
+file containing the desired version number.
 
 LICENSING INFORMATION
 ---------------------

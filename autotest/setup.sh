@@ -16,20 +16,28 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/>
 
+# PATHES ##########################################################################################
 # Absolute path to folder containing script (and related files):
 SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR"
 SCRIPT_DIR="$PWD"
 cd - > /dev/null
-
+# Absolute path to test directory
+DEST_DIR="$SCRIPT_DIR"
+if [ $# -ge 1 ]; then
+    mkdir -p "$1"
+    cd "$1"
+    DEST_DIR="$PWD"
+    cd - > /dev/null
+fi
 # Absolute path to code directory
 CODE_DIR="$SCRIPT_DIR/../prod"
-if [ $# -ge 1 ]; then
-    if [ -d "$1" ]; then
-        echo "Provided code dir '$1' does not exit" >&2
+if [ $# -ge 2 ]; then
+    if [ -d "$2" ]; then
+        echo "Provided code dir '$2' does not exit" >&2
         exit -1
     fi
-    cd "$1"
+    cd "$2"
     CODE_DIR="$PWD"
     cd - > /dev/null
 else
@@ -37,27 +45,18 @@ else
     CODE_DIR="$PWD"
     cd - > /dev/null
 fi
-
-# Absolute path to test directory
-TEST_DIR="$SCRIPT_DIR"
-if [ $# -ge 2 ]; then
-    mkdir -p "$2"
-    cd "$2"
-    TEST_DIR="$PWD"
-    cd - > /dev/null
-fi
-
 # Directory where to write profiles (absolute path):
-PROFILES_DIR="$TEST_DIR/profiles"
+PROFILES_DIR="$DEST_DIR/profiles"
 if [ $# -ge 3 ]; then
     mkdir -p "$3"
     cd "$3"
     PROFILES_DIR="$PWD"
     cd - > /dev/null
+elif [ ! -d "$PROFILES_DIR" ]; then
+    mkdir -p "$PROFILES_DIR"
 fi
-
 # Download directory (absolute path):
-EXPORTS_DIR="$TEST_DIR/export"
+EXPORTS_DIR="$DEST_DIR/export"
 if [ $# -ge 4 ]; then
     mkdir -p "$4"
     cd "$4"
@@ -67,6 +66,7 @@ elif [ ! -d "$EXPORTS_DIR" ]; then
     mkdir -p "$EXPORTS_DIR"
 fi
 
+# HELPER FUNCTIONS ################################################################################
 # Check there are not any space in argument:
 #   $1 argument to test
 # Returns 0 if there are spaces and 1 otherwise.
@@ -117,16 +117,16 @@ create_profile() {
     echo "DONE"
 }
 
+# CONFIRM PATHES ##################################################################################
 # Check profile dir does not contain spaces:
 if check_spaces "PROFILES_DIR" $PROFILES_DIR; then
     exit 1
 fi
-
 # Ask user to check paths:
 ANS=
 ANY=
 echo "Code     directory: '$CODE_DIR'"
-echo "Test     directory: '$TEST_DIR'"
+echo "Dest     directory: '$DEST_DIR'"
 echo "Exports  directory: '$EXPORTS_DIR'"
 echo "Profiles directory: '$PROFILES_DIR'"
 echo "Is this exact (Y/n)?"
@@ -141,10 +141,11 @@ while true; do
     fi
 done
 
+# VIRTUAL ENVIRONMENT #############################################################################
 # Delete old test environment:
 ANS=
-if [ -d "$TEST_DIR/env" ]; then
-    echo "Folder $TEST_DIR/env already exists. Do you want to delete it (y/N)?"
+if [ -d "$DEST_DIR/env" ]; then
+    echo "Folder $DEST_DIR/env already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
@@ -153,23 +154,21 @@ if [ -d "$TEST_DIR/env" ]; then
             break
         fi
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/env"
+            rm -R "$DEST_DIR/env"
             ANS=
             ANY='yes'
             break
         fi
     done
 fi
-
 # Create test environment:
 if [ -z "$ANS" ]; then
-    virtualenv --system-site-packages "$TEST_DIR/env"
-    . "$TEST_DIR/env/bin/activate"
+    virtualenv --system-site-packages "$DEST_DIR/env"
+    . "$DEST_DIR/env/bin/activate"
     pip install --upgrade pip
     pip install selenium
     deactivate
 fi
-
 # Get and install Gecko driver:
 if [ -z "$ANS" ]; then
     if [ -f "$SCRIPT_DIR/gecko-version.local" ]; then
@@ -191,95 +190,14 @@ if [ -z "$ANS" ]; then
     rm "$GECKO_NAME" 2> /dev/null
     wget "https://github.com/mozilla/geckodriver/releases/download/$GECKO_VERSION/$GECKO_NAME"
     tar -xzf "$GECKO_NAME"
-    mv geckodriver "$TEST_DIR/env/bin"
+    mv geckodriver "$DEST_DIR/env/bin"
     rm "$GECKO_NAME"
 fi
 
-# Delete existing Jasmine files:
-ANS=
-if [ -d "$TEST_DIR/jasmine" ]; then
-    echo "Folder $TEST_DIR/jasmine already exists. Do you want to delete it (y/N)?"
-    while true; do
-        read ANS
-        if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
-            echo "OK, skipping"
-            ANS='skip'
-            break
-        fi
-        if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/jasmine"
-            ANS=
-            ANY='yes'
-            break
-        fi
-    done
-fi
-
-# Get Jasmine files:
-if [ -z "$ANS" ]; then
-    mkdir "$TEST_DIR/jasmine"
-    if [ -f "$SCRIPT_DIR/jasmine-version.local" ]; then
-        JASMINE_VERSION=$(cat "$SCRIPT_DIR/jasmine-version.local")
-    else
-        JASMINE_VERSION=$(curl "https://github.com/jasmine/jasmine/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/jasmine/jasmine/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
-    fi
-    rm "jasmine-standalone-$JASMINE_VERSION.zip" 2> /dev/null
-    wget "https://github.com/jasmine/jasmine/releases/download/v$JASMINE_VERSION/jasmine-standalone-$JASMINE_VERSION.zip"
-    mkdir "Jasmine"
-    cd "Jasmine"
-    mv "../jasmine-standalone-$JASMINE_VERSION.zip" .
-    unzip "jasmine-standalone-$JASMINE_VERSION.zip"
-    mv "lib/jasmine-$JASMINE_VERSION/"* "$TEST_DIR/jasmine"
-    cd ..
-    rm -R "Jasmine"
-fi
-
-# Get Jasmine Ajax files:
-if [ -z "$ANS" ]; then
-    mkdir "$TEST_DIR/jasmine"
-    if [ -f "$SCRIPT_DIR/jasmine-ajax-version.local" ]; then
-        JASMINE_AJAX_VERSION=$(cat "$SCRIPT_DIR/jasmine-ajax-version.local")
-    else
-        JASMINE_AJAX_VERSION=$(curl "https://github.com/jasmine/jasmine-ajax/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/jasmine/jasmine-ajax/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
-    fi
-    rm "v$JASMINE_AJAX_VERSION.tar.gz" 2> /dev/null
-    wget "https://github.com/jasmine/jasmine-ajax/archive/v$JASMINE_AJAX_VERSION.tar.gz"
-    tar -xzf "v$JASMINE_AJAX_VERSION.tar.gz"
-    cp "jasmine-ajax-$JASMINE_AJAX_VERSION/lib/mock-ajax.js" "$TEST_DIR/jasmine"
-    rm -R "jasmine-ajax-$JASMINE_AJAX_VERSION"
-    rm "v$JASMINE_AJAX_VERSION.tar.gz"
-fi
-
-# Delete existing GenTest files:
-ANS=
-if [ -d "$TEST_DIR/gentest" ]; then
-    echo "Folder $TEST_DIR/gentest already exists. Do you want to delete it (y/N)?"
-    while true; do
-        read ANS
-        if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
-            echo "OK, skipping"
-            ANS='skip'
-            break
-        fi
-        if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/gentest"
-            ANS=
-            ANY='yes'
-            break
-        fi
-    done
-fi
-
-# Copy GenTest files:
-if [ -z "$ANS" ]; then
-    mkdir "$TEST_DIR/gentest"
-    cp "$SCRIPT_DIR/GenTest/jasmine/jasmine-gentest.js" "$TEST_DIR/gentest"
-    cp "$SCRIPT_DIR/GenTest/lib/"* "$TEST_DIR/gentest"
-fi
-
+# PROFILES ########################################################################################
 # Deletes exisiting profiles:
 ANS=
-if [ $(ls "$PROFILES_DIR" | wc -l) -gt 0 ]; then
+if [ -n "$(ls "$PROFILES_DIR")" ]; then
     echo "There exists profiles in $PROFILES_DIR. Do you want to delete them (y/N)?"
     while true; do
         read ANS
@@ -296,7 +214,6 @@ if [ $(ls "$PROFILES_DIR" | wc -l) -gt 0 ]; then
         fi
     done
 fi
-
 # Get ConsoleCapture:
 if [ -z "$ANS" ]; then
     if [ -f "$SCRIPT_DIR/ConsoleCapture-version.local" ]; then
@@ -307,7 +224,6 @@ if [ -z "$ANS" ]; then
     rm console_capture.xpi 2> /dev/null
     wget "https://github.com/pasccom/ConsoleCapture/releases/download/$CC_VERSION/console_capture.xpi"
 fi
-
 # Create new profiles:
 if [ -z "$ANS" ]; then
     create_profile "test"
@@ -319,20 +235,20 @@ if [ -z "$ANS" ]; then
     create_profile  "501x200"  500 200
     create_profile  "468x200"  468 200
 fi
-
 # Delete ConsoleCapture:
 if [ -z "$ANS" ]; then
     rm console_capture.xpi
 fi
 
+# PROD DIRECTORY ##################################################################################
 # Delete old test data:
 ANS=
-if [ -d "$TEST_DIR/data" -a -z "$ANY" ]; then
-    echo "Folder $TEST_DIR/data already exists. Do you want to delete it (Y/n)?"
+if [ -d "$DEST_DIR/prod" -a -z "$ANY" ]; then
+    echo "Folder $DEST_DIR/prod already exists. Do you want to delete it (Y/n)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/data"
+            rm -R "$DEST_DIR/prod"
             ANS=
             break
         fi
@@ -342,8 +258,8 @@ if [ -d "$TEST_DIR/data" -a -z "$ANY" ]; then
             break
         fi
     done
-elif [ -d "$TEST_DIR/prod" ]; then
-    echo "Folder $TEST_DIR/prod already exists. Do you want to delete it (y/N)?"
+elif [ -d "$DEST_DIR/prod" ]; then
+    echo "Folder $DEST_DIR/prod already exists. Do you want to delete it (y/N)?"
     while true; do
         read ANS
         if [ -z "$ANS" -o "$ANS" == 'n' -o "$ANS" == 'N' ]; then
@@ -352,23 +268,22 @@ elif [ -d "$TEST_DIR/prod" ]; then
             break
         fi
         if [ "$ANS" == 'y' -o "$ANS" == 'Y' ]; then
-            rm -R "$TEST_DIR/prod"
+            rm -R "$DEST_DIR/prod"
             ANS=
             break
         fi
     done
 fi
-
 # Create test data:
 if [ -z "$ANS" ]; then
     printf "Extracting testdata ...\t\t\t\t\t\t\t"
     tar -xzf "$SCRIPT_DIR/testdata.tar.gz"
-    mv testdata "$TEST_DIR/prod" 2> /dev/null
+    mv testdata "$DEST_DIR/prod" 2> /dev/null
     echo "DONE"
     printf "Setting up test environment ...\t\t\t\t\t\t"
-    cp -a "$CODE_DIR/img" "$TEST_DIR/prod/"
-    cp -a "$CODE_DIR/js" "$TEST_DIR/prod/"
-    cp -a "$CODE_DIR/"*.css "$TEST_DIR/prod/"
-    cp -a "$CODE_DIR/"*.html "$TEST_DIR/prod/"
+    cp -a "$CODE_DIR/img" "$DEST_DIR/prod/"
+    cp -a "$CODE_DIR/js" "$DEST_DIR/prod/"
+    cp -a "$CODE_DIR"/*.css "$DEST_DIR/prod/"
+    cp -a "$CODE_DIR"/*.html "$DEST_DIR/prod/"
     echo "DONE"
 fi
