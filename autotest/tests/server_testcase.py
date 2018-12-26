@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright 2018 Pascal COMBES <pascom@orange.fr>
 #
 # This file is part of SolarProd.
@@ -23,6 +22,8 @@ from contextlib import contextmanager
 
 import os
 import time
+
+from .browser_testcase import BrowserTestCase
 
 class TestHTTPRequestHandler(http.SimpleHTTPRequestHandler):
     def log_request(self, code='-', size='-'):
@@ -71,11 +72,44 @@ class TestHTTPServer(http.HTTPServer):
     def get_request_log(self):
         return self.__log
 
+class ServerTestCase(BrowserTestCase):
+    server = None
+    port = 0
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        if cls.server is None:
+            cls.server = TestHTTPServer(('', cls.port))
+            cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+        if (cls.server is not None):
+            cls.server.stop()
+            cls.server.server_close()
+
+    def setUp(self):
+        super().setUp(False)
+        self.server = self.__class__.server
+        self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/autotest/prod'
+        self.browser.get(self.index)
+
+    def assertDataRequests(self, expected, wait=0):
+        dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
+        while (wait != 0) and (len(dataRequests) != len(expected)):
+            time.sleep(1)
+            wait-=1
+            dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
+        print(dataRequests)
+        self.assertEqual(dataRequests, expected)
+
 if __name__ == '__main__':
     os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prod'))
 
     with TestHTTPServer(('localhost', 2222)) as httpd:
         print('Server listening on port {}'.format(httpd.server_port))
         httpd.serve_forever()
-
-

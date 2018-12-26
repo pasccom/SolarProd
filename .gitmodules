@@ -1,5 +1,5 @@
 [submodule "PythonUtils"]
-	path = autotest/PythonUtils
+	path = autotest/tests/PythonUtils
 	url = git@github.com:pasccom/PythonUtils.git
 [submodule "GenTest"]
 	path = unittest/GenTest
