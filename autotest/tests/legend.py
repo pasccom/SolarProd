@@ -17,9 +17,10 @@
 
 from .PythonUtils.testdata import testData
 
-from .browser_testcase import BrowserTestCase
+from .legend_testcase import LegendTestCase
+from .chart_testcase import ChartTestCase
 
-class LegendTest(BrowserTestCase):
+class LegendTest(ChartTestCase, LegendTestCase):
 
     def assertLegendTitleStyle(self, title):
         self.assertEqual(title.value_of_css_property('font-family'), 'sans-serif')

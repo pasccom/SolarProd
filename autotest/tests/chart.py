@@ -19,9 +19,9 @@ import re
 
 from .PythonUtils.testdata import testData
 
-from .browser_testcase import BrowserTestCase
+from .chart_testcase import ChartTestCase
 
-class ChartTest(BrowserTestCase):
+class ChartTest(ChartTestCase):
     def __init__(self, *args, **kwArgs):
         super().__init__(*args, **kwArgs)
 

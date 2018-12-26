@@ -25,15 +25,6 @@ import time
 from .testcase import TestCase
 
 class BrowserTestCase(TestCase):
-    monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-    shortVars = ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp']
-    longVars =  ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température']
-    units =     ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C']
-    sumNames = {
-        'sum': 'Total',
-        'inv': 'Par onduleur',
-        'str': 'Par string'
-    }
 
     @classmethod
     def setUpClass(cls):
@@ -77,21 +68,6 @@ class BrowserTestCase(TestCase):
         else:
             self.assertNotIn(cls, self.getClasses(obj))
 
-    def longVar(self, var):
-        return self.__class__.longVars[self.__class__.shortVars.index(var)]
-
-    def unit(self, var):
-        try:
-            return self.__class__.units[self.__class__.shortVars.index(var)]
-        except (ValueError):
-            return self.__class__.units[self.__class__.longVars.index(var)]
-
-    def monthName(self, month):
-        return self.__class__.monthNames[month - 1]
-
-    def monthNumber(self, monthName):
-        return self.__class__.monthNames.index(monthName) + 1
-
     def assertSelectValue(self, name, value='', wait=0):
         while (wait != 0) and (self.browser.find_element_by_id(name).get_property('value') != str(value)):
             time.sleep(1)
@@ -126,12 +102,12 @@ class BrowserTestCase(TestCase):
         try:
             self.selectOption('var', self.longVar(var), var)
         except (ValueError):
-            self.selectOption('var', var, self.__class__.shortVars[self.__class__.longVars.index(var)])
+            self.selectOption('var', var, self.shortVar(var))
 
     def selectSum(self, agg):
         if agg is None:
             return
-        self.selectOption('sum', self.__class__.sumNames[agg], agg)
+        self.selectOption('sum', self.sumName(agg), agg)
 
     def waitOptions(self, select, t=-1):
         options = []
@@ -178,55 +154,6 @@ class BrowserTestCase(TestCase):
     def getClasses(self, element):
         classes = element.get_attribute('class')
         return classes.split(' ') if not classes is None else []
-
-    def getLines(self):
-        chart = self.browser.find_element_by_id('chart')
-        return chart.find_elements_by_css_selector('path.line')
-
-    def getBars(self):
-        chart = self.browser.find_element_by_id('chart')
-        return chart.find_elements_by_css_selector('rect.bar')
-
-    def __removeChildren(self, elements, src=None):
-        children = []
-        for item in elements:
-            if src is None:
-                children += item.find_elements_by_tag_name(item.tag_name)
-            else:
-                for srcItem in src:
-                    children += srcItem.find_elements_by_tag_name(item.tag_name)
-        for child in children:
-            try:
-                elements.remove(child)
-            except (ValueError):
-                pass
-        return elements
-
-    def __removeParents(self, elements):
-        return [e for e in elements if len(e.find_elements_by_tag_name(e.tag_name)) == 0]
-
-    def getLegendListItems(self, parent):
-        if parent is None:
-            parent = self.browser.find_element_by_id('legend')
-        legendItemList = parent.find_elements_by_tag_name('ul')
-        self.__removeChildren(legendItemList)
-        self.assertLessEqual(len(legendItemList), 1)
-
-        legendItems = []
-        for item in legendItemList:
-            legendItems += item.find_elements_by_xpath('child::li')
-        return legendItems
-
-    def getLegendItems(self, parent=None):
-        legendItems = self.getLegendListItems(parent)
-        if (len(legendItems) == 0) and (parent is None):
-            return [tuple(self.browser.find_element_by_id('legend').find_elements_by_tag_name('span') + [[]])]
-
-        return [
-            (self.__removeParents(self.__removeChildren(e.find_elements_by_tag_name('span'),
-                                                    e.find_elements_by_tag_name('li'))) + \
-            [self.getLegendItems(e)]) for e in legendItems
-        ]
 
     def getStyle(self, element):
         style = element.get_attribute('style')

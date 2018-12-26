@@ -21,9 +21,10 @@ from selenium.common import exceptions as selenium
 
 from .PythonUtils.testdata import testData
 
-from .browser_testcase import BrowserTestCase
+from .legend_testcase import LegendTestCase
+from .chart_testcase import ChartTestCase
 
-class LegendCursorTest(BrowserTestCase):
+class LegendCursorTest(ChartTestCase, LegendTestCase):
     def loadToday(self):
         self.browser.find_element_by_id('today').click()
 

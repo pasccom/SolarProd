@@ -23,6 +23,16 @@ from datetime import datetime as datetime
 from .helpers import formatDatum, mapSum
 
 class TestCase(unittest.TestCase):
+    monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    shortVars = ['nrj',     'pwr',       'pac',          'uac',        'pdc',          'udc',        'temp']
+    longVars =  ['Énergie', 'Puissance', 'Puissance AC', 'Tension AC', 'Puissance DC', 'Tension DC', 'Température']
+    units =     ['Wh',      'W',         'W',            'V',          'W',            'V',          '°C']
+    sumNames = {
+        'sum': 'Total',
+        'inv': 'Par onduleur',
+        'str': 'Par string'
+    }
+
     baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     profilesDir = os.path.join(baseDir, 'profiles')
 
@@ -171,3 +181,24 @@ class TestCase(unittest.TestCase):
                 return [self.formatDate(d['date'], agg, dateMin, dateMax) for d in self.data]
         else:
             raise TypeError('Invalid data type: {}'.format(type(self.data)))
+
+    def longVar(self, var):
+        return self.__class__.longVars[self.__class__.shortVars.index(var)]
+
+    def shortVar(self, var):
+        return self.__class__.shortVars[self.__class__.longVars.index(var)]
+
+    def unit(self, var):
+        try:
+            return self.__class__.units[self.__class__.shortVars.index(var)]
+        except (ValueError):
+            return self.__class__.units[self.__class__.longVars.index(var)]
+
+    def sumName(self, agg):
+        return self.__class__.sumNames[agg]
+
+    def monthName(self, month):
+        return self.__class__.monthNames[month - 1]
+
+    def monthNumber(self, monthName):
+        return self.__class__.monthNames.index(monthName) + 1

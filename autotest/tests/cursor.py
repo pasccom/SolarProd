@@ -23,9 +23,10 @@ from .PythonUtils.testdata import testData
 
 from .helpers import recMax
 
-from .browser_testcase import BrowserTestCase
+from .legend_testcase import LegendTestCase
+from .chart_testcase import ChartTestCase
 
-class CursorTest(BrowserTestCase):
+class CursorTest(ChartTestCase, LegendTestCase):
     def loadToday(self):
         self.browser.find_element_by_id('today').click()
 
