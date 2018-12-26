@@ -26,6 +26,38 @@ class TestCase(unittest.TestCase):
     baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     profilesDir = os.path.join(baseDir, 'profiles')
 
+    def __checkArgument(self, cache, arg):
+        if cache is None:
+            cache = os.path.isfile(self.cacheDir)
+        if (arg == 'cache'):
+            return cache
+        if (arg == '!cache'):
+            return not cache
+        return arg
+
+    @staticmethod
+    def cacheCheck(fun, cache=None):
+        def cacheCheckFun(self, *args, **kwArgs):
+            newArgs = (self.__checkArgument(cache, a) for a in args)
+            newKwArgs = {k: self.__checkArgument(cache, a) for k, a in kwArgs.items()}
+            fun(self, *newArgs, **newKwArgs)
+        return cacheCheckFun
+
+    @staticmethod
+    def cacheTest(fun):
+        def cacheTestFun(self, *args, **kwArgs):
+            with self.subTest(msg='Without cache'):
+                os.rename(self.cacheDir, self.cacheDir + '.del')
+                self.browser.get(self.index)
+                self.__class__.cacheCheck(fun, False)(self, *args, **kwArgs)
+
+            with self.subTest(msg='With cache'):
+                os.rename(self.cacheDir + '.del', self.cacheDir)
+                self.browser.get(self.index)
+                self.__class__.cacheCheck(fun, True)(self, *args, **kwArgs)
+
+        return cacheTestFun
+
     def setUp(self):
         super().setUp()
 

@@ -19,13 +19,12 @@ from selenium.webdriver.common.keys import Keys as Key
 
 from .PythonUtils.testdata import testData
 
-from .browser_testcase import BrowserTestCase
 from .server_testcase import ServerTestCase
 
 class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @BrowserTestCase.cacheTest
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2               },
@@ -58,8 +57,8 @@ class SlowKeyTest(ServerTestCase):
 
 
     # NOTE The page should not be reloaded before each date
-    # that's why @cacheTest is first and we have to use @cacheCheck.
-    @BrowserTestCase.cacheTest
+    # that's why @cacheTest is first.
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2               },
@@ -96,7 +95,7 @@ class SlowKeyTest(ServerTestCase):
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @BrowserTestCase.cacheTest
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
         {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
@@ -131,7 +130,7 @@ class SlowKeyTest(ServerTestCase):
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @BrowserTestCase.cacheTest
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2               },
@@ -163,8 +162,8 @@ class SlowKeyTest(ServerTestCase):
         self.assertDataRequests([self.dataPath(nextYear)]*requests, wait=2)
 
     # NOTE The page should not be reloaded before each date
-    # that's why @cacheTest is first and we have to use @cacheCheck.
-    @BrowserTestCase.cacheTest
+    # that's why @cacheTest is first.
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2               },
@@ -201,7 +200,7 @@ class SlowKeyTest(ServerTestCase):
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
-    @BrowserTestCase.cacheTest
+    @ServerTestCase.cacheTest
     @testData([
         {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
         {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
