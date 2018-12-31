@@ -180,11 +180,7 @@ class ChartTest(ChartTestCase):
         # Grouping lines by color:
         # NOTE assuming they are in the right order.
         groups = []
-        lines = [(
-            l,
-            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
-            float(l.get_attribute('stroke-opacity'))
-        ) for l in self.getLines()]
+        lines = self.getLines(self.getColor, self.getOpacity)
 
         for p, c, o in lines:
             ok = False
@@ -203,11 +199,7 @@ class ChartTest(ChartTestCase):
         # Grouping bars by color and opacity:
         # NOTE assuming they are in the right order.
         groups = []
-        bars = [(
-            b,
-            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
-            float(b.get_attribute('fill-opacity'))
-        ) for b in self.getBars()]
+        bars = self.getBars(self.getColor, self.getOpacity)
 
         for p, c, o in bars:
             ok = False

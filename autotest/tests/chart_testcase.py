@@ -18,10 +18,28 @@
 from .browser_testcase import BrowserTestCase
 
 class ChartTestCase(BrowserTestCase):
-    def getLines(self):
-        chart = self.browser.find_element_by_id('chart')
-        return chart.find_elements_by_css_selector('path.line')
+    def getColor(self, elem):
+        if elem.tag_name == 'path':
+            return self.parseColor(elem.find_element_by_xpath('..').get_attribute('stroke'))
+        elif elem.tag_name == 'rect':
+            return self.parseColor(elem.find_element_by_xpath('..').get_attribute('fill'))
+        else:
+            raise ValueError('Unknown element: {}'.format(elem.tag_name))
 
-    def getBars(self):
+    def getOpacity(self, elem):
+        if elem.tag_name == 'path':
+            return float(elem.get_attribute('stroke-opacity'))
+        elif elem.tag_name == 'rect':
+            return float(elem.get_attribute('fill-opacity'))
+        else:
+            raise ValueError('Unknown element: {}'.format(elem.tag_name))
+
+    def getLines(self, *args):
         chart = self.browser.find_element_by_id('chart')
-        return chart.find_elements_by_css_selector('rect.bar')
+        args = [lambda x: x] + list(args)
+        return [tuple(f(l) for f in args) for l in chart.find_elements_by_css_selector('path.line')]
+
+    def getBars(self, *args):
+        chart = self.browser.find_element_by_id('chart')
+        args = [lambda x: x] + list(args)
+        return [tuple(f(b) for f in args) for b in chart.find_elements_by_css_selector('rect.bar')]

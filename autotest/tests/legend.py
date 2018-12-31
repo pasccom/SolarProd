@@ -73,11 +73,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.selectVar(var)
         self.selectSum('sum')
 
-        lines = [(
-            l,
-            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
-            float(l.get_attribute('stroke-opacity'))
-        ) for l in self.getLines()]
+        lines = self.getLines(self.getColor, self.getOpacity)
         legendItems = self.getLegendItems()
 
         for legendElements in legendItems:
@@ -108,11 +104,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.selectVar(var)
         self.selectSum('inv')
 
-        lines = [(
-            l,
-            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
-            float(l.get_attribute('stroke-opacity'))
-        ) for l in self.getLines()]
+        lines = self.getLines(self.getColor, self.getOpacity)
         legendItems = self.getLegendItems()
 
         for i, legendElements in enumerate(legendItems):
@@ -159,12 +151,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.selectVar(var)
         self.selectSum('str')
 
-        lines = [(
-            l,
-            self.parseColor(l.find_element_by_xpath('..').get_attribute('stroke')),
-            float(l.get_attribute('stroke-opacity'))
-        ) for l in self.getLines()]
-        groups = set([p.find_element_by_xpath('..') for p, c, o in lines])
+        lines = self.getLines(self.getColor, self.getOpacity)
         legendItems = self.getLegendItems()
 
         for i, legendElements in enumerate(legendItems):
@@ -294,11 +281,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.selectVar(var)
         self.selectSum('sum')
 
-        bars = [(
-            b,
-            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
-            float(b.get_attribute('fill-opacity'))
-        ) for b in self.getBars()]
+        bars = self.getBars(self.getColor, self.getOpacity)
         legendItems = self.getLegendItems()
 
         for legendElements in legendItems:
@@ -343,11 +326,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.selectVar(var)
         self.selectSum('inv')
 
-        bars = [(
-            b,
-            self.parseColor(b.find_element_by_xpath('..').get_attribute('fill')),
-            float(b.get_attribute('fill-opacity'))
-        ) for b in self.getBars()]
+        bars = self.getBars(self.getColor, self.getOpacity)
         legendItems = self.getLegendItems()
 
         for i, legendElements in enumerate(legendItems):

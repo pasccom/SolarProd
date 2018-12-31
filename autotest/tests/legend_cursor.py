@@ -35,7 +35,6 @@ class LegendCursorTest(ChartTestCase, LegendTestCase):
     def assertCursor(self, enabled, testMeasure=False):
         legendItems = self.getLegendItems()
 
-
         if all([len(i) == 1 for i in legendItems]):
             legendItemStyles = []
         elif all([len(i) == 4 for i in legendItems]):
@@ -48,16 +47,8 @@ class LegendCursorTest(ChartTestCase, LegendTestCase):
         if (len(legendItemStyles) == 0):
             self.assertFalse(enabled)
 
-        bars = [(
-            r,
-            self.parseColor(r.find_element_by_xpath('..').get_attribute('fill')),
-            float(r.get_attribute('fill-opacity'))
-        ) for r in self.getBars()]
-        lines = [(
-            p,
-            self.parseColor(p.find_element_by_xpath('..').get_attribute('stroke')),
-            float(p.get_attribute('stroke-opacity'))
-        ) for p in self.getLines()]
+        bars = self.getBars(self.getColor, self.getOpacity)
+        lines = self.getLines(self.getColor, self.getOpacity)
 
         prevElems = []
         prevI = None
