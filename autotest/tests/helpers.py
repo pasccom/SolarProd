@@ -24,6 +24,21 @@ def formatDatum(datum):
     datum['date'] = datetime.strptime(datum['date'], '%Y-%m-%d')
     return datum
 
+def groupby(elemList, key=None):
+    if key is None:
+        key = lambda x: x
+    keyList = []
+    groupsList = []
+    for e in elemList:
+        k = key(e)
+        try:
+            i = keyList.index(k)
+            groupsList[i] += [e]
+        except (ValueError):
+            keyList += [k]
+            groupsList += [[e]]
+    return groupsList
+
 def recMin(data):
     try:
         return min(map(lambda x: recMin(x), data))
@@ -49,6 +64,19 @@ def mapSum(data):
 
 # Helper functions tests:
 class HelpersTest(unittest.TestCase):
+    def testGroupBy0(self):
+        self.assertEqual(groupby([]), [])
+    def testGroupBy1(self):
+        self.assertEqual(groupby([1]), [[1]])
+    def testGroupBy2(self):
+        self.assertEqual(groupby([1, 2]), [[1], [2]])
+    def testGroupBy3(self):
+        self.assertEqual(groupby([1, 2, 1]), [[1, 1], [2]])
+    def testGroupByKey3(self):
+        self.assertEqual(groupby([1, 2, 3], key=lambda x: x % 2), [[1, 3], [2]])
+    def testGroupByKey4(self):
+        self.assertEqual(groupby([1, 2, 3, 4], key=lambda x: x % 2), [[1, 3], [2, 4]])
+
     def testMapSum0(self):
         self.assertEqual(mapSum([1]), [1])
     def testMapSum1(self):
