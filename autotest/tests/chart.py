@@ -17,7 +17,7 @@
 
 import re
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .chart_testcase import ChartTestCase
 
@@ -311,7 +311,7 @@ class ChartTest(ChartTestCase):
         yLabel = self.getLabel('yaxis')
         self.assertEqual(yLabel.text, '')
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
@@ -358,7 +358,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getAxis('xaxis').find_elements_by_xpath('./*')), 0)
         self.assertEqual(len(self.getAxis('yaxis').find_elements_by_xpath('./*')), 0)
 
-    @testData([
+    @TestData([
         {'var': 'nrj',  'agg': 'sum'},
         {'var': 'nrj',  'agg': 'inv'},
         {'var': 'pac',  'agg': 'sum'},
@@ -386,7 +386,7 @@ class ChartTest(ChartTestCase):
         self.assertRangeEqual(self.getRange('yaxis', False), self.getDataRange(var, agg))
         self.assertEqual(self.getTickLength('yaxis'), -6.)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'var': 'nrj',  'agg': 'sum'},
@@ -429,7 +429,7 @@ class ChartTest(ChartTestCase):
 
         self.assertEqual(len(self.getAxis('grid').find_elements_by_xpath('./*')), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'sum'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'nrj',  'agg': 'inv'},
         {'year': 2017, 'month': 8,    'day': 8,    'var': 'pac',  'agg': 'sum'},
@@ -449,7 +449,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(self.getTickPositions('yaxis'), self.getTickPositions('grid'))
         self.assertEqual(self.getTickLength('grid'), self.getDomain('xaxis', True)[1]/1.025)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
@@ -475,7 +475,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'var': 'nrj',  'agg': 'sum'},
         {'var': 'nrj',  'agg': 'inv'},
         {'var': 'pac',  'agg': 'sum'},
@@ -495,7 +495,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData(var, agg))
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'var': 'nrj',  'agg': 'sum'},
@@ -521,7 +521,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -535,7 +535,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': None, 'newDay': None},
@@ -549,7 +549,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -567,7 +567,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 8,    'newYear': 2018, 'newMonth': None, 'newDay': None},
@@ -586,7 +586,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
@@ -612,7 +612,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2019, 'month': None, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'newYear': 2019, 'newMonth': None, 'newDay': None},
@@ -629,7 +629,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2019, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2018, 'month': 2,    'day': None},
@@ -644,7 +644,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 8,    'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 8,    'year': 2019, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 8,    'year': 2018, 'month': 2,    'day': None},
@@ -663,7 +663,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'newYear': None, 'newMonth': None, 'year': 2019, 'month': None, 'day': None},
         {'newYear': None, 'newMonth': None, 'year': 2018, 'month': 2,    'day': None},
         {'newYear': None, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 5   },
@@ -690,7 +690,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'newYear': None, 'newMonth': None, 'year': 2019, 'month': None, 'day': None},
         {'newYear': None, 'newMonth': None, 'year': 2018, 'month': 2,    'day': None},
         {'newYear': None, 'newMonth': None, 'year': 2017, 'month': 8,    'day': 5   },
@@ -716,7 +716,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 6,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
@@ -727,7 +727,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'year': 2011, 'month': 6,    'day': 24,   'prevYear': 2011, 'prevMonth': 6,    'prevDay': 24  },
         {'year': 2011, 'month': 6,    'day': 26,   'prevYear': 2011, 'prevMonth': 6,    'prevDay': 24  },
         {'year': 2011, 'month': 12,   'day': 25,   'prevYear': 2011, 'prevMonth': 6,    'prevDay': 30  },
@@ -746,7 +746,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2009, 'month': None, 'prevYear': 2009, 'prevMonth': None},
         {'year': 2010, 'month': None, 'prevYear': 2009, 'prevMonth': None},
         {'year': 2010, 'month': 12,   'prevYear': 2010, 'prevMonth': 12, },
@@ -765,7 +765,7 @@ class ChartTest(ChartTestCase):
 
         self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 4,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 5   },
     ])
     def testEmptyNext(self, year, month, day, nextYear, nextMonth, nextDay):
@@ -776,7 +776,7 @@ class ChartTest(ChartTestCase):
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 8,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 8   },
         {'year': 2017, 'month': 8,    'day': 6,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 8   },
         {'year': 2017, 'month': 8,    'day': 5,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 6   },
@@ -795,7 +795,7 @@ class ChartTest(ChartTestCase):
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
-    @testData([
+    @TestData([
         {'year': 2018, 'month': None, 'nextYear': 2019, 'nextMonth': None},
         {'year': 2019, 'month': None, 'nextYear': 2019, 'nextMonth': None},
         {'year': 2018, 'month': 2,    'nextYear': 2018, 'nextMonth': 2   },

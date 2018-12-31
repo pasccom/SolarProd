@@ -21,7 +21,7 @@ import time
 import os
 import csv
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .browser_testcase import BrowserTestCase
 
@@ -92,7 +92,7 @@ class ExportTest(BrowserTestCase):
                             csvData[header1[j]][header2[j]] += [int(datum)]
         return (csvDates, csvData)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
@@ -125,7 +125,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
@@ -158,7 +158,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 5   },
@@ -189,7 +189,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
@@ -212,7 +212,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
@@ -244,7 +244,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2019, 'month': None, 'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
@@ -272,7 +272,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2009, 'month': None, 'day': None, 'prevYear': 2009, 'prevMonth': None, 'prevDay': None},
         {'year': 2010, 'month': None, 'day': None, 'prevYear': 2009, 'prevMonth': None, 'prevDay': None},
         {'year': 2010, 'month': 12,   'day': None, 'prevYear': 2010, 'prevMonth': 12,   'prevDay': None},
@@ -296,7 +296,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2018, 'month': None, 'day': None, 'nextYear': 2019, 'nextMonth': None, 'nextDay': None},
         {'year': 2019, 'month': None, 'day': None, 'nextYear': 2019, 'nextMonth': None, 'nextDay': None},
         {'year': 2018, 'month': 2,    'day': None, 'nextYear': 2018, 'nextMonth': 2,    'nextDay': None},
@@ -320,7 +320,7 @@ class ExportTest(BrowserTestCase):
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 5},
     ])
     def testEmpty(self, year, month, day):
@@ -333,7 +333,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 5},
     ])
     def testKeyEmpty(self, year, month, day):
@@ -346,7 +346,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -363,7 +363,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8, 'day': 5, 'newYear': 2018, 'newMonth': None, 'newDay': None},
@@ -380,7 +380,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': 2019, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8, 'newDay': 5, 'year': 2018, 'month': 2,    'day': None},
@@ -398,7 +398,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 6, 'prevYear': 2017, 'prevMonth': 8, 'prevDay': 5},
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
@@ -412,7 +412,7 @@ class ExportTest(BrowserTestCase):
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 4, 'prevYear': 2017, 'prevMonth': 8, 'prevDay': 5},
     ])
     def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):

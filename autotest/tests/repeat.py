@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .server_testcase import ServerTestCase
 
 class RepeatTest(ServerTestCase):
-    @testData([2, 3])
+    @TestData([2, 3])
     def testYears(self, repeat):
         self.browser.get(self.index)
         self.server.clear_request_log()
@@ -29,7 +29,7 @@ class RepeatTest(ServerTestCase):
         self.assertDate(wait=2)
         self.assertDataRequests([self.dataPath()], wait=2)
 
-    @testData([
+    @TestData([
         {'year': 2009, 'repeat': 2},
         {'year': 2010, 'repeat': 2},
         {'year': 2011, 'repeat': 2},
@@ -52,7 +52,7 @@ class RepeatTest(ServerTestCase):
         self.assertDate(year, wait=2)
         self.assertDataRequests([self.dataPath(year)], wait=2)
 
-    @testData([
+    @TestData([
         {'year': 2010, 'month': 12, 'repeat': 2},
         {'year': 2011, 'month': 6,  'repeat': 2},
         {'year': 2011, 'month': 8,  'repeat': 2},
@@ -75,7 +75,7 @@ class RepeatTest(ServerTestCase):
         self.assertDate(year, month, wait=2)
         self.assertDataRequests([self.dataPath(year, month)], wait=2)
 
-    @testData([
+    @TestData([
         {'year': 2011, 'month': 6, 'day': 24, 'repeat': 2},
         {'year': 2011, 'month': 6, 'day': 26, 'repeat': 2},
         {'year': 2017, 'month': 8, 'day': 6,  'repeat': 2},
@@ -94,7 +94,7 @@ class RepeatTest(ServerTestCase):
         self.assertDate(year, month, day, wait=2)
         self.assertDataRequests([self.dataPath(year, month, day)], wait=2)
 
-    @testData([2, 3])
+    @TestData([2, 3])
     def testToday(self, repeat):
         self.browser.get(self.index)
         self.server.clear_request_log()

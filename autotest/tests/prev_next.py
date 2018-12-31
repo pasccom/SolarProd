@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .browser_testcase import BrowserTestCase
 
 class PrevNextTest(BrowserTestCase):
 
-    @testData([
+    @TestData([
         {'year': 2009, 'prevEnabled': False, 'nextEnabled': True },
         {'year': 2010, 'prevEnabled': True,  'nextEnabled': True },
         {'year': 2011, 'prevEnabled': True,  'nextEnabled': True },
@@ -42,7 +42,7 @@ class PrevNextTest(BrowserTestCase):
         self.assertClassed(prevButton, 'disabled', not prevEnabled)
         self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
-    @testData([
+    @TestData([
         {'year': 2010, 'month': 12, 'prevEnabled': '!cache', 'nextEnabled': True    },
         {'year': 2011, 'month': 6,  'prevEnabled': True,     'nextEnabled': True    },
         {'year': 2011, 'month': 9,  'prevEnabled': True,     'nextEnabled': True    },
@@ -62,7 +62,7 @@ class PrevNextTest(BrowserTestCase):
         self.assertClassed(prevButton, 'disabled',  not prevEnabled)
         self.assertClassed(nextButton, 'disabled',  not nextEnabled)
 
-    @testData([
+    @TestData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevEnabled': '!cache', 'nextEnabled': True    },
         {'year': 2011, 'month': 6,  'day': 27, 'prevEnabled': True,     'nextEnabled': True    },
         {'year': 2011, 'month': 6,  'day': 30, 'prevEnabled': True,     'nextEnabled': True    },
@@ -83,7 +83,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2009, 'prevYear': 2009, 'prevEnabled': False             },
         {'year': 2010, 'prevYear': 2009, 'prevEnabled': False             },
         {'year': 2011, 'prevYear': 2010, 'prevEnabled': True              },
@@ -121,7 +121,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
         {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False              },
         {'year': 2011, 'month': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True               },
@@ -149,7 +149,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10},
         {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11},
         {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12},
-    ])
+    ], sort=True, addIndexes=[0])
     def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1):
         self.selectDate(year, month)
 
@@ -165,7 +165,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
         {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False              },
         {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True               },
@@ -190,7 +190,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
-    ])
+    ], sort=True, addIndexes=[0])
     def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
         self.selectDate(year, month, day)
 
@@ -206,7 +206,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2009, 'nextYear': 2010, 'nextEnabled': True              },
         {'year': 2010, 'nextYear': 2011, 'nextEnabled': True              },
         {'year': 2011, 'nextYear': 2013, 'nextEnabled': True              },
@@ -244,7 +244,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
         {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False              },
         {'year': 2017, 'month': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True               },
@@ -272,7 +272,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10},
         {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11},
         {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12},
-    ])
+    ], sort=True, addIndexes=[0])
     def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1):
         self.selectDate(year, month)
 
@@ -288,7 +288,7 @@ class PrevNextTest(BrowserTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @BrowserTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
         {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False              },
         {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True               },
@@ -313,7 +313,7 @@ class PrevNextTest(BrowserTestCase):
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
-    ])
+    ], sort=True, addIndexes=[0])
     def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
         self.selectDate(year, month, day)
 

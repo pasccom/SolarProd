@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .browser_testcase import BrowserTestCase
 
@@ -24,7 +24,7 @@ class ElementsTest(BrowserTestCase):
     def testWindowTitle(self):
         self.assertIn('Ducomquet: Production solaire', self.browser.title)
 
-    @testData([
+    @TestData([
         {'name': 'year',    'enabled': True },
         {'name': 'month',   'enabled': False},
         {'name': 'day',     'enabled': False},
@@ -37,7 +37,7 @@ class ElementsTest(BrowserTestCase):
         self.assertEqual(select.is_enabled(), enabled)
         self.assertEqual(select.size['height'], 28)
 
-    @testData([
+    @TestData([
         {'name': 'plot',    'enabled': True },
         {'name': 'today',   'enabled': True },
         {'name': 'prev',    'enabled': False},
@@ -59,7 +59,7 @@ class ElementsTest(BrowserTestCase):
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2017, 'month': None, 'day': None},
         {'year': 2017, 'month': 8,    'day': None},
@@ -72,7 +72,7 @@ class ElementsTest(BrowserTestCase):
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', False)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testExportEmpty(self, year, month, day):

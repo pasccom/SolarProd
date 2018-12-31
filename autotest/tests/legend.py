@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .legend_testcase import LegendTestCase
 from .chart_testcase import ChartTestCase
@@ -47,7 +47,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertIn('framed', self.getClasses(legend))
         self.assertEqual(legend.text, '')
 
-    @testData([
+    @TestData([
         {'var': 'nrj',  'agg': 'sum'},
         {'var': 'pac',  'agg': 'sum'},
         {'var': 'pdc',  'agg': 'sum'},
@@ -68,7 +68,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(legendTitle.text, 'Légende')
         self.assertLegendTitleStyle(legendTitle)
 
-    @testData(['nrj', 'pac', 'pdc'], before=loadToday)
+    @TestData(['nrj', 'pac', 'pdc'], before=loadToday)
     def testLineTotal(self, var):
         self.selectVar(var)
         self.selectSum('sum')
@@ -103,7 +103,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         for p, c, o in lines:
             legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
 
-    @testData(['nrj', 'pac', 'pdc', 'temp'], before=loadToday)
+    @TestData(['nrj', 'pac', 'pdc', 'temp'], before=loadToday)
     def testLinePerInverter(self, var):
         self.selectVar(var)
         self.selectSum('inv')
@@ -154,7 +154,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         for p, c, o in lines:
             legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
 
-    @testData(['pdc', 'udc'], before=loadToday)
+    @TestData(['pdc', 'udc'], before=loadToday)
     def testLinePerString(self, var):
         self.selectVar(var)
         self.selectSum('str')
@@ -260,7 +260,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         for p, c, o in lines:
             legendItemStyle = [s for s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'var': 'nrj', 'agg': 'sum'},
         {'year': None, 'month': None, 'var': 'nrj', 'agg': 'inv'},
         {'year': 2019, 'month': None, 'var': 'nrj', 'agg': 'sum'},
@@ -282,7 +282,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(legendTitle.text, 'Légende')
         self.assertLegendTitleStyle(legendTitle)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'var': 'nrj'},
         {'year': 2019, 'month': None, 'var': 'nrj'},
         {'year': 2018, 'month':    2, 'var': 'nrj'},
@@ -331,7 +331,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
             self.assertEqual(legendItemStyle[0]['border-width'], '1px')
             self.assertEqual(legendItemStyle[0]['border-style'], 'solid')
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj'},
         {'year': 2019, 'month': None, 'day': None, 'var': 'nrj'},
         {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj'},
@@ -395,7 +395,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
             self.assertEqual(legendItemStyle[0]['border-width'], '1px')
             self.assertEqual(legendItemStyle[0]['border-style'], 'solid')
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testEmpty(self, year, month, day):
@@ -405,7 +405,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': 2,    'newDay': None},
@@ -419,7 +419,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': 2018, 'newMonth': None, 'newDay': None},
@@ -433,7 +433,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
-    @testData([
+    @TestData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2019, 'month': None, 'day': None},
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': 2018, 'month': 2,    'day': None},
@@ -448,7 +448,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 6,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
@@ -459,7 +459,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 4,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
     ])
     def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):

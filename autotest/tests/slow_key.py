@@ -17,7 +17,7 @@
 
 from selenium.webdriver.common.keys import Keys as Key
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .server_testcase import ServerTestCase
 
@@ -25,7 +25,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2009, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2010, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2               },
         {'year': 2011, 'prevYear': 2009, 'prevEnabled': False, 'repeat': 2               },
@@ -59,7 +59,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2010, 'month': 12, 'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2011, 'month': 6,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2               },
         {'year': 2011, 'month': 8,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 2               },
@@ -75,7 +75,7 @@ class SlowKeyTest(ServerTestCase):
         {'year': 2018, 'month': 2,  'prevYear': 2011, 'prevMonth': 6,  'prevEnabled': True,  'repeat': 10              },
         {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 11              },
         {'year': 2018, 'month': 2,  'prevYear': 2010, 'prevMonth': 12, 'prevEnabled': False, 'repeat': 12              },
-    ])
+    ], sort=True, addIndexes=[0])
     def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1, requests=1):
         self.selectDate(year, month)
         self.browser.find_element_by_id('plot').click()
@@ -96,7 +96,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2011, 'month': 6,  'day': 24, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
         {'year': 2011, 'month': 6,  'day': 26, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
         {'year': 2011, 'month': 6,  'day': 27, 'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 2 },
@@ -112,7 +112,7 @@ class SlowKeyTest(ServerTestCase):
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 26, 'prevEnabled': True,  'repeat': 18},
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 19},
         {'year': 2017, 'month': 8,  'day': 8,  'prevYear': 2011, 'prevMonth': 6,  'prevDay': 24, 'prevEnabled': False, 'repeat': 20},
-    ])
+    ], sort=True, addIndexes=[0])
     def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
@@ -131,7 +131,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2019, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2018, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2               },
         {'year': 2017, 'nextYear': 2019, 'nextEnabled': False, 'repeat': 2               },
@@ -164,7 +164,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2018, 'month': 2,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2, 'requests': 0},
         {'year': 2017, 'month': 8,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2               },
         {'year': 2017, 'month': 6,  'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 2               },
@@ -180,7 +180,7 @@ class SlowKeyTest(ServerTestCase):
         {'year': 2010, 'month': 12, 'nextYear': 2017, 'nextMonth': 8,  'nextEnabled': True,  'repeat': 10              },
         {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 11              },
         {'year': 2010, 'month': 12, 'nextYear': 2018, 'nextMonth': 2,  'nextEnabled': False, 'repeat': 12              },
-    ])
+    ], sort=True, addIndexes=[0])
     def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1, requests=1):
         self.selectDate(year, month)
         self.browser.find_element_by_id('plot').click()
@@ -201,7 +201,7 @@ class SlowKeyTest(ServerTestCase):
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
     @ServerTestCase.cacheTest
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,  'day': 8,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
         {'year': 2017, 'month': 8,  'day': 6,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
         {'year': 2017, 'month': 8,  'day': 5,  'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 2 },
@@ -217,7 +217,7 @@ class SlowKeyTest(ServerTestCase):
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 6,  'nextEnabled': True,  'repeat': 18},
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 19},
         {'year': 2011, 'month': 6,  'day': 24, 'nextYear': 2017, 'nextMonth': 8,  'nextDay': 8,  'nextEnabled': False, 'repeat': 20},
-    ])
+    ], sort=True, addIndexes=[0])
     def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
         self.selectDate(year, month, day)
         self.browser.find_element_by_id('plot').click()
@@ -233,7 +233,7 @@ class SlowKeyTest(ServerTestCase):
         self.assertClassed(prevButton, 'disabled', False)
         self.assertClassed(nextButton, 'disabled', not nextEnabled)
 
-    @testData([1, 2])
+    @TestData([1, 2])
     def testToday(self, repeat):
         self.browser.get(self.index)
 

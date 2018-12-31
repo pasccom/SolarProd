@@ -19,7 +19,7 @@ from selenium import webdriver
 
 import os
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .testcase import TestCase
 
@@ -41,7 +41,7 @@ class LayoutTest(TestCase):
             self.browser.close()
             self.browser = None
 
-    @testData([{'size': (1200, 694)}])
+    @TestData([{'size': (1200, 694)}])
     def testVeryLargeSize(self, size):
         self.setUpBrowser(size)
 
@@ -62,7 +62,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @testData([
+    @TestData([
         {'size': (1024, 655)},
         {'size': (1023, 655)},
         {'size': (724, 500) },
@@ -87,7 +87,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @testData([
+    @TestData([
         {'size': (723, 500)},
         {'size': (501, 200)},
     ])
@@ -107,7 +107,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @testData([{'size': (468, 200)}])
+    @TestData([{'size': (468, 200)}])
     def testVerySmallSize(self, size):
         self.setUpBrowser(size)
 

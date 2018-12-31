@@ -17,7 +17,7 @@
 
 import json
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .browser_testcase import BrowserTestCase
 
@@ -33,7 +33,7 @@ class SelectTest(BrowserTestCase):
         self.assertTrue(select.is_enabled())
         self.assertEqual(select.get_property('value'), '')
 
-    @testData([
+    @TestData([
         {'year': 2009},
         {'year': 2010},
         {'year': 2011},
@@ -59,7 +59,7 @@ class SelectTest(BrowserTestCase):
                 self.waitOptions(select, 5)
             self.assertFalse(select.is_enabled())
 
-    @testData([
+    @TestData([
         {'year': 2010, 'month': 12},
         {'year': 2011, 'month': 6 },
         {'year': 2011, 'month': 9 },
@@ -86,7 +86,7 @@ class SelectTest(BrowserTestCase):
                 self.waitOptions(select, 5)
             self.assertFalse(select.is_enabled())
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'expected': set(['Énergie'])                                                             },
         {'year': 2017, 'month': None, 'day': None, 'expected': set(['Énergie'])                                                             },
         {'year': 2017, 'month': 8,    'day': None, 'expected': set(['Énergie', 'Puissance'])                                                },
@@ -102,7 +102,7 @@ class SelectTest(BrowserTestCase):
         self.assertEqual(set(options), expected)
         self.assertEqual(select.is_enabled(), len(expected) > 0)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testEmptyVar(self, year, month, day):
@@ -115,7 +115,7 @@ class SelectTest(BrowserTestCase):
         with self.assertRaises(RuntimeError):
             self.waitOptions(select, 10)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              },
         {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              },
         {'year': 2017, 'month': 8,    'day': None, 'var': 'nrj',  'expected': set(['Total', 'Par onduleur'])              },
@@ -137,7 +137,7 @@ class SelectTest(BrowserTestCase):
         self.assertEqual(set(options), expected)
         self.assertEqual(select.is_enabled(), len(expected) > 1)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testEmptySum(self, year, month, day):

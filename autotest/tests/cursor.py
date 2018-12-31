@@ -19,7 +19,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys as Key
 from selenium.common import exceptions as selenium
 
-from .PythonUtils.testdata import testData
+from .PythonUtils.testdata import TestData
 
 from .helpers import recMax
 
@@ -228,7 +228,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2017, 'month': None, 'day': None},
         {'year': 2017, 'month': 8,    'day': None},
@@ -252,7 +252,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
         {'year': None, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
         {'year': 2017, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
@@ -291,7 +291,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False, var, agg)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2017, 'month': None, 'day': None},
         {'year': 2017, 'month': 8,    'day': None},
@@ -323,7 +323,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None, 'newYear': 2019, 'newMonth': None, 'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2018, 'newMonth': 2,    'newDay': None},
         {'year': None, 'month': None, 'day': None, 'newYear': 2017, 'newMonth': 8,    'newDay': 8   },
@@ -352,7 +352,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2019, 'month': None, 'day': None},
         {'year': 2018, 'month': 2,    'day': None},
@@ -372,7 +372,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-    @testData([
+    @TestData([
         {'var': 'nrj',  'newVar': 'pac',  'agg': 'sum'},
         {'var': 'nrj',  'newVar': 'pdc',  'agg': 'sum'},
         {'var': 'nrj',  'newVar': 'udc',  'agg': 'sum'},
@@ -407,7 +407,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'agg': 'sum', 'newAgg': 'inv'},
         {'agg': 'sum', 'newAgg': 'str'},
         {'agg': 'inv', 'newAgg': 'sum'},
@@ -427,7 +427,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': None, 'month': None, 'day': None},
         {'year': 2019, 'month': None, 'day': None},
         {'year': 2018, 'month': 2,    'day': None},
@@ -460,7 +460,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-    @testData([
+    @TestData([
         {'year': 2019, 'month': None, 'day': None},
         {'year': 2018, 'month': 2,    'day': None},
         {'year': 2017, 'month': 8,    'day': 8   },
@@ -479,7 +479,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': 2009, 'month': None, 'day': None},
         {'year': 2010, 'month': 12,   'day': None},
         {'year': 2011, 'month': 6,    'day': 24  },
@@ -498,7 +498,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
-    @testData([
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testEmpty(self, year, month, day):
