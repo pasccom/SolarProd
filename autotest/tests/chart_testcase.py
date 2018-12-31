@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
+from .helpers import groupby
 from .browser_testcase import BrowserTestCase
 
 class ChartTestCase(BrowserTestCase):
@@ -39,7 +40,17 @@ class ChartTestCase(BrowserTestCase):
         args = [lambda x: x] + list(args)
         return [tuple(f(l) for f in args) for l in chart.find_elements_by_css_selector('path.line')]
 
+    def getLineData(self):
+        # NOTE assuming they are in the right order.
+        groups = groupby(self.getLines(), key=lambda l: self.getColor(l[0]))
+        return [[self.parsePath(p[0].get_attribute('d')) for p in g] for g in groups]
+
     def getBars(self, *args):
         chart = self.browser.find_element_by_id('chart')
         args = [lambda x: x] + list(args)
         return [tuple(f(b) for f in args) for b in chart.find_elements_by_css_selector('rect.bar')]
+
+    def getBarData(self):
+        # NOTE assuming they are in the right order.
+        groups = [groupby(g, key=lambda b: self.getOpacity(b[0])) for g in groupby(self.getBars(), key=lambda b: self.getColor(b[0]))]
+        return [[[self.parseRect(p[0]) for p in g2] for g2 in g1] for g1 in groups]

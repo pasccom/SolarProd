@@ -175,50 +175,6 @@ class ChartTest(ChartTestCase):
             self.yMap(float(rect.get_attribute('y')) + offset1[1] + offset2[1] + float(rect.get_attribute('height')))
         )
 
-
-    def getLineData(self):
-        # Grouping lines by color:
-        # NOTE assuming they are in the right order.
-        groups = []
-        lines = self.getLines(self.getColor, self.getOpacity)
-
-        for p, c, o in lines:
-            ok = False
-            for i in range(0, len(groups)):
-                if (groups[i][0][1] == c):
-                    if not ok:
-                        groups[i] += [(p, c, o)]
-                        ok = True
-                    break
-            if not ok:
-                groups += [[(p, c, o)]]
-
-        return [[self.parsePath(p.get_attribute('d')) for p, c, o in g] for g in groups]
-
-    def getBarData(self):
-        # Grouping bars by color and opacity:
-        # NOTE assuming they are in the right order.
-        groups = []
-        bars = self.getBars(self.getColor, self.getOpacity)
-
-        for p, c, o in bars:
-            ok = False
-            for i in range(0, len(groups)):
-                if (groups[i][0][0][1] == c):
-                    for j in range(0, len(groups[i])):
-                        if (groups[i][j][0][2] == o):
-                            groups[i][j] += [(p, c, o)]
-                            ok = True
-                            break
-                    if not ok:
-                        groups[i] += [[(p, c, o)]]
-                        ok = True
-                    break
-            if not ok:
-                groups += [[[(p, c, o)]]]
-
-        return [[[self.parseRect(p) for p, c, o in g2] for g2 in g1] for g1 in groups]
-
     def getLabel(self, axis):
         chart = self.browser.find_element_by_id('chart')
         labels = [e.find_element_by_tag_name('text') for e in chart.find_elements_by_class_name('label')]
