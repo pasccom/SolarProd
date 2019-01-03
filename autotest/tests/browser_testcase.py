@@ -115,6 +115,9 @@ class BrowserTestCase(TestCase):
         else:
             self.browser.find_element_by_id('plot').click()
 
+    def export(self):
+        self.browser.find_element_by_id('export').click()
+
     def waitOptions(self, select, t=-1):
         options = []
         while (len(options) == 0):

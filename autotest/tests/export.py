@@ -120,7 +120,7 @@ class ExportTest(BrowserTestCase):
         self.selectSum(agg)
 
         csvFilePath = self.getExportPath(var, agg, year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath, agg), (self.getData('dates', 'str'), self.getData(var, agg)))
         os.remove(csvFilePath)
@@ -184,7 +184,7 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay)
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -207,7 +207,7 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -239,7 +239,7 @@ class ExportTest(BrowserTestCase):
         self.plot()
 
         csvFilePath = self.getExportPath('nrj', 'sum',  newYear, newMonth, newDay)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -267,7 +267,7 @@ class ExportTest(BrowserTestCase):
         self.plot()
 
         csvFilePath = self.getExportPath('nrj', 'sum',  newYear, newMonth, newDay)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -291,7 +291,7 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('prev').click()
 
         csvFilePath = self.getExportPath('nrj', 'sum', prevYear, prevMonth, prevDay)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -315,7 +315,7 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('next').click()
 
         csvFilePath = self.getExportPath('nrj', 'sum', nextYear, nextMonth, nextDay)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertTrue(self.waitExport(csvFilePath, 5))
         self.assertEqual(self.getExportData(csvFilePath), (self.getData('dates', 'str'), self.getData('nrj', 'sum')))
         os.remove(csvFilePath)
@@ -328,7 +328,7 @@ class ExportTest(BrowserTestCase):
         self.plot()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -358,7 +358,7 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay)
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -375,7 +375,7 @@ class ExportTest(BrowserTestCase):
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -393,7 +393,7 @@ class ExportTest(BrowserTestCase):
         self.plot()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -407,7 +407,7 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('prev').click()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
@@ -421,7 +421,7 @@ class ExportTest(BrowserTestCase):
         self.browser.find_element_by_id('next').click()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
-        self.browser.find_element_by_id('export').click()
+        self.export()
         self.assertFalse(self.waitExport(csvFilePath, 5))
         with self.assertRaises(FileNotFoundError):
             os.remove(csvFilePath)
