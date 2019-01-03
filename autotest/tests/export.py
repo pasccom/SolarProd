@@ -288,7 +288,7 @@ class ExportTest(BrowserTestCase):
 
         self.selectDate(year, month, day)
         self.plot()
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
 
         csvFilePath = self.getExportPath('nrj', 'sum', prevYear, prevMonth, prevDay)
         self.export()
@@ -312,7 +312,7 @@ class ExportTest(BrowserTestCase):
 
         self.selectDate(year, month, day)
         self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         csvFilePath = self.getExportPath('nrj', 'sum', nextYear, nextMonth, nextDay)
         self.export()
@@ -403,8 +403,7 @@ class ExportTest(BrowserTestCase):
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
         self.export()
@@ -417,8 +416,7 @@ class ExportTest(BrowserTestCase):
     ])
     def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         csvFilePath = self.getExportPath('nrj', 'sum', year, month, day)
         self.export()

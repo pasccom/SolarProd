@@ -148,6 +148,12 @@ class BrowserTestCase(TestCase):
         else:
             self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
 
+    def plotPrev(self, repeat=1):
+        self.clickButton(self.browser.find_element_by_id('prev'), repeat).perform()
+
+    def plotNext(self, repeat=1):
+        self.clickButton(self.browser.find_element_by_id('next'), repeat).perform()
+
     def export(self, repeat=1):
         self.clickButton(self.browser.find_element_by_id('export'), repeat).perform()
 

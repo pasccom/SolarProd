@@ -475,7 +475,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
@@ -494,7 +494,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 

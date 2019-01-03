@@ -432,8 +432,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
@@ -443,8 +442,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)

@@ -450,8 +450,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
 
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
@@ -468,7 +467,7 @@ class ChartTest(ChartTestCase):
 
         self.selectDate(year, month, day)
         self.plot()
-        self.browser.find_element_by_id('prev').click()
+        self.plotPrev()
 
         self.initMapFunction('xaxis')
         self.initMapFunction('yaxis')
@@ -486,8 +485,7 @@ class ChartTest(ChartTestCase):
 
         self.selectDate(year, month)
         self.plot()
-        self.browser.find_element_by_id('prev').click()
-
+        self.plotPrev()
 
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
@@ -499,8 +497,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyNext(self, year, month, day, nextYear, nextMonth, nextDay):
         self.selectDate(year, month, day)
-        self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
@@ -517,7 +514,7 @@ class ChartTest(ChartTestCase):
 
         self.selectDate(year, month, day)
         self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         self.initMapFunction('xaxis')
         self.initMapFunction('yaxis')
@@ -535,7 +532,7 @@ class ChartTest(ChartTestCase):
 
         self.selectDate(year, month)
         self.plot()
-        self.browser.find_element_by_id('next').click()
+        self.plotNext()
 
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
