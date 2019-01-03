@@ -98,7 +98,6 @@ class LeftRightKeyTest(BrowserTestCase):
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
-        self.browser.find_element_by_id('plot').click()
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, wait=5)

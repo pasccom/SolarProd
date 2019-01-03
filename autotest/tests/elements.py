@@ -67,7 +67,7 @@ class ElementsTest(BrowserTestCase):
     ])
     def testExportDate(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', False)
@@ -77,7 +77,7 @@ class ElementsTest(BrowserTestCase):
     ])
     def testExportEmpty(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', True)

@@ -28,11 +28,11 @@ class ChartTest(ChartTestCase):
     def loadEmpty(self):
         self.loadData(2017, 8, 5)
         self.selectDate(2017, 8, 5)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
     def testEmptyLabel(self):
         self.selectDate(2017, 8, 5)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         xLabel = self.getLabel('xaxis')
         self.assertEqual(xLabel.text, '')
@@ -61,7 +61,7 @@ class ChartTest(ChartTestCase):
     ])
     def testLabel(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -82,7 +82,7 @@ class ChartTest(ChartTestCase):
 
     def testEmptyAxis(self):
         self.selectDate(2017, 8, 5)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.getAxis('xaxis').find_elements_by_xpath('./*')), 0)
         self.assertEqual(len(self.getAxis('yaxis').find_elements_by_xpath('./*')), 0)
@@ -129,7 +129,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -154,7 +154,7 @@ class ChartTest(ChartTestCase):
 
     def testEmptyGrid(self):
         self.selectDate(2017, 8, 5)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.getAxis('grid').find_elements_by_xpath('./*')), 0)
 
@@ -171,7 +171,7 @@ class ChartTest(ChartTestCase):
     ])
     def testLineGrid(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -190,7 +190,7 @@ class ChartTest(ChartTestCase):
     ])
     def testBarGrid(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -199,7 +199,7 @@ class ChartTest(ChartTestCase):
 
     def testEmptyData(self):
         self.selectDate(2017, 8, 5)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
@@ -238,7 +238,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -258,7 +258,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
         self.assertEqual(len(self.getLines()), 0)
@@ -272,7 +272,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         self.assertEqual(len(self.getLines()), 0)
@@ -288,7 +288,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month, day)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
         self.initMapFunction('xaxis')
@@ -307,7 +307,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month, day)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         self.initMapFunction('xaxis')
@@ -333,7 +333,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
         self.initMapFunction('xaxis', True)
@@ -350,7 +350,7 @@ class ChartTest(ChartTestCase):
         self.loadData(year, month)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         self.initMapFunction('xaxis', True)
@@ -366,9 +366,9 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyTransition(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.getLines()), 0)
         self.assertEqual(len(self.getBars()), 0)
@@ -383,9 +383,9 @@ class ChartTest(ChartTestCase):
         self.loadData(newYear, newMonth, newDay)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.initMapFunction('xaxis')
         self.initMapFunction('yaxis')
@@ -410,9 +410,9 @@ class ChartTest(ChartTestCase):
         self.loadData(newYear, newMonth)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
@@ -436,9 +436,9 @@ class ChartTest(ChartTestCase):
         self.loadData(newYear, newMonth)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, partial=True)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
@@ -450,7 +450,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('prev').click()
 
         self.assertEqual(len(self.getLines()), 0)
@@ -467,7 +467,7 @@ class ChartTest(ChartTestCase):
         self.loadData(prevYear, prevMonth, prevDay)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('prev').click()
 
         self.initMapFunction('xaxis')
@@ -485,7 +485,7 @@ class ChartTest(ChartTestCase):
         self.loadData(prevYear, prevMonth)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('prev').click()
 
 
@@ -499,7 +499,7 @@ class ChartTest(ChartTestCase):
     ])
     def testEmptyNext(self, year, month, day, nextYear, nextMonth, nextDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('next').click()
 
         self.assertEqual(len(self.getLines()), 0)
@@ -516,7 +516,7 @@ class ChartTest(ChartTestCase):
         self.loadData(nextYear, nextMonth, nextDay)
 
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('next').click()
 
         self.initMapFunction('xaxis')
@@ -534,7 +534,7 @@ class ChartTest(ChartTestCase):
         self.loadData(nextYear, nextMonth)
 
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('next').click()
 
         self.initMapFunction('xaxis', True)

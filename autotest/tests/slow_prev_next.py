@@ -39,7 +39,7 @@ class SlowPrevNextTest(ServerTestCase):
     ])
     def testPrevYear(self, year, prevYear, prevEnabled, repeat=1, requests=1):
         self.selectDate(year)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -75,7 +75,7 @@ class SlowPrevNextTest(ServerTestCase):
     ], sort=True, addIndexes=[0])
     def testPrevMonth(self, year, month, prevYear, prevMonth, prevEnabled, repeat=1, requests=1):
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -112,7 +112,7 @@ class SlowPrevNextTest(ServerTestCase):
     ], sort=True, addIndexes=[0])
     def testPrevDay(self, year, month, day, prevYear, prevMonth, prevDay, prevEnabled, repeat=1):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -144,7 +144,7 @@ class SlowPrevNextTest(ServerTestCase):
     ])
     def testNextYear(self, year, nextYear, nextEnabled, repeat=1, requests=1):
         self.selectDate(year)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -180,7 +180,7 @@ class SlowPrevNextTest(ServerTestCase):
     ], sort=True, addIndexes=[0])
     def testNextMonth(self, year, month, nextYear, nextMonth, nextEnabled, repeat=1, requests=1):
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -217,7 +217,7 @@ class SlowPrevNextTest(ServerTestCase):
     ], sort=True, addIndexes=[0])
     def testNextDay(self, year, month, day, nextYear, nextMonth, nextDay, nextEnabled, repeat=1):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')

@@ -236,7 +236,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testDate(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -273,7 +273,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testVarAndSum(self, year, month, day, var, agg):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
         self.selectVar(var)
         self.selectSum(agg)
@@ -299,7 +299,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testKeyDate(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -339,7 +339,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -348,7 +348,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertCursor(True)
 
         self.selectDate(newYear, newMonth, newDay)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
@@ -360,7 +360,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testNoChangeDate(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -368,7 +368,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
@@ -436,7 +436,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testChangeToday(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -467,7 +467,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testPrev(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -486,7 +486,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testNext(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.loadData(year, month, day)
 
         cursor = self.browser.find_element_by_id('cursor')
@@ -503,7 +503,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
     ])
     def testEmpty(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)

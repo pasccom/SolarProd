@@ -259,7 +259,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testBarTitle(self, year, month, var, agg):
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum(agg)
 
@@ -277,7 +277,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testBarTotal(self, year, month, var):
         self.selectDate(year, month)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum('sum')
 
@@ -322,7 +322,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testBarPerInverter(self, year, month, day, var):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
         self.selectSum('inv')
 
@@ -379,7 +379,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmpty(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
@@ -392,7 +392,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
@@ -406,7 +406,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyPartialChangeDate(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
@@ -420,9 +420,9 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyTransition(self, year, month, day, newYear, newMonth, newDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectDate(newYear, newMonth, newDay)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
         self.assertEqual(len(self.browser.find_element_by_id('legend').text), 0)
@@ -432,7 +432,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyPrev(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('prev').click()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)
@@ -443,7 +443,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
     ])
     def testEmptyNext(self, year, month, day, prevYear, prevMonth, prevDay):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.browser.find_element_by_id('next').click()
 
         self.assertEqual(len(self.browser.find_element_by_id('legend').find_elements_by_xpath('child::*')), 0)

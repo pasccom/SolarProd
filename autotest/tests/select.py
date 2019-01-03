@@ -94,7 +94,7 @@ class SelectTest(BrowserTestCase):
     ])
     def testVar(self, year, month, day, expected):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         select = self.browser.find_element_by_id('var')
         options = [o.text for o in self.waitOptions(select, 5)]
@@ -107,7 +107,7 @@ class SelectTest(BrowserTestCase):
     ])
     def testEmptyVar(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         select = self.browser.find_element_by_id('var')
         self.assertFalse(select.is_enabled())
@@ -128,7 +128,7 @@ class SelectTest(BrowserTestCase):
     ])
     def testSum(self, year, month, day, var, expected):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
         self.selectVar(var)
 
         select = self.browser.find_element_by_id('sum')
@@ -142,7 +142,7 @@ class SelectTest(BrowserTestCase):
     ])
     def testEmptySum(self, year, month, day):
         self.selectDate(year, month, day)
-        self.browser.find_element_by_id('plot').click()
+        self.plot()
 
         select = self.browser.find_element_by_id('sum')
         self.assertFalse(select.is_enabled())
