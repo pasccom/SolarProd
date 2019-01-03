@@ -109,15 +109,6 @@ class BrowserTestCase(TestCase):
             return
         self.selectOption('sum', self.sumName(agg), agg)
 
-    def plot(self, today=False):
-        if today:
-            self.browser.find_element_by_id('today').click()
-        else:
-            self.browser.find_element_by_id('plot').click()
-
-    def export(self):
-        self.browser.find_element_by_id('export').click()
-
     def waitOptions(self, select, t=-1):
         options = []
         while (len(options) == 0):
@@ -150,6 +141,15 @@ class BrowserTestCase(TestCase):
             actions.move_to_element(button)
             actions.click(button)
         return actions
+
+    def plot(self, today=False, repeat=1):
+        if today:
+            self.clickButton(self.browser.find_element_by_id('today'), repeat).perform()
+        else:
+            self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
+
+    def export(self, repeat=1):
+        self.clickButton(self.browser.find_element_by_id('export'), repeat).perform()
 
     def pressKeys(self, keys, repeat=1):
         actions = ActionChains(self.browser)

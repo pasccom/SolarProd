@@ -234,13 +234,12 @@ class SlowPrevNextTest(ServerTestCase):
     def testToday(self, repeat):
         self.browser.get(self.index)
 
-        todayButton = self.browser.find_element_by_id('today')
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.clickButton(todayButton, repeat).perform()
+            self.plot(True, repeat=repeat)
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)

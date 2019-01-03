@@ -24,7 +24,7 @@ class RepeatTest(ServerTestCase):
     def testYears(self, repeat):
         self.browser.get(self.index)
         self.server.clear_request_log()
-        self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
+        self.plot(repeat=repeat)
 
         self.assertDate(wait=2)
         self.assertDataRequests([self.dataPath()], wait=2)
@@ -47,7 +47,7 @@ class RepeatTest(ServerTestCase):
         self.browser.get(self.index)
         self.selectDate(year)
         self.server.clear_request_log()
-        self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
+        self.plot(repeat=repeat)
 
         self.assertDate(year, wait=2)
         self.assertDataRequests([self.dataPath(year)], wait=2)
@@ -70,7 +70,7 @@ class RepeatTest(ServerTestCase):
         self.browser.get(self.index)
         self.selectDate(year, month)
         self.server.clear_request_log()
-        self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
+        self.plot(repeat=repeat)
 
         self.assertDate(year, month, wait=2)
         self.assertDataRequests([self.dataPath(year, month)], wait=2)
@@ -89,7 +89,7 @@ class RepeatTest(ServerTestCase):
         self.browser.get(self.index)
         self.selectDate(year, month, day)
         self.server.clear_request_log()
-        self.clickButton(self.browser.find_element_by_id('plot'), repeat).perform()
+        self.plot(repeat=repeat)
 
         self.assertDate(year, month, day, wait=2)
         self.assertDataRequests([self.dataPath(year, month, day)], wait=2)
@@ -98,7 +98,7 @@ class RepeatTest(ServerTestCase):
     def testToday(self, repeat):
         self.browser.get(self.index)
         self.server.clear_request_log()
-        self.clickButton(self.browser.find_element_by_id('today'), repeat).perform()
+        self.plot(True, repeat=repeat)
 
         self.assertDate(2017, 8, 8, wait=2)
         self.assertDataRequests([self.dataPath('today')], wait=2)
