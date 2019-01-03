@@ -88,6 +88,49 @@ class ChartTestCase(BrowserTestCase):
             self.yMap(float(rect.get_attribute('y')) + offset1[1] + offset2[1] + float(rect.get_attribute('height')))
         )
 
+    def assertRangeEqual(self, range1, range2):
+        self.assertAlmostEqual(range1[0], range2[0])
+        self.assertAlmostEqual(range1[1], range2[1])
+
+    def assertCoordinatesEqual(self, coords, x, y):
+        for i, c in enumerate(coords):
+            if type(c) is tuple:
+                self.assertAlmostEqual(c[0], x[i])
+                self.assertAlmostEqual(c[1], y[i])
+            else:
+                self.assertCoordinatesEqual(c, x, y[i])
+
+    def assertBarsEqual(self, rects, x, y, nBars=None, bar=None):
+        if nBars is None:
+            nBars = len(rects) * max([len(r) for r in rects])
+
+        for i, r in enumerate(rects):
+            if type(r) is tuple:
+                if (nBars == 1):
+                    begin = 0.01
+                    end   = 0.99
+                else:
+                    begin = 0.05 + (0.9 / nBars) * (bar + 0.01)
+                    end   = 0.05 + (0.9 / nBars) * (bar + 0.99)
+                self.assertAlmostEqual(r[0], x[i] + begin)
+                self.assertAlmostEqual(r[1], y[i])
+                self.assertAlmostEqual(r[2], x[i] + end)
+                self.assertAlmostEqual(r[3], 0.0)
+            else:
+                if bar is not None:
+                    b = bar
+                else:
+                    b = i
+                self.assertBarsEqual(r, x, y[i], nBars, b)
+
+    def assertLabelStyle(self, label):
+        self.assertEqual(label.value_of_css_property('font-family'), 'sans-serif')
+        self.assertEqual(label.value_of_css_property('font-size'), '12px')
+        self.assertEqual(label.value_of_css_property('font-weight'), '700')
+        self.assertEqual(label.value_of_css_property('font-style'), 'normal')
+        self.assertEqual(label.value_of_css_property('text-decoration'), 'none')
+        self.assertEqual(label.value_of_css_property('text-anchor'), 'middle')
+
     def getLines(self, *args):
         chart = self.browser.find_element_by_id('chart')
         args = [lambda x: x] + list(args)

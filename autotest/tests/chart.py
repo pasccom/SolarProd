@@ -148,49 +148,6 @@ class ChartTest(ChartTestCase):
         else:
             return min(data), max(data) + 0.025*(max(data) - min(data))
 
-    def assertRangeEqual(self, range1, range2):
-        self.assertAlmostEqual(range1[0], range2[0])
-        self.assertAlmostEqual(range1[1], range2[1])
-
-    def assertCoordinatesEqual(self, coords, x, y):
-        for i, c in enumerate(coords):
-            if type(c) is tuple:
-                self.assertAlmostEqual(c[0], x[i])
-                self.assertAlmostEqual(c[1], y[i])
-            else:
-                self.assertCoordinatesEqual(c, x, y[i])
-
-    def assertRectanglesEqual(self, rects, x, y, nBars=None, bar=None):
-        if nBars is None:
-            nBars = len(rects) * max([len(r) for r in rects])
-
-        for i, r in enumerate(rects):
-            if type(r) is tuple:
-                if (nBars == 1):
-                    begin = 0.01
-                    end   = 0.99
-                else:
-                    begin = 0.05 + (0.9 / nBars) * (bar + 0.01)
-                    end   = 0.05 + (0.9 / nBars) * (bar + 0.99)
-                self.assertAlmostEqual(r[0], x[i] + begin)
-                self.assertAlmostEqual(r[1], y[i])
-                self.assertAlmostEqual(r[2], x[i] + end)
-                self.assertAlmostEqual(r[3], 0.0)
-            else:
-                if bar is not None:
-                    b = bar
-                else:
-                    b = i
-                self.assertRectanglesEqual(r, x, y[i], nBars, b)
-
-    def assertLabelStyle(self, label):
-        self.assertEqual(label.value_of_css_property('font-family'), 'sans-serif')
-        self.assertEqual(label.value_of_css_property('font-size'), '12px')
-        self.assertEqual(label.value_of_css_property('font-weight'), '700')
-        self.assertEqual(label.value_of_css_property('font-style'), 'normal')
-        self.assertEqual(label.value_of_css_property('text-decoration'), 'none')
-        self.assertEqual(label.value_of_css_property('text-anchor'), 'middle')
-
     def loadToday(self):
         self.loadData('today')
         self.browser.find_element_by_id('today').click()
@@ -418,7 +375,7 @@ class ChartTest(ChartTestCase):
             self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
 
     @TestData([
         {'year': 2017, 'month': 8,    'day': 5,    'newYear': None, 'newMonth': None, 'newDay': None},
@@ -509,7 +466,7 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
         {'year': 2019, 'month': None, 'newYear': None, 'newMonth': None, 'newDay': None},
@@ -526,7 +483,7 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
         {'newYear': 2017, 'newMonth': 8,    'newDay': 5,    'year': None, 'month': None, 'day': None},
@@ -587,7 +544,7 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
         {'newYear': None, 'newMonth': None, 'year': 2019, 'month': None, 'day': None},
@@ -613,7 +570,7 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
         {'year': 2017, 'month': 8,    'day': 6,    'prevYear': 2017, 'prevMonth': 8,    'prevDay': 5   },
@@ -662,7 +619,7 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
         {'year': 2017, 'month': 8,    'day': 4,    'nextYear': 2017, 'nextMonth': 8,    'nextDay': 5   },
@@ -710,6 +667,6 @@ class ChartTest(ChartTestCase):
         self.initMapFunction('xaxis', True)
         self.initMapFunction('yaxis')
 
-        self.assertRectanglesEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
 
