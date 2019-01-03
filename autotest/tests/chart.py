@@ -102,9 +102,6 @@ class ChartTest(ChartTestCase):
         self.selectVar(var)
         self.selectSum(agg)
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         # Check x axis:
         xTickLabels = self.getTickLabels('xaxis')
         self.assertEqual(xTickLabels, list(range(int(min(xTickLabels)), int(max(xTickLabels) + 1))))
@@ -132,12 +129,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.selectVar(var)
         self.selectSum(agg)
-
-        if (agg != 'sum'):
-            self.initMapFunction('xaxis', True)
-        else:
-            self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         # Check x axis:
         xTickLabels = self.getTickLabels('xaxis')
@@ -219,9 +210,6 @@ class ChartTest(ChartTestCase):
         self.selectVar(var)
         self.selectSum(agg)
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData(var, agg))
 
     @TestData([
@@ -241,12 +229,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.selectVar(var)
         self.selectSum(agg)
-
-        if (agg != 'sum'):
-            self.initMapFunction('xaxis', True)
-        else:
-            self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
 
@@ -291,9 +273,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -309,9 +288,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(year, month, day)
         self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
-
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
 
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
@@ -336,9 +312,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.selectDate(newYear, newMonth, newDay)
 
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
-
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -352,9 +325,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(year, month)
         self.plot()
         self.selectDate(newYear, newMonth, newDay, partial=True)
-
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
@@ -387,9 +357,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(newYear, newMonth, newDay)
         self.plot()
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -414,9 +381,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(newYear, newMonth)
         self.plot()
 
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
-
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -439,9 +403,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.selectDate(newYear, newMonth, partial=True)
         self.plot()
-
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
@@ -469,9 +430,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.plotPrev()
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -486,9 +444,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(year, month)
         self.plot()
         self.plotPrev()
-
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
@@ -516,9 +471,6 @@ class ChartTest(ChartTestCase):
         self.plot()
         self.plotNext()
 
-        self.initMapFunction('xaxis')
-        self.initMapFunction('yaxis')
-
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
     @TestData([
@@ -533,9 +485,6 @@ class ChartTest(ChartTestCase):
         self.selectDate(year, month)
         self.plot()
         self.plotNext()
-
-        self.initMapFunction('xaxis', True)
-        self.initMapFunction('yaxis')
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 

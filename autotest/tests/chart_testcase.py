@@ -26,6 +26,26 @@ class ChartTestCase(BrowserTestCase):
 
         self.lineWidth = 1;
 
+    def selectVar(self, *args, **kwArgs):
+        super().selectVar(*args, **kwArgs)
+        self.clearMapFunctions()
+
+    def selectSum(self, *args, **kwArgs):
+        super().selectSum(*args, **kwArgs)
+        self.clearMapFunctions()
+
+    def plot(self, *args, **kwArgs):
+        super().plot(*args, **kwArgs)
+        self.clearMapFunctions()
+
+    def plotPrev(self, *args, **kwArgs):
+        super().plotPrev(*args, **kwArgs)
+        self.clearMapFunctions()
+
+    def plotNext(self, *args, **kwArgs):
+        super().plotNext(*args, **kwArgs)
+        self.clearMapFunctions()
+
     def getColor(self, elem):
         if elem.tag_name == 'path':
             return self.parseColor(elem.find_element_by_xpath('..').get_attribute('stroke'))
@@ -78,11 +98,15 @@ class ChartTestCase(BrowserTestCase):
             raise NotImplementedError()
 
     def parsePath(self, path):
+        self.initMapFunctions(False)
+
         self.assertRegex(path, r'^M([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?)(?:L([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?))*$')
         coords = [tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')]
         return [(self.xMap(c[0]), self.yMap(c[1])) for c in coords]
 
     def parseRect(self, rect):
+        self.initMapFunctions(True)
+
         offset1 = self.parseTranslate(rect.find_element_by_xpath('../..'))
         offset2 = self.parseTranslate(rect.find_element_by_xpath('..'))
 
@@ -106,6 +130,9 @@ class ChartTestCase(BrowserTestCase):
         return labels[0]
 
     def getRange(self, axis, centered):
+        if not hasattr(self, axis[0] + 'Map'):
+            self.initMapFunction(axis, centered)
+
         return tuple(map(getattr(self, axis[0] + 'Map'), self.getDomain(axis, not centered)))
 
     def getDataRange(self, var, agg=None):
@@ -202,7 +229,7 @@ class ChartTestCase(BrowserTestCase):
         else:
             return list(map(lambda x, y: x + y - self.lineWidth / 2, offsets, tickPos))
 
-    def initMapFunction(self, axis, centered=False, extraPadding=0):
+    def initMapFunction(self, axis, centered):
         ticks = self.getTickPositions(axis, centered)
         tickLabels = self.getTickLabels(axis)
 
@@ -210,9 +237,26 @@ class ChartTestCase(BrowserTestCase):
         im, xm = min(enumerate(ticks), key=lambda t: t[0])
 
         if centered:
-            setattr(self, axis[0] + 'Map', lambda x: tickLabels[max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm))))] + 1 + im + (x - xm) * (iM - im) / (xM - xm) - max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm)))) - extraPadding)
+            setattr(self, axis[0] + 'Map', lambda x: tickLabels[max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm))))] + 1 + im + (x - xm) * (iM - im) / (xM - xm) - max(0, min(len(tickLabels) - 1, int(1 + im + (x - xm) * (iM - im) / (xM - xm)))))
         else:
             setattr(self, axis[0] + 'Map', lambda x: tickLabels[im] + (x - xm) * (tickLabels[iM] - tickLabels[im]) / (xM - xm))
+
+    def initMapFunctions(self, centered):
+        if not hasattr(self, 'xMap'):
+            self.initMapFunction('xaxis', centered)
+        if not hasattr(self, 'yMap'):
+            self.initMapFunction('yaxis', False)
+
+    def clearMapFunctions(self):
+        try:
+            delattr(self, 'xMap')
+        except (AttributeError):
+            pass
+
+        try:
+            delattr(self, 'yMap')
+        except (AttributeError):
+            pass
 
     def assertRangeEqual(self, range1, range2):
         self.assertAlmostEqual(range1[0], range2[0])
