@@ -151,7 +151,7 @@ class SelectTest(BrowserTestCase):
             self.waitOptions(select, 10)
 
     def testToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
         year = self.browser.find_element_by_id('year')
         self.assertTrue(year.is_enabled())

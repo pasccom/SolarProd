@@ -40,7 +40,7 @@ class LegendTest(ChartTestCase, LegendTestCase):
 
 
     def loadToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
     def testEmpty(self):
         legend = self.browser.find_element_by_id('legend')

@@ -23,7 +23,7 @@ class ChartTest(ChartTestCase):
 
     def loadToday(self):
         self.loadData('today')
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
     def loadEmpty(self):
         self.loadData(2017, 8, 5)

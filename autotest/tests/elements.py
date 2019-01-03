@@ -54,7 +54,7 @@ class ElementsTest(BrowserTestCase):
         self.assertEqual(button.size['height'], 28)
 
     def testExportToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', False)

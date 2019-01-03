@@ -109,8 +109,11 @@ class BrowserTestCase(TestCase):
             return
         self.selectOption('sum', self.sumName(agg), agg)
 
-    def plot(self):
-        self.browser.find_element_by_id('plot').click()
+    def plot(self, today=False):
+        if today:
+            self.browser.find_element_by_id('today').click()
+        else:
+            self.browser.find_element_by_id('plot').click()
 
     def waitOptions(self, select, t=-1):
         options = []

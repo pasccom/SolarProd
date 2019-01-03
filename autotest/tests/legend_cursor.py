@@ -26,10 +26,10 @@ from .chart_testcase import ChartTestCase
 
 class LegendCursorTest(ChartTestCase, LegendTestCase):
     def loadToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
     def loadTodayDCPower(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
         self.selectVar('pdc')
 
     def assertCursor(self, enabled, testMeasure=False):
@@ -122,7 +122,7 @@ class LegendCursorTest(ChartTestCase, LegendTestCase):
                         self.browser.find_element_by_class_name('cursor')
 
     def testToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
@@ -138,7 +138,7 @@ class LegendCursorTest(ChartTestCase, LegendTestCase):
         self.assertCursor(False)
 
     def testKeyToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
         cursor = self.browser.find_element_by_id('cursor')
         self.assertClassed(cursor, 'checked', False)
@@ -371,19 +371,19 @@ class LegendCursorTest(ChartTestCase, LegendTestCase):
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True, True)
 
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
         self.assertClassed(cursor, 'checked', False)
         self.assertCursor(False)
 
     def testNoChangeToday(self):
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
 
         cursor = self.browser.find_element_by_id('cursor')
         cursor.click()
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
-        self.browser.find_element_by_id('today').click()
+        self.plot(True)
         self.assertClassed(cursor, 'checked', True)
         self.assertCursor(True)
 
