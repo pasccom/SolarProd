@@ -20,7 +20,7 @@ import os
 import json
 from datetime import datetime as datetime
 
-from .helpers import formatDatum, mapSum
+from .helpers import formatDatum, mapSum, recMax
 
 class TestCase(unittest.TestCase):
     monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
@@ -181,6 +181,17 @@ class TestCase(unittest.TestCase):
                 return [self.formatDate(d['date'], agg, dateMin, dateMax) for d in self.data]
         else:
             raise TypeError('Invalid data type: {}'.format(type(self.data)))
+
+    def getDivider(self, data):
+        maxData = recMax(data)
+        div = 1
+        while (abs(maxData) >= 1000):
+           div = div*1000
+           maxData = maxData / 1000
+        while (abs(maxData) <= 1):
+           div = div / 1000
+           maxData = maxData * 1000
+        return div
 
     def longVar(self, var):
         return self.__class__.longVars[self.__class__.shortVars.index(var)]
