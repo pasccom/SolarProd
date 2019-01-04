@@ -35,13 +35,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.selectVar('pdc')
 
     def __assertLineCursor(self, paths, enabled):
-        legendItems = self.getLegendItems()
-        if all([len(i) == 4 for i in legendItems]):
-            legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
-        elif all([len(c) == 0 for t, b, c in legendItems]):
-            legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
-        else:
-            legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+        legendItemStyles = self.getLegendItemStyles()
 
         for p in paths:
             c = self.parseColor(p.find_element_by_xpath('..').get_attribute('stroke'))
@@ -127,13 +121,7 @@ class CursorTest(ChartTestCase, LegendTestCase):
             self.assertTrue((xBarMin < xLabelMax) and (xLabelMin < xBarMax))
 
     def __assertBarCursor(self, bars, enabled, var, agg):
-        legendItems = self.getLegendItems()
-        if all([len(i) == 4 for i in legendItems]):
-            legendItemStyles = [(i, self.getStyle(i)) for i, t, b, c in legendItems]
-        elif all([len(c) == 0 for t, b, c in legendItems]):
-            legendItemStyles = [(i, self.getStyle(i)) for i, t, c in legendItems]
-        else:
-            legendItemStyles = [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
+        legendItemStyles = self.getLegendItemStyles()
 
         o = 0
         s = 0

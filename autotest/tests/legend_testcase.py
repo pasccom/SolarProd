@@ -58,3 +58,12 @@ class LegendTestCase(BrowserTestCase):
                                                     e.find_elements_by_tag_name('li'))) + \
             [self.getLegendItems(e)]) for e in legendItems
         ]
+
+    def getLegendItemStyles(self, parent=None):
+        legendItems = self.getLegendItems(parent)
+        if all([len(i) == 4 for i in legendItems]):
+            return [(i, self.getStyle(i)) for i, t, b, c in legendItems]
+        elif all([len(c) == 0 for t, b, c in legendItems]):
+            return [(i, self.getStyle(i)) for i, t, c in legendItems]
+        else:
+            return [(c, self.getStyle(c)) for i, t, children in legendItems for c, t, b, x in children]
