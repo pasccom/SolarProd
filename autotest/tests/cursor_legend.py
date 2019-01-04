@@ -24,7 +24,7 @@ from .PythonUtils.testdata import TestData
 from .legend_testcase import LegendTestCase
 from .chart_testcase import ChartTestCase
 
-class LegendCursorTest(ChartTestCase, LegendTestCase):
+class CursorLegendTest(ChartTestCase, LegendTestCase):
     def loadToday(self):
         self.plot(True)
 

@@ -30,7 +30,7 @@ from .tests.slow_key import SlowKeyTest
 from .tests.legend import LegendTest
 from .tests.chart import ChartTest
 from .tests.cursor import CursorTest
-from .tests.legend_cursor import LegendCursorTest
+from .tests.cursor_legend import CursorLegendTest
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
