@@ -17,11 +17,8 @@
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys as Key
-from selenium.common import exceptions as selenium
 
 from .PythonUtils.testdata import TestData
-
-from .helpers import recMax
 
 from .legend_testcase import LegendTestCase
 from .chart_testcase import ChartTestCase
@@ -34,53 +31,44 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.plot(True)
         self.selectVar('pdc')
 
+    def __assertLineHovered(self, lines, path, enabled):
+        for o in lines:
+            self.assertClassed(o, 'hovered', enabled and (o == path))
+
+    def __assertLineSelected(self, lines, path, enabled):
+        for o in lines:
+            self.assertClassed(o, 'selected', enabled and (o == path))
+
+    def __assertLineLegendItemHovered(self, legendItemStyles, path, enabled):
+        c = self.parseColor(path.find_element_by_xpath('..').get_attribute('stroke'))
+        o = float(path.get_attribute('stroke-opacity'))
+        legendItem = [i for i, s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
+        self.assertEqual(len(legendItem), 1)
+
+        for o, s in legendItemStyles:
+            self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
+
     def __assertLineCursor(self, paths, enabled):
         legendItemStyles = self.getLegendItemStyles()
 
         for p in paths:
-            c = self.parseColor(p.find_element_by_xpath('..').get_attribute('stroke'))
-            o = float(p.get_attribute('stroke-opacity'))
-            legendItem = [i for i, s in legendItemStyles if (s['color'] == c) and abs(float(s['opacity']) - o) < 1e-12]
-            self.assertEqual(len(legendItem), 1)
-
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseenter');", p)
-            for o in paths:
-                self.assertClassed(o, 'hovered', enabled and (o == p))
-            for o, s in legendItemStyles:
-                self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
+            self.__assertLineHovered(paths, p, enabled)
+            self.__assertLineLegendItemHovered(legendItemStyles, p, enabled)
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('mouseleave');", p)
-            for o in paths:
-                self.assertClassed(o, 'hovered', False)
-            for o, s in legendItemStyles:
-                self.assertClassed(o, 'hovered', False)
+            self.__assertLineHovered(paths, p, False)
+            self.__assertLineLegendItemHovered(legendItemStyles, p, False)
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", p)
-            for o in paths:
-                self.assertClassed(o, 'selected', enabled and (o == p))
-            for o, s in legendItemStyles:
-                self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
-
-            actions = ActionChains(self.browser)
-            actions.move_to_element_with_offset(self.browser.find_element_by_id('chart'), 200, 200)
-            actions.perform()
-
-            if enabled:
-                self.assertEqual(len(self.browser.find_element_by_id('xcursor').get_attribute('style')), 0)
-                self.assertEqual(len(self.browser.find_element_by_id('ycursor').get_attribute('style')), 0)
-            else:
-                with self.assertRaises(selenium.NoSuchElementException):
-                    self.browser.find_element_by_class_name('cursor')
+            self.__assertLineSelected(paths, p, enabled)
+            self.__assertLineLegendItemHovered(legendItemStyles, p, enabled)
 
             self.browser.execute_script("d3.select(arguments[0]).dispatch('click');", self.browser.find_element_by_id('chart'))
-            with self.assertRaises(selenium.NoSuchElementException):
-                self.browser.find_element_by_class_name('cursor')
-            for o in paths:
-                self.assertClassed(o, 'selected', False)
-            for o, s in legendItemStyles:
-                self.assertClassed(o, 'hovered', False)
+            self.__assertLineSelected(paths, p, False)
+            self.__assertLineLegendItemHovered(legendItemStyles, p, False)
 
-    def __assertBarLegendItemHovered(self, bar, legendItemStyles, enabled):
+    def __assertBarLegendItemHovered(self, legendItemStyles, bar, enabled):
         c = self.parseColor(bar.find_element_by_xpath('..').get_attribute('fill'))
         o = float(bar.get_attribute('fill-opacity'))
         legendItem = [i for i, s in legendItemStyles if (s['background-color'][0:3] == c) and abs(s['background-color'][3] - o) < 1e-12]
@@ -89,81 +77,25 @@ class CursorTest(ChartTestCase, LegendTestCase):
         for o, s in legendItemStyles:
             self.assertClassed(o, 'hovered', enabled and (o == legendItem[0]))
 
-    def __assertBarHovered(self, bar, enabled):
-        for o in self.getBars():
+    def __assertBarHovered(self, bars, bar, enabled):
+        for o in bars:
             self.assertClassed(o, 'hovered', enabled and (o == bar))
-
-    def __assertBarXCursorLabel(self, bar, enabled):
-        xMin = bar.find_element_by_xpath('../..').rect['x']
-        xMax = xMin + bar.find_element_by_xpath('../..').rect['width']
-        for t in self.browser.find_element_by_id('xaxis').find_elements_by_tag_name('text'):
-            self.assertClassed(t, 'cursor', enabled and (xMin < t.rect['x']) and (t.rect['x'] < xMax))
-
-    def __assertBarYCursorLabel(self, bar, data):
-        yLabel = None
-        # NOTE find_element_by_xpath does not work with SVG
-        for e1 in self.browser.find_element_by_id('chart').find_elements_by_xpath('child::*'):
-            if yLabel is not None:
-                break
-            for e2 in e1.find_elements_by_xpath('child::*'):
-                if (e2.tag_name == 'text') and ('cursor' in self.getClasses(e2)):
-                    yLabel = e2
-                    break
-
-        self.assertEqual(yLabel is not None, data is not None)
-        if yLabel is not None:
-            self.assertLess(abs(float(yLabel.text) - data), 1e-12)
-
-            xLabelMin = yLabel.rect['x']
-            xLabelMax = xLabelMin + yLabel.rect['width']
-            xBarMin = bar.rect['x']
-            xBarMax = xBarMin + bar.rect['width']
-            self.assertTrue((xBarMin < xLabelMax) and (xLabelMin < xBarMax))
 
     def __assertBarCursor(self, bars, enabled, var, agg):
         legendItemStyles = self.getLegendItemStyles()
-
-        o = 0
-        s = 0
-        i = 0
-        data = self.getData(var, agg)
-
-        maxData = recMax(data)
-        div = 1
-        while (abs(maxData) >= 1000):
-            div = div*1000
-            maxData = maxData / 1000
-        while (abs(maxData) <= 1):
-            div = div / 1000
-            maxData = maxData * 1000
 
         for b in bars:
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, b.rect['height'] / 2)
             actions.perform()
-
-            self.__assertBarHovered(b, enabled)
-            self.__assertBarLegendItemHovered(b, legendItemStyles, enabled)
-            self.__assertBarXCursorLabel(b, enabled)
-            self.__assertBarYCursorLabel(b, data[o][s][i] / div if enabled else None)
+            self.__assertBarHovered(bars, b, enabled)
+            self.__assertBarLegendItemHovered(legendItemStyles, b, enabled)
 
             actions = ActionChains(self.browser)
             actions.move_to_element_with_offset(b, b.rect['width'] / 2, -10)
             actions.perform()
-
-            self.__assertBarHovered(b, False)
-            self.__assertBarLegendItemHovered(b, legendItemStyles, False)
-            self.__assertBarXCursorLabel(b, False)
-            self.__assertBarYCursorLabel(b, None)
-
-            s = s + 1
-            if (s >= len(data[o])):
-                s = 0
-                o = o + 1
-                if (o >= len(data)):
-                    o = 0
-                    i = i + 1
-
+            self.__assertBarHovered(bars, b, False)
+            self.__assertBarLegendItemHovered(legendItemStyles, b, False)
 
     def assertCursor(self, enabled, var='nrj', agg='sum'):
         paths = self.getLines()
