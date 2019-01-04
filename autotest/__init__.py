@@ -31,6 +31,7 @@ from .tests.legend import LegendTest
 from .tests.chart import ChartTest
 from .tests.cursor import CursorTest
 from .tests.cursor_legend import CursorLegendTest
+from .tests.cursor_bar import CursorBarTest
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
