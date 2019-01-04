@@ -97,9 +97,10 @@ class ChartTestCase(BrowserTestCase):
         else:
             raise NotImplementedError()
 
-    def parsePath(self, path):
+    def parsePath(self, line):
         self.initMapFunctions(False)
 
+        path = line.get_attribute('d')
         self.assertRegex(path, r'^M([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?)(?:L([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?))*$')
         coords = [tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')]
         return [(self.xMap(c[0]), self.yMap(c[1])) for c in coords]
@@ -318,7 +319,7 @@ class ChartTestCase(BrowserTestCase):
 
     def getLineData(self):
         # NOTE assuming they are in the right order.
-        return [[self.parsePath(l.get_attribute('d')) for l in g] for g in self.getLineGroups()]
+        return [[self.parsePath(l) for l in g] for g in self.getLineGroups()]
 
     def getBars(self, *args):
         chart = self.browser.find_element_by_id('chart')
