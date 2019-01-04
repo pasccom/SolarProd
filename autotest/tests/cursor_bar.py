@@ -82,8 +82,6 @@ class CursorBarTest(ChartTestCase):
         {'year': 2017, 'month': 8,    'day': None, 'var': 'pwr',  'agg': 'inv'},
     ])
     def testEnabled(self, year, month, day, var, agg):
-        self.loadData(year, month, day)
-
         self.selectDate(year, month, day)
         self.plot()
         self.selectVar(var)
