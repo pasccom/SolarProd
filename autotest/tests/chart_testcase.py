@@ -309,10 +309,16 @@ class ChartTestCase(BrowserTestCase):
             args = [lambda x: x] + list(args)
             return [tuple(f(l) for f in args) for l in chart.find_elements_by_css_selector('path.line')]
 
+    def getLineGroups(self, *args):
+        lines = self.getLines(*args)
+        if (len(args) == 0):
+            return groupby(lines, key=lambda l: self.getColor(l))
+        else:
+            return groupby(lines, key=lambda l: self.getColor(l[0]))
+
     def getLineData(self):
         # NOTE assuming they are in the right order.
-        groups = groupby(self.getLines(), key=lambda l: self.getColor(l))
-        return [[self.parsePath(l.get_attribute('d')) for l in g] for g in groups]
+        return [[self.parsePath(l.get_attribute('d')) for l in g] for g in self.getLineGroups()]
 
     def getBars(self, *args):
         chart = self.browser.find_element_by_id('chart')
@@ -322,7 +328,13 @@ class ChartTestCase(BrowserTestCase):
             args = [lambda x: x] + list(args)
             return [tuple(f(b) for f in args) for b in chart.find_elements_by_css_selector('rect.bar')]
 
+    def getBarGroups(self, *args):
+        bars = self.getBars(*args)
+        if (len(args) == 0):
+            return [groupby(g, key=lambda b: self.getOpacity(b)) for g in groupby(bars, key=lambda b: self.getColor(b))]
+        else:
+            return [groupby(g, key=lambda b: self.getOpacity(b[0])) for g in groupby(bars, key=lambda b: self.getColor(b[0]))]
+
     def getBarData(self):
         # NOTE assuming they are in the right order.
-        groups = [groupby(g, key=lambda b: self.getOpacity(b)) for g in groupby(self.getBars(), key=lambda b: self.getColor(b))]
-        return [[[self.parseRect(b) for b in g2] for g2 in g1] for g1 in groups]
+        return [[[self.parseRect(b) for b in g2] for g2 in g1] for g1 in self.getBarGroups()]
