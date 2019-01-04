@@ -303,20 +303,26 @@ class ChartTestCase(BrowserTestCase):
 
     def getLines(self, *args):
         chart = self.browser.find_element_by_id('chart')
-        args = [lambda x: x] + list(args)
-        return [tuple(f(l) for f in args) for l in chart.find_elements_by_css_selector('path.line')]
+        if (len(args) == 0):
+            return [l for l in chart.find_elements_by_css_selector('path.line')]
+        else:
+            args = [lambda x: x] + list(args)
+            return [tuple(f(l) for f in args) for l in chart.find_elements_by_css_selector('path.line')]
 
     def getLineData(self):
         # NOTE assuming they are in the right order.
-        groups = groupby(self.getLines(), key=lambda l: self.getColor(l[0]))
-        return [[self.parsePath(p[0].get_attribute('d')) for p in g] for g in groups]
+        groups = groupby(self.getLines(), key=lambda l: self.getColor(l))
+        return [[self.parsePath(l.get_attribute('d')) for l in g] for g in groups]
 
     def getBars(self, *args):
         chart = self.browser.find_element_by_id('chart')
-        args = [lambda x: x] + list(args)
-        return [tuple(f(b) for f in args) for b in chart.find_elements_by_css_selector('rect.bar')]
+        if (len(args) == 0):
+            return [b for b in chart.find_elements_by_css_selector('rect.bar')]
+        else:
+            args = [lambda x: x] + list(args)
+            return [tuple(f(b) for f in args) for b in chart.find_elements_by_css_selector('rect.bar')]
 
     def getBarData(self):
         # NOTE assuming they are in the right order.
-        groups = [groupby(g, key=lambda b: self.getOpacity(b[0])) for g in groupby(self.getBars(), key=lambda b: self.getColor(b[0]))]
-        return [[[self.parseRect(p[0]) for p in g2] for g2 in g1] for g1 in groups]
+        groups = [groupby(g, key=lambda b: self.getOpacity(b)) for g in groupby(self.getBars(), key=lambda b: self.getColor(b))]
+        return [[[self.parseRect(b) for b in g2] for g2 in g1] for g1 in groups]
