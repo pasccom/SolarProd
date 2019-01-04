@@ -98,25 +98,30 @@ class ChartTestCase(BrowserTestCase):
             raise NotImplementedError()
 
     def parsePath(self, line):
-        self.initMapFunctions(False)
-
         path = line.get_attribute('d')
         self.assertRegex(path, r'^M([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?)(?:L([0-9]+(?:\.[0-9]*)?,[0-9]+(?:\.[0-9]*)?))*$')
-        coords = [tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')]
-        return [(self.xMap(c[0]), self.yMap(c[1])) for c in coords]
+        return self.toDataCoords([tuple([float(n) for n in c.split(',')]) for c in path[1:].split('L')], False)
 
     def parseRect(self, rect):
-        self.initMapFunctions(True)
-
         offset1 = self.parseTranslate(rect.find_element_by_xpath('../..'))
         offset2 = self.parseTranslate(rect.find_element_by_xpath('..'))
 
-        return (
-            self.xMap(float(rect.get_attribute('x')) + offset1[0] + offset2[0]),
-            self.yMap(float(rect.get_attribute('y')) + offset1[1] + offset2[1]),
-            self.xMap(float(rect.get_attribute('x')) + offset1[0] + offset2[0] + float(rect.get_attribute('width'))),
-            self.yMap(float(rect.get_attribute('y')) + offset1[1] + offset2[1] + float(rect.get_attribute('height')))
-        )
+        return self.toDataCoords((
+            float(rect.get_attribute('x')) + offset1[0] + offset2[0],
+            float(rect.get_attribute('y')) + offset1[1] + offset2[1],
+            float(rect.get_attribute('x')) + offset1[0] + offset2[0] + float(rect.get_attribute('width')),
+            float(rect.get_attribute('y')) + offset1[1] + offset2[1] + float(rect.get_attribute('height'))
+        ), True)
+
+    def toDataCoords(self, coords, centered=False):
+        self.initMapFunctions(centered)
+
+        if type(coords) is list:
+            return [self.toDataCoords(c, centered) for c in coords]
+        elif type(coords) is tuple:
+            return tuple((self.xMap(c) if (i % 2 == 0) else self.yMap(c)) for i, c in enumerate(coords))
+        else:
+            raise TypeError('This function accepts only lists or tuples')
 
     def getLabel(self, axis):
         chart = self.browser.find_element_by_id('chart')
