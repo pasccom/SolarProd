@@ -21,6 +21,7 @@ from selenium.common import exceptions as selenium
 from .PythonUtils.testdata import TestData
 
 import random
+from math import floor
 
 from .helpers import recMax
 
@@ -32,6 +33,22 @@ def interpolate(data, x):
         i = i + 1
 
     return data[i - 1][1] + (data[i][1] - data[i - 1][1]) / (data[i][0] - data[i - 1][0]) * (x - data[i - 1][0])
+
+def formatTime(hours):
+    h = floor(hours)
+    m = floor(60 * (hours - h))
+    s = floor(60 * (60 * (hours - h) - m))
+    return '{:02}:{:02}:{:02}'.format(h, m, s)
+
+def formatOrdinate(y):
+    t = '{:.3f}'.format(y)
+    while t.endswith('0'):
+        t = t[:-1]
+    if t.endswith('.'):
+        t = t[:-1]
+    if t == '-0':
+        t = '0'
+    return t
 
 class CursorLineTest(ChartTestCase):
 
@@ -45,6 +62,7 @@ class CursorLineTest(ChartTestCase):
 
     def assertCursor(self):
         lineData = self.getLines(self.parsePath)
+        div = self.getDivider([d for l, d in lineData])
 
         chart = self.browser.find_element_by_id('chart')
         xMin = 60
@@ -72,7 +90,11 @@ class CursorLineTest(ChartTestCase):
 
                 xCursorCoords = self.toDataCoords(self.parseTranslate(xCursor))
                 yCursorCoords = self.toDataCoords(self.parseTranslate(yCursor))
-                self.assertAlmostEqual(interpolate(data, xCursorCoords[0]), yCursorCoords[1])
+                yCursorExpected = interpolate(data, xCursorCoords[0])
+                self.assertAlmostEqual(yCursorExpected, yCursorCoords[1])
+
+                self.assertEqual(xCursor.find_element_by_tag_name('text').text, formatTime(xCursorCoords[0]))
+                self.assertEqual(yCursor.find_element_by_tag_name('text').text, formatOrdinate(yCursorExpected / div))
 
                 x = x + (xMax - xMin) / 12
 
