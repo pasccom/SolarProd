@@ -268,13 +268,12 @@ function SolarChart(root, data) {
                     var bisector = d3.bisector((d) => d.x);
                     var i = bisector.left(data, x);
                     var y = (i == 0) ? data[i].y : data[i].y + (data[i - 1].y - data[i].y) / (data[i - 1].x - data[i].x) * (x - data[i].x);
-                    y /= this.plot.data.div;
 
                     xCursor.style('display', null).attr('transform', 'translate(' + this.plot.data.xScale(x) + ', ' + h + ')');
-                    yCursor.style('display', null).attr('transform', 'translate(0, ' + this.plot.data.yScale(y) + ')');
+                    yCursor.style('display', null).attr('transform', 'translate(0, ' + this.plot.data.yScale(y / this.plot.data.div) + ')');
 
                     xCursor.select('text').text(x.toLocaleTimeString());
-                    yCursor.select('text').text(y);
+                    yCursor.select('text').text(this.plot.data.yCursor(y));
 
                     plotRoot.selectAll('.cursor text').each(function() {
                         var bBox = this.getBBox();

@@ -286,6 +286,10 @@ function SolarData()
         {
             return SolarData.variables.name(variable) + ' (' + SolarData.prefix(this.log1000Div) + SolarData.variables.unit(variable) + ')';
         },
+        yCursor: function(y)
+        {
+            return Math.round(1000 * y / this.div) / 1000;
+        },
         xRange: function(w)
         {
             if ((arguments.length > 0) && w) {
