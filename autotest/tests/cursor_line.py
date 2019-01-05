@@ -21,34 +21,10 @@ from selenium.common import exceptions as selenium
 from .PythonUtils.testdata import TestData
 
 import random
-from math import floor
 
-from .helpers import recMax
+from .helpers import interpolate, formatTime, formatOrdinate
 
 from .chart_testcase import ChartTestCase
-
-def interpolate(data, x):
-    i = 0
-    while (data[i][0] < x):
-        i = i + 1
-
-    return data[i - 1][1] + (data[i][1] - data[i - 1][1]) / (data[i][0] - data[i - 1][0]) * (x - data[i - 1][0])
-
-def formatTime(hours):
-    h = floor(hours)
-    m = floor(60 * (hours - h))
-    s = floor(60 * (60 * (hours - h) - m))
-    return '{:02}:{:02}:{:02}'.format(h, m, s)
-
-def formatOrdinate(y):
-    t = '{:.3f}'.format(y)
-    while t.endswith('0'):
-        t = t[:-1]
-    if t.endswith('.'):
-        t = t[:-1]
-    if t == '-0':
-        t = '0'
-    return t
 
 class CursorLineTest(ChartTestCase):
 

@@ -17,12 +17,38 @@
 
 import unittest
 
+from math import floor
 from datetime import datetime as datetime
+
+from .PythonUtils.testdata import TestData
 
 # Helper functions:
 def formatDatum(datum):
     datum['date'] = datetime.strptime(datum['date'], '%Y-%m-%d')
     return datum
+
+def formatTime(hours):
+    h = floor(hours)
+    m = floor(60 * (hours - h))
+    s = floor(60 * (60 * (hours - h) - m))
+    return '{:02}:{:02}:{:02}'.format(h, m, s)
+
+def formatOrdinate(y):
+    t = '{:.3f}'.format(y)
+    while t.endswith('0'):
+        t = t[:-1]
+    if t.endswith('.'):
+        t = t[:-1]
+    if t == '-0':
+        t = '0'
+    return t
+
+def interpolate(data, x):
+    i = 0
+    while (data[i][0] < x):
+        i = i + 1
+
+    return data[i - 1][1] + (data[i][1] - data[i - 1][1]) / (data[i][0] - data[i - 1][0]) * (x - data[i - 1][0])
 
 def groupby(elemList, key=None):
     if key is None:
@@ -64,6 +90,120 @@ def mapSum(data):
 
 # Helper functions tests:
 class HelpersTest(unittest.TestCase):
+    @TestData([
+        ['1970-01-01', 1970       ],
+        ['1999-01-01', 1999       ],
+        ['2000-01-01', 2000       ],
+        ['2100-01-01', 2100       ],
+        ['3000-01-01', 3000       ],
+        ['2019-02-01', 2019, 2    ],
+        ['2019-07-01', 2019, 7    ],
+        ['2019-12-01', 2019, 12   ],
+        ['2019-02-02', 2019, 2, 2 ],
+        ['2019-02-28', 2019, 2, 28],
+        ['2020-02-29', 2020, 2, 29],
+        ['2000-02-29', 2000, 2, 29],
+        ['2019-06-02', 2019, 6, 2 ],
+        ['2019-06-30', 2019, 6, 30],
+        ['2019-08-02', 2019, 8, 2 ],
+        ['2019-08-31', 2019, 8, 31],
+    ])
+    def testFormatDatum(self, dateStr, year, month=1, day=1):
+        datum = {'date': dateStr}
+        datum = formatDatum(datum)
+        self.assertEqual(datum['date'].year,  year)
+        self.assertEqual(datum['date'].month, month)
+        self.assertEqual(datum['date'].day,   day)
+
+    @TestData([
+        [ 0,       '00:00:00'],
+        [ 0.00028, '00:00:01'],
+        [ 0.01667, '00:01:00'],
+        [ 1,       '01:00:00'],
+        [ 1.01,    '01:00:36'],
+        [ 1.1,     '01:06:00'],
+        [ 6.5,     '06:30:00'],
+        [ 9.9,     '09:54:00'],
+        [ 9.99,    '09:59:24'],
+        [12,       '12:00:00'],
+        [23,       '23:00:00'],
+        [23.98334, '23:59:00'],
+        [23.99973, '23:59:59'],
+    ])
+    def testFormatTime(self, time, timeStr):
+        self.assertEqual(formatTime(time), timeStr)
+
+    @TestData([
+        [-1000,    '-1000'    ],
+        [ -999.999, '-999.999'],
+        [ -999.99,  '-999.99' ],
+        [ -999.9,   '-999.9'  ],
+        [ -999,     '-999'    ],
+        [ -100.001, '-100.001'],
+        [ -100.01,  '-100.01' ],
+        [ -100.1,   '-100.1'  ],
+        [ -100,     '-100'    ],
+        [  -10.001,  '-10.001'],
+        [  -10.01,   '-10.01' ],
+        [  -10.1,    '-10.1'  ],
+        [  -10,      '-10'    ],
+        [   -1.001,   '-1.001'],
+        [   -1.01,    '-1.01' ],
+        [   -1.1,     '-1.1'  ],
+        [   -1,       '-1'    ],
+        [   -1e-1,    '-0.1'  ],
+        [   -1e-2,    '-0.01' ],
+        [   -1e-3,    '-0.001'],
+        [   -1e-4,     '0'    ],
+        [    0,        '0'    ],
+        [    1e-4,     '0'    ],
+        [    1e-3,     '0.001'],
+        [    1e-2,     '0.01' ],
+        [    1e-1,     '0.1'  ],
+        [    1,        '1'    ],
+        [    1.001,    '1.001'],
+        [    1.01,     '1.01' ],
+        [    1.1,      '1.1'  ],
+        [   10,       '10'    ],
+        [   10.001,   '10.001'],
+        [   10.01,    '10.01' ],
+        [   10.1,     '10.1'  ],
+        [  100,      '100'    ],
+        [  100.001,  '100.001'],
+        [  100.01,   '100.01' ],
+        [  100.1,    '100.1'  ],
+        [  999,      '999'    ],
+        [  999.999,  '999.999'],
+        [  999.99,   '999.99' ],
+        [  999.9,    '999.9'  ],
+        [ 1000,     '1000'    ],
+    ])
+    def testFormatOrdinate(self, value, valueStr):
+        self.assertEqual(formatOrdinate(value), valueStr)
+
+    @TestData([
+        [[(1, 18), (2, 36)], 1, 18],
+        [[(1, 18), (2, 36)], 4/3, 24],
+        [[(1, 18), (2, 36)], 1.5, 27],
+        [[(1, 18), (2, 36)], 5/3, 30],
+        [[(1, 18), (2, 36)], 2, 36],
+    ])
+    def testInterpolate2(self, coords, x, y):
+        self.assertAlmostEqual(interpolate(coords, x), y)
+    @TestData([
+        [[(1, 18), (2, 36), (4, 54)], 1,    18],
+        [[(1, 18), (2, 36), (4, 54)], 4/3,  24],
+        [[(1, 18), (2, 36), (4, 54)], 1.5,  27],
+        [[(1, 18), (2, 36), (4, 54)], 5/3,  30],
+        [[(1, 18), (2, 36), (4, 54)], 2,    36],
+        [[(1, 18), (2, 36), (4, 54)], 8/3,  42],
+        [[(1, 18), (2, 36), (4, 54)], 3,    45],
+        [[(1, 18), (2, 36), (4, 54)], 10/3, 48],
+        [[(1, 18), (2, 36), (4, 54)], 4,    54],
+    ])
+    def testInterpolate3(self, coords, x, y):
+        self.assertAlmostEqual(interpolate(coords, x), y)
+
     def testGroupBy0(self):
         self.assertEqual(groupby([]), [])
     def testGroupBy1(self):
