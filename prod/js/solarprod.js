@@ -183,6 +183,10 @@ function SolarProd() {
                                            .attr('src', 'img/csv.png')
                                            .attr('title', 'Export CSV')
                                            .attr('alt', 'Export CSV');
+    buttons.info = toolbar2.append('img').classed('button', true)
+                                         .attr('src', 'img/info.png')
+                                         .attr('title', 'Informations')
+                                         .attr('alt', 'Info');
     buttons.help = toolbar2.append('img').classed('button', true)
                                          .attr('src', 'img/help.png')
                                          .attr('title', 'Aide')
@@ -202,6 +206,7 @@ function SolarProd() {
     buttons.next.attr('id', 'next');
     buttons.cursor.attr('id', 'cursor');
     buttons.export.attr('id', 'export');
+    buttons.info.attr('id', 'info');
     buttons.help.attr('id', 'help');
 
     var chart = new SolarChart(d3.select('body'));
@@ -598,6 +603,7 @@ function SolarProd() {
     buttons.next.on('load', () => {this.windowResize();});
     buttons.cursor.on('load', () => {this.windowResize();});
     buttons.export.on('load', () => {this.windowResize();});
+    buttons.info.on('load', () => {this.windowResize();});
     buttons.help.on('load', () => {this.windowResize();});
 
     // Key event:

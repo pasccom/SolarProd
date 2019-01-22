@@ -89,7 +89,7 @@ class LayoutTest(TestCase):
 
     @TestData([
         {'size': (723, 500)},
-        {'size': (501, 200)},
+        {'size': (533, 200)},
     ])
     def testSmallSizes(self, size):
         self.setUpBrowser(size)
@@ -107,7 +107,7 @@ class LayoutTest(TestCase):
         self.browser.close()
         self.browser = None
 
-    @TestData([{'size': (468, 200)}])
+    @TestData([{'size': (532, 200)}])
     def testVerySmallSize(self, size):
         self.setUpBrowser(size)
 

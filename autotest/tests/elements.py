@@ -44,6 +44,7 @@ class ElementsTest(BrowserTestCase):
         {'name': 'next',    'enabled': False},
         {'name': 'cursor',  'enabled': False},
         {'name': 'export',  'enabled': False},
+        {'name': 'info',    'enabled': True },
         {'name': 'help',    'enabled': True },
     ])
     def testButtons(self, name, enabled):
