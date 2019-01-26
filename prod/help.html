@@ -22,7 +22,7 @@
         <meta charset='utf-8' />
         <title>Ducomquet: Aide</title>
         <style>
-#content {
+.container {
     width: 50%;
     min-width: 350px;
     margin: auto;
@@ -98,11 +98,12 @@ a:hover {
         </style>
     </head>
     <body>
-    <div id="content">
+    <div class="container">
         <a href="index.html"><img id="close" src="img/close.png" alt="X" title="Fermer"/></a>
         <h1>
             Aide
         </h1>
+        <div id="content">
         <h2>Zone de traçage et légende</h2>
         <p>Cette application permet de visualiser la production solaire et des données d'installation enregistrées au niveau des onduleurs:</p>
         <ul>
@@ -136,12 +137,14 @@ a:hover {
         <h2>Boutons</h2>
         <dl>
             <dt id="plot"><img class="button" src="img/plot.png" alt="Tracer" />Tracer</dt><dd>Lance l'affichage des données sélectionnées, suivant les valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + Entrée)</span>.</dd>
-            <dt id="today"><img class="button" src="img/today.png" alt="Aujourd'hui" />Aujourd'hui</dt><dd>Affiche les données de la journée et met à jour les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> en conséquence <span class="shortcut">(Ctrl + &uarr;&nbsp;)</span>.</dd>
-            <dt id="prev"><img class="button" src="img/prev.png" alt="Précédent" />Précédent</dt><dd>Affiche les données du jour, du mois ou de l'année précedents en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &larr;&nbsp;)</span>.</dd>
-            <dt id="next"><img class="button" src="img/next.png" alt="Suivant" />Suivant</dt><dd>Affiche les données du jour, du mois ou de l'année suivants en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &rarr;&nbsp;)</span>.</dd>
-            <dt id="csv"><img class="button" src="img/csv.png" alt="Exporter" />Exporter</dt><dd>Exporte les données actuellement affichées dans un fichier <acronym title="Comma-Separated Values">CSV</acronym>, qui peut être importé dans n'importe quel tableur ou lu avec un éditeur de texte. Ce bouton est activé quand on charge des données en appuyant sur le bouton <a href="#plot">tracer</a> <span class="shortcut">(Ctrl + &darr;&nbsp;)</span>.</dd>
+            <dt id="today"><img class="button" src="img/today.png" alt="Aujourd'hui" />Aujourd'hui</dt><dd>Affiche les données de la journée et met à jour les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> en conséquence <span class="shortcut">(Ctrl + &#x2191;&#x00A0;)</span>.</dd>
+            <dt id="prev"><img class="button" src="img/prev.png" alt="Précédent" />Précédent</dt><dd>Affiche les données du jour, du mois ou de l'année précedents en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &#x2190;&#x00A0;)</span>.</dd>
+            <dt id="next"><img class="button" src="img/next.png" alt="Suivant" />Suivant</dt><dd>Affiche les données du jour, du mois ou de l'année suivants en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &#x2192;&#x00A0;)</span>.</dd>
+            <dt id="csv"><img class="button" src="img/csv.png" alt="Exporter" />Exporter</dt><dd>Exporte les données actuellement affichées dans un fichier <acronym title="Comma-Separated Values">CSV</acronym>, qui peut être importé dans n'importe quel tableur ou lu avec un éditeur de texte. Ce bouton est activé quand on charge des données en appuyant sur le bouton <a href="#plot">tracer</a> <span class="shortcut">(Ctrl + &#x2193;&#x00A0;)</span>.</dd>
+            <dt id="info"><img class="button" src="img/info.png" alt="À propos" />À propos</dt><dd>Affiche des informations sur l'installation et le logiciel <span class="shortcut">(Ctrl + F2)</span>.</dd>
             <dt id="help"><img class="button" src="img/help.png" alt="Aide" />Aide</dt><dd>Affiche cette page d'aide <span class="shortcut">(Ctrl + F1)</span>.</dd>
         </dl>
+        </div>
     </div>
     </body>
 </html>
