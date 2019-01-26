@@ -228,12 +228,14 @@ fi
 if [ -z "$ANS" ]; then
     create_profile "test"
     create_profile "1200x694" 1200 694
-    create_profile "1024x655" 1024 655
-    create_profile "1023x655" 1023 655
-    create_profile  "724x500"  724 500
-    create_profile  "723x500"  723 500
+    create_profile "1024x680" 1024 680
+    create_profile "1023x680" 1023 680
+    create_profile  "724x660"  724 660
+    create_profile  "723x659"  723 659
     create_profile  "533x200"  533 200
     create_profile  "532x200"  532 200
+    create_profile  "362x462"  362 462
+    create_profile  "361x461"  361 461
 fi
 # Delete ConsoleCapture:
 if [ -z "$ANS" ]; then
