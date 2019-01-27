@@ -22,6 +22,53 @@ body {
     font-family: sans-serif;
 }
 
+/* Popup style */
+.overlay {
+    background-color: black;
+    opacity: 0.75;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.popup {
+    background-color: background;
+    margin: auto;
+    position: fixed;
+    border-radius: 4px;
+}
+
+.popup h4 {
+    padding: 4px;
+    padding-bottom: 1px;
+    border-bottom: 1px solid #000000;
+    margin: 0px;
+}
+
+.popup h4 span {
+    vertical-align: top;
+    padding-left: 4px;
+}
+
+.popup #content
+{
+    overflow: auto;
+    position: absolute;
+    top: 32px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    padding: 4px;
+}
+
+.popup #close {
+    float: right;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+
 /* Toolbars style */
 .toolbar {
     margin-top: 8px;
@@ -216,4 +263,67 @@ path.hovered, path.selected, rect.hovered {
 
 rect {
     stroke-width: 1;
+}
+
+/* Help style */
+.help h2:first-child {
+    margin-top: -6px;
+}
+
+.help h2 {
+    margin-top: 20px;
+    margin-bottom: 4px;
+}
+
+.help h3 {
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+.help p, .help ul, .help dl {
+    margin-left: 20px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.help dt {
+    font-weight: bold;
+    margin-right: 4px;
+    float: left;
+}
+
+.help dd {
+    padding-left: 50px;
+    padding-right: 4px;
+    padding-top: 1px;
+    width: auto;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.help a {
+    text-decoration: underline;
+    color: inherit;
+}
+
+.help a:visited {
+    color: #999999;
+}
+
+.help a:hover {
+    color: #FF0000;
+}
+
+.help .button {
+    vertical-align: bottom;
+    margin-right: 4px;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+}
+
+.help .shortcut {
+    color: #999999;
 }

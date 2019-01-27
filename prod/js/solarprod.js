@@ -71,6 +71,81 @@ SolarCache.prototype = {
     },
 };
 
+function popup() {
+    // Argument processing (contents[, title[, icon]])
+    if (arguments.length < 1)
+        return;
+
+    var contents = arguments[0];
+    var title = null;
+    var icon = null;
+
+    if (arguments.length >= 2)
+        title = arguments[1];
+    if (arguments.length >= 3)
+        icon = arguments[2];
+
+    // Close function:
+    this.close = function() {
+        d3.selectAll('.overlay').remove();
+        d3.selectAll('.popup').remove();
+        d3.select(window).on('keydown.popup', null);
+        d3.select(window).on('resize.popup', null);
+    };
+
+    // The overlay:
+    d3.select('body').append('div').classed('overlay', true)
+                                   .on('click', this.close.bind(this));
+
+    // The popup:
+    var popup = d3.select('body').append('div').classed('popup', true)
+                                 .on('click', () => {d3.event.stopPropagation();});
+
+    // The close button:
+    popup.append('img').attr('src', 'img/close.png')
+                       .attr('title', 'Fermer')
+                       .attr('alt', 'X')
+                       .attr('id', 'close')
+                       .on('click', this.close.bind(this));
+
+    // Title and icon:
+    if (title) {
+        popup.append('h4');
+
+        if (icon)
+            popup.select('h4').append('img').attr('src', icon);
+
+        popup.select('h4').append('span').text(title);
+    }
+
+    // Contents:
+    contents(popup.append('div').attr('id', 'content'));
+
+    // Key event (close by Escape):
+    d3.select(window).on('keydown.popup', () => {
+        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKey)
+            this.close();
+    });
+
+    // Resize event:
+    this.windowResize = function() {
+        // Popup width and height:
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+
+        var pw = Math.max(0.5*w, Math.min(362, w));
+        var ph = Math.max(0.7*h, Math.min(462, h));
+
+        popup.style('width', pw + 'px')
+             .style('height', ph + 'px')
+             .style('left', ((w - pw) / 2) + 'px')
+             .style('top', ((h - ph) / 2) + 'px');
+    };
+
+    d3.select(window).on('resize.popup', this.windowResize.bind(this));
+    this.windowResize();
+}
+
 function SolarProd() {
     // Pending requests:
     var pendingListRequests = 0;
@@ -594,7 +669,18 @@ function SolarProd() {
     buttons.next.on('click', () => {this.siblingPlot(1);});
     buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
-    buttons.help.on('click', () => {window.location = 'help.html';});
+    buttons.info.on('click', function() {
+        popup(function(selection) {
+            // TODO complete
+        }, 'À propos', 'img/info.png');
+    });
+    buttons.help.on('click', function() {
+        popup(function(selection) {
+            d3.html('help.html', (html) => {
+                selection.classed('help', true).html(html.getElementById('content').innerHTML.trim());
+            });
+        }, 'Aide', 'img/help.png');
+    });
 
     // Load event:
     buttons.plot.on('load', () => {this.windowResize();});
@@ -607,8 +693,8 @@ function SolarProd() {
     buttons.help.on('load', () => {this.windowResize();});
 
     // Key event:
-    d3.select(document).on('keydown', () => {
-        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKay && buttons.cursor.classed('checked'))
+    d3.select(window).on('keydown', () => {
+        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKey && buttons.cursor.classed('checked'))
             buttons.cursor.dispatch('click');
 
         if (d3.event.shiftKey || d3.event.altKey || !d3.event.ctrlKey || d3.event.metaKay)
@@ -631,6 +717,12 @@ function SolarProd() {
 
         if ((d3.event.key == 'c') && !buttons.cursor.classed('checked'))
             buttons.cursor.dispatch('click');
+
+        if ((d3.event.key == 'F2') && !d3.event.repeat)
+            buttons.info.dispatch('click');
+
+        if ((d3.event.key == 'F1') && !d3.event.repeat)
+            buttons.help.dispatch('click');
     });
 
     // Resize event:

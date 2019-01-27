@@ -82,13 +82,3 @@ class ElementsTest(BrowserTestCase):
 
         export = self.browser.find_element_by_id('export')
         self.assertClassed(export, 'disabled', True)
-
-    def testHelp(self):
-        self.assertEqual(self.browser.current_url, self.index)
-
-        self.browser.find_element_by_id('help').click()
-        self.assertEqual(self.browser.current_url, self.helpPage)
-        self.assertIn('Ducomquet: Aide', self.browser.title)
-
-        self.browser.find_element_by_id('close').click()
-        self.assertEqual(self.browser.current_url, self.index)

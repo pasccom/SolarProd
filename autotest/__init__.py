@@ -19,6 +19,7 @@ import unittest
 
 from .tests.helpers import HelpersTest
 from .tests.elements import ElementsTest
+from .tests.help import HelpTest
 from .tests.layout import LayoutTest
 from .tests.select import SelectTest
 from .tests.export import ExportTest
@@ -33,6 +34,8 @@ from .tests.cursor import CursorTest
 from .tests.cursor_legend import CursorLegendTest
 from .tests.cursor_bar import CursorBarTest
 from .tests.cursor_line import CursorLineTest
+from .tests.popup_layout import PopupLayoutTest
+from .tests.popup_interaction import PopupInteractionTest
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
