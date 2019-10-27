@@ -161,10 +161,10 @@ function tabView(parent, contents) {
                       .text('>');
 
     // The tabs:
-    var tabElements = parent.append('ul').selectAll('li').data(contents.querySelectorAll('div'));
-    tabElements.enter().append('li').text((d) => d.title);
+    var tabBar = parent.append('ul');
+    var tabElements = tabBar.selectAll('li').data(contents.querySelectorAll('div'));
     tabElements.exit().remove();
-    tabElements = tabElements.enter().merge(tabElements).selectAll('li');
+    tabElements = tabElements.enter().append('li').text((d) => d.title).merge(tabElements);
 
     // The pages:
     var page = parent.append('div');
@@ -174,14 +174,59 @@ function tabView(parent, contents) {
     page.selectAll('div').style('display', 'none');
 
     // Tabs and pages binding:
-    tabElements.on('click', function(d, i) {
+    tabElements.on('click', (d, i) => {
         tabElements.classed('active-tab', false);
         page.selectAll('div').style('display', 'none');
         tabElements.filter((d, j) => (i == j)).classed('active-tab', true);
         page.selectAll('div').filter((d, j) => (i == j)).style('display', 'block');
+        this.windowResize();
     });
     tabElements.filter((d, i) => (i == 0)).classed('active-tab', true);
     page.selectAll('div').filter((d, i) => (i == 0)).style('display', 'block');
+
+    // Resize event:
+    this.windowResize = function() {
+        var pw = tabBar.node().getBoundingClientRect().width + parseInt(tabBar.style('margin-left')) + 4;
+
+        var tw = -8;
+        var bw = -8;
+        var aw = -8;
+        tabElements.each(function() {
+           if (d3.select(this).classed('active-tab'))
+               bw = tw;
+           tw += this.getBoundingClientRect().width;
+           if (d3.select(this).classed('active-tab'))
+               aw = tw;
+        });
+
+        // console.log("Total width:", tw);
+        // console.log("Before width:", bw);
+        // console.log("After width:", aw);
+        // console.log("Parent width:", pw);
+
+
+        if (pw < tw) {
+            parent.selectAll('.scroll').style('display', 'block');
+
+            var maxMargin = Math.min(26, pw - 30 - aw);
+            var minMargin = Math.max(pw - 30 - tw, 26 - 8 - bw);
+            var curMargin = parseInt(tabBar.style('margin-left'));
+
+            // console.log("Margins:", minMargin, curMargin, maxMargin);
+
+            tabBar.style('margin-left', Math.max(minMargin, Math.min(maxMargin, curMargin)) + 'px');
+        } else {
+            parent.selectAll('.scroll').style('display', 'none');
+            tabBar.style('margin-left', '-4px');
+        }
+
+    };
+
+    d3.select(window).on('resize.tab-view', this.windowResize.bind(this));
+    parent.on('close', function() {
+        d3.select(window).on('resize.tab-view', null);
+    });
+    this.windowResize();
 }
 
 function SolarProd() {
