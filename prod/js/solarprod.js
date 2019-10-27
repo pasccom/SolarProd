@@ -85,28 +85,18 @@ function popup() {
     if (arguments.length >= 3)
         icon = arguments[2];
 
-    // Close function:
-    this.close = function() {
-        d3.selectAll('.overlay').remove();
-        d3.selectAll('.popup').remove();
-        d3.select(window).on('keydown.popup', null);
-        d3.select(window).on('resize.popup', null);
-    };
-
     // The overlay:
-    d3.select('body').append('div').classed('overlay', true)
-                                   .on('click', this.close.bind(this));
+    var overlay = d3.select('body').append('div').classed('overlay', true);
 
     // The popup:
     var popup = d3.select('body').append('div').classed('popup', true)
                                  .on('click', () => {d3.event.stopPropagation();});
 
     // The close button:
-    popup.append('img').attr('src', 'img/close.png')
-                       .attr('title', 'Fermer')
-                       .attr('alt', 'X')
-                       .attr('id', 'close')
-                       .on('click', this.close.bind(this));
+    var closeButton = popup.append('img').attr('src', 'img/close.png')
+                                         .attr('title', 'Fermer')
+                                         .attr('alt', 'X')
+                                         .attr('id', 'close');
 
     // Title and icon:
     if (title) {
@@ -121,7 +111,16 @@ function popup() {
     // Contents:
     contents(popup.append('div').attr('id', 'content'));
 
-    // Key event (close by Escape):
+    // Close function:
+    this.close = function() {
+        d3.selectAll('.popup').select('#content').dispatch('close');
+        d3.selectAll('.overlay').remove();
+        d3.selectAll('.popup').remove();
+        d3.select(window).on('keydown.popup', null);
+        d3.select(window).on('resize.popup', null);
+    };
+    overlay.on('click', this.close.bind(this));
+    closeButton.on('click', this.close.bind(this));
     d3.select(window).on('keydown.popup', () => {
         if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKey)
             this.close();
