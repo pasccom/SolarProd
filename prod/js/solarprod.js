@@ -146,6 +146,45 @@ function popup() {
     this.windowResize();
 }
 
+function tabView(parent, contents) {
+    // Parent customization:
+    parent.classed('tab-view', true)
+          .style('overflow-x', 'hidden');
+
+    // The scroll buttons:
+    parent.append('p').attr('id', 'left-button')
+                      .classed('scroll', true)
+                      .style('display', 'none')
+                      .text('<');
+    parent.append('p').attr('id', 'right-button')
+                      .classed('scroll', true)
+                      .style('display', 'none')
+                      .text('>');
+
+    // The tabs:
+    var tabElements = parent.append('ul').selectAll('li').data(contents.querySelectorAll('div'));
+    tabElements.enter().append('li').text((d) => d.title);
+    tabElements.exit().remove();
+    tabElements = tabElements.enter().merge(tabElements).selectAll('li');
+
+    // The pages:
+    var page = parent.append('div');
+    contents.querySelectorAll('div').forEach(function(d) {
+        page.append(() => d);
+    });
+    page.selectAll('div').style('display', 'none');
+
+    // Tabs and pages binding:
+    tabElements.on('click', function(d, i) {
+        tabElements.classed('active-tab', false);
+        page.selectAll('div').style('display', 'none');
+        tabElements.filter((d, j) => (i == j)).classed('active-tab', true);
+        page.selectAll('div').filter((d, j) => (i == j)).style('display', 'block');
+    });
+    tabElements.filter((d, i) => (i == 0)).classed('active-tab', true);
+    page.selectAll('div').filter((d, i) => (i == 0)).style('display', 'block');
+}
+
 function SolarProd() {
     // Pending requests:
     var pendingListRequests = 0;
@@ -670,12 +709,14 @@ function SolarProd() {
     buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
     buttons.info.on('click', function() {
-        popup(function(selection) {
-            // TODO complete
+        popup(function(selection) { // TODO do not show popup when json does not load
+            d3.html('info.html', (html) => {
+                tabView(selection, html);
+            });
         }, 'À propos', 'img/info.png');
     });
     buttons.help.on('click', function() {
-        popup(function(selection) {
+        popup(function(selection) { // TODO do not show popup when html does not load
             d3.html('help.html', (html) => {
                 selection.classed('help', true).html(html.getElementById('content').innerHTML.trim());
             });
