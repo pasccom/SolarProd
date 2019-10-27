@@ -184,9 +184,43 @@ function tabView(parent, contents) {
     tabElements.filter((d, i) => (i == 0)).classed('active-tab', true);
     page.selectAll('div').filter((d, i) => (i == 0)).style('display', 'block');
 
+    // Scroll:
+    this.scroll = function(dir) {
+        var curMargin = parseFloat(tabBar.style('margin-left'));
+        var pw = tabBar.node().getBoundingClientRect().width + curMargin + 4;
+
+        var tw = -8;
+        tabElements.each(function() {
+           tw += this.getBoundingClientRect().width;
+        });
+
+        //console.log("Scroll: ", pw - 30 - tw, curMargin, 26);
+
+        tabBar.style('margin-left', Math.max(pw - 30 - tw, Math.min(26, curMargin + dir)) + 'px');
+    };
+    this.autoScroll = (function() {
+        var scrollTimer = null;
+        return function(start, dir) {
+            if (start) {
+                this.scroll(dir);
+                scrollTimer = window.setInterval(() => this.scroll(dir), 100);
+            } else {
+                if (scrollTimer !== null)
+                    window.clearInterval(scrollTimer);
+                scrollTimer = null;
+            }
+        };
+    }).call(this);
+
+    parent.select('#left-button').on('mousedown', () => this.autoScroll(true, +5));
+    parent.select('#left-button').on('mouseup', () => this.autoScroll(false));
+    parent.select('#right-button').on('mousedown', () => this.autoScroll(true, -5));
+    parent.select('#right-button').on('mouseup', () => this.autoScroll(false));
+
     // Resize event:
     this.windowResize = function() {
-        var pw = tabBar.node().getBoundingClientRect().width + parseInt(tabBar.style('margin-left')) + 4;
+        var curMargin = parseFloat(tabBar.style('margin-left'));
+        var pw = tabBar.node().getBoundingClientRect().width + curMargin + 4;
 
         var tw = -8;
         var bw = -8;
@@ -210,7 +244,6 @@ function tabView(parent, contents) {
 
             var maxMargin = Math.min(26, pw - 30 - aw);
             var minMargin = Math.max(pw - 30 - tw, 26 - 8 - bw);
-            var curMargin = parseInt(tabBar.style('margin-left'));
 
             // console.log("Margins:", minMargin, curMargin, maxMargin);
 
@@ -219,7 +252,6 @@ function tabView(parent, contents) {
             parent.selectAll('.scroll').style('display', 'none');
             tabBar.style('margin-left', '-4px');
         }
-
     };
 
     d3.select(window).on('resize.tab-view', this.windowResize.bind(this));
