@@ -98,10 +98,8 @@ function SolarChart(root, data) {
     };
 
     // Chart resize event:
+    var resizeTimer; // Timer to ensure the chart is not updated continuously
     this.resize = function(w, h) {
-        // Timer to ensure the chart is not updated continuously:
-        var resizeTimer;
-
         // Legend width between 175px and 250px
         var lw = 175 + 75*(w - 6 - 700)/(1000 - 700);
         if (lw > 250)
