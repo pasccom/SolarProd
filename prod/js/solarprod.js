@@ -132,8 +132,16 @@ function drawGraphs(selection){
         var windowResize = function() {
             console.log("Graph resize event");
         };
-        d3.select(window).on('resize.' + graph.attr('id'), windowResize);
-        windowResize;
+        var resizeTimer; // Timer to ensure the graph is not updated continuously
+        d3.select(window).on('resize.' + graph.attr('id'), function() {
+            if (resizeTimer !== undefined)
+                clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                resizeTimer = undefined;
+                windowResize();
+            }, 100);
+        });
+        windowResize();
 
         // The close event:
         graph.on('close', function() {
