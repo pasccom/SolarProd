@@ -72,14 +72,13 @@ SolarCache.prototype = {
 };
 
 function drawGraphs(selection){
-    selection.select('svg').each(function() {
-        var w = 500;
-        var h = 300;
+    selection.selectAll('svg').each(function() {
+        var graph = d3.select(this);
+        var h = graph.node().height.baseVal.value;
+        var w = graph.node().width.baseVal.value;
         var p = 20;
 
-        var graph = d3.select(this).attr('width', w)
-                                   .attr('height', h)
-                                   .attr('viewBox', '0 0 ' + w + ' ' + h);
+        graph.attr('viewBox', '0 0 ' + w + ' ' + h);
 
         // Scales:
         var xScale = d3.scaleLinear().domain([0, 24])
@@ -128,6 +127,25 @@ function drawGraphs(selection){
         var xGrid = graph.append('g').classed('grid', true)
                                      .call(d3.axisBottom().scale(xScale).tickSize(h - 2*p));
         xGrid.select('.domain').remove();
+
+        // The resize event
+        var windowResize = function() {
+            console.log("Graph resize event");
+        };
+        d3.select(window).on('resize.' + graph.attr('id'), windowResize);
+        windowResize;
+
+        // The close event:
+        graph.on('close', function() {
+            console.log("Graph close event");
+            d3.select(window).on('resize.' + graph.attr('id'), null);
+        });
+    });
+
+
+    selection.on('close', function() {
+        console.log("Page close event");
+        selection.selectAll('svg').dispatch('close');
     });
 }
 
@@ -317,6 +335,8 @@ function tabView(parent, contents) {
 
     d3.select(window).on('resize.tab-view', this.windowResize.bind(this));
     parent.on('close', function() {
+        console.log("Tab-view close event");
+        page.selectAll('div').dispatch('close');
         d3.select(window).on('resize.tab-view', null);
     });
     this.windowResize();
