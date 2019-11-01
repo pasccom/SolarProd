@@ -74,37 +74,22 @@ SolarCache.prototype = {
 function drawGraphs(selection){
     selection.selectAll('svg').each(function() {
         var graph = d3.select(this);
-        var h = graph.node().height.baseVal.value;
-        var w = graph.node().width.baseVal.value;
-        var p = 20;
-
-        graph.attr('viewBox', '0 0 ' + w + ' ' + h);
 
         // Scales:
-        var xScale = d3.scaleLinear().domain([0, 24])
-                                     .range([p, w - p]);
+        var xScale = d3.scaleLinear().domain([0, 24]);
         var yScale = d3.scaleBand().domain(graph.attr('ydata').split(' '))
-                                   .range([0, h - 2*p])
                                    .padding(0.25);
 
         // X label:
-        var xLabel = graph.append('g').classed('label', true)
-                                      .attr('transform', 'translate(' + (w / 2) + ',' + (h - p / 2) + ')')
+        var xLabel = null;
+        if (graph.attr('xlabel'))
+            xLabel = graph.append('g').classed('label', true)
                                       .attr('text-anchor', 'middle')
                                       .append('text').text(graph.attr('xlabel'));
 
-        // X axis:
-        var xAxis = graph.append('g').classed('axis', true)
-                                     .attr('transform', 'translate(0, ' + (h - 2*p) + ')')
-                                     .call(d3.axisBottom().scale(xScale));
-        // Y axis:
-        var yAxis = graph.append('g').classed('axis', true)
-                                          .attr('transform', 'translate(' + xScale(12) + ', 0)')
-                                          .call(d3.axisLeft().scale(yScale))
-                                          .attr('text-anchor', 'middle');
-        yAxis.selectAll('.domain').style('display', 'none');
-        yAxis.selectAll('.tick').select('line').style('display', 'none');
-        yAxis.selectAll('.tick').select('text').attr('x', 0);
+        // Axes:
+        var xAxis = graph.append('g').classed('axis', true);
+        var yAxis = graph.append('g').classed('axis', true);
 
         // The bars:
         var bars = graph.selectAll('rect').data(d3.transpose([
@@ -113,25 +98,51 @@ function drawGraphs(selection){
             graph.attr('xend').split(' '),
         ]));
         bars.exit().remove();
-        bars.enter().append('rect').classed('bar', true)
-                                   .attr('x', (d) => xScale(d[1]))
-                                   .attr('y', (d) => yScale(d[0]))
-                                   .attr('width', (d) => (xScale(d[2]) - xScale(d[1])))
-                                   .attr('height', yScale.bandwidth())
-                                   .attr('stroke', '#F6D746')
-                                   .attr('fill', '#F6D746')
-                                   .attr('fill-opacity', 0.25);
-        bars = bars.enter().merge(bars);
+        bars = bars.enter().append('rect').classed('bar', true)
+                                          .attr('stroke', '#F6D746')
+                                          .attr('fill', '#F6D746')
+                                          .attr('fill-opacity', 0.25)
+                                          .merge(bars);
 
         // The grid:
-        var xGrid = graph.append('g').classed('grid', true)
-                                     .call(d3.axisBottom().scale(xScale).tickSize(h - 2*p));
-        xGrid.select('.domain').remove();
+        var xGrid = graph.append('g').classed('grid', true);
 
         // The resize event
         var windowResize = function() {
             console.log("Graph resize event");
+
+            var h = graph.node().clientHeight;
+            var w = graph.node().clientWidth;
+            var p = 20;
+
+            graph.attr('viewBox', '0 0 ' + w + ' ' + h);
+
+            xScale.range([p, w - p]);
+            if (xLabel)
+                yScale.range([0, h - 2*p]);
+            else
+                yScale.range([0, h - p]);
+
+            if (xLabel)
+                xLabel.attr('transform', 'translate(' + (w / 2) + ',' + (h - p / 2) + ')');
+
+            xAxis.attr('transform', 'translate(0, ' + d3.max(yScale.range()) + ')')
+                 .call(d3.axisBottom().scale(xScale));
+            xGrid.call(d3.axisBottom().scale(xScale).tickSize(d3.max(yScale.range())));
+            xGrid.select('.domain').remove();
+            yAxis.attr('transform', 'translate(' + xScale(12) + ', 0)')
+                 .call(d3.axisLeft().scale(yScale))
+                 .attr('text-anchor', 'middle');
+            yAxis.selectAll('.domain').style('display', 'none');
+            yAxis.selectAll('.tick').select('line').style('display', 'none');
+            yAxis.selectAll('.tick').select('text').attr('x', 0);
+
+            bars.attr('x', (d) => xScale(d[1]))
+                .attr('y', (d) => yScale(d[0]))
+                .attr('width', (d) => (xScale(d[2]) - xScale(d[1])))
+                .attr('height', yScale.bandwidth());
         };
+
         var resizeTimer; // Timer to ensure the graph is not updated continuously
         d3.select(window).on('resize.' + graph.attr('id'), function() {
             if (resizeTimer !== undefined)
