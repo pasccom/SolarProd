@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with SolarProd. If not, see <http://www.gnu.org/licenses/
 
+from selenium.webdriver.common.action_chains import ActionChains
+
 from .PythonUtils.testdata import TestData
 
 from .browser_testcase import BrowserTestCase
@@ -53,6 +55,12 @@ class ElementsTest(BrowserTestCase):
         self.assertClassed(button, 'disabled', not enabled)
         self.assertEqual(button.size['width'], 28)
         self.assertEqual(button.size['height'], 28)
+
+        self.assertEqual(self.parseColor(button.value_of_css_property('background-color')),
+                         (0, 0, 0, 0) if enabled else (221, 221, 221))
+        ActionChains(self.browser).move_to_element(button).perform()
+        self.assertEqual(self.parseColor(button.value_of_css_property('background-color')),
+                         (136, 187, 255) if enabled else (221, 221, 221))
 
     def testExportToday(self):
         self.plot(True)
