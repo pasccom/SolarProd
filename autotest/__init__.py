@@ -36,6 +36,7 @@ from .tests.cursor_bar import CursorBarTest
 from .tests.cursor_line import CursorLineTest
 from .tests.popup_layout import PopupLayoutTest
 from .tests.popup_interaction import PopupInteractionTest
+from .tests.tab_layout import TabLayoutTest
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
