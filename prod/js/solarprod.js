@@ -80,6 +80,13 @@ function drawGraphs(selection){
         var yScale = d3.scaleBand().domain(graph.attr('ydata').split(' '))
                                    .padding(0.25);
 
+        // Title:
+        var title = null;
+        if (graph.attr('title'))
+            title = graph.append('g').classed('title', true)
+                                      .attr('text-anchor', 'middle')
+                                      .append('text').text(graph.attr('title'));
+
         // X label:
         var xLabel = null;
         if (graph.attr('xlabel'))
@@ -118,18 +125,19 @@ function drawGraphs(selection){
             graph.attr('viewBox', '0 0 ' + w + ' ' + h);
 
             xScale.range([p, w - p]);
-            if (xLabel)
-                yScale.range([0, h - 2*p]);
-            else
-                yScale.range([0, h - p]);
+            yScale.range([title ? 1.5*p : 0, xLabel ? h - 2*p : h - p]);
+
+            if (title)
+                title.attr('transform', 'translate(' + (w / 2) + ', ' + p + ')');
 
             if (xLabel)
-                xLabel.attr('transform', 'translate(' + (w / 2) + ',' + (h - p / 2) + ')');
+                xLabel.attr('transform', 'translate(' + (w / 2) + ', ' + (h - p / 2) + ')');
 
             xAxis.attr('transform', 'translate(0, ' + d3.max(yScale.range()) + ')')
                  .call(d3.axisBottom().scale(xScale));
-            xGrid.call(d3.axisBottom().scale(xScale).tickSize(d3.max(yScale.range())));
-            xGrid.select('.domain').remove();
+            xGrid.call(d3.axisBottom().scale(xScale).tickSize(d3.max(yScale.range()) - d3.min(yScale.range())));
+            xGrid.attr('transform', 'translate(0, ' + (1.5 * p) + ')')
+                 .select('.domain').remove();
             yAxis.attr('transform', 'translate(' + xScale(12) + ', 0)')
                  .call(d3.axisLeft().scale(yScale))
                  .attr('text-anchor', 'middle');
