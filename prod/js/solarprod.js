@@ -115,7 +115,7 @@ function drawGraphs(selection){
         var xGrid = graph.append('g').classed('grid', true);
 
         // The resize event
-        var windowResize = function() {
+        var doWindowResize = function() {
             console.log("Graph resize event");
 
             var h = graph.node().clientHeight;
@@ -152,28 +152,55 @@ function drawGraphs(selection){
         };
 
         var resizeTimer; // Timer to ensure the graph is not updated continuously
-        d3.select(window).on('resize.' + graph.attr('id'), function() {
+        var windowResize = function() {
             if (resizeTimer !== undefined)
                 clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
                 resizeTimer = undefined;
-                windowResize();
+                doWindowResize();
             }, 100);
-        });
-        windowResize();
+        };
+
+        d3.select(window).on('resize.' + graph.attr('id'), windowResize);
+        doWindowResize();
 
         // The close event:
         graph.on('close', function() {
             console.log("Graph close event");
             d3.select(window).on('resize.' + graph.attr('id'), null);
         });
+
+        // The show event:
+        graph.on('show', function() {
+            console.log("Graph show event");
+            d3.select(window).on('resize.' + graph.attr('id'), windowResize);
+            doWindowResize();
+        });
+
+        // The hide event:
+        graph.on('hide', function() {
+            console.log("Graph hide event");
+            d3.select(window).on('resize.' + graph.attr('id'), null);
+        });
     });
 
 
-    selection.on('close', function() {
-        console.log("Page close event");
-        selection.selectAll('svg').dispatch('close');
-    });
+    if (!selection.selectAll('svg').empty()) {
+        selection.on('close', function() {
+            console.log("Page close event");
+            selection.selectAll('svg').dispatch('close');
+        });
+
+        selection.on('show', function() {
+            console.log("Page", selection.attr('id'), "show event");
+            selection.selectAll('svg').dispatch('show');
+        });
+
+        selection.on('hide', function() {
+            console.log("Page", selection.attr('id'), "hide event");
+            selection.selectAll('svg').dispatch('hide');
+        });
+    }
 }
 
 function popup() {
@@ -281,10 +308,14 @@ function tabView(parent, contents) {
 
     // Tabs and pages binding:
     tabElements.on('click', (d, i) => {
+        page.selectAll('div').filter(function() {
+            return d3.select(this).style('display') == 'block';
+        }).dispatch('hide');
         tabElements.classed('active-tab', false);
         page.selectAll('div').style('display', 'none');
         tabElements.filter((d, j) => (i == j)).classed('active-tab', true);
-        page.selectAll('div').filter((d, j) => (i == j)).style('display', 'block');
+        page.selectAll('div').filter((d, j) => (i == j)).style('display', 'block')
+                                                        .dispatch('show');
         this.windowResize();
     });
     tabElements.filter((d, i) => (i == 0)).classed('active-tab', true);
