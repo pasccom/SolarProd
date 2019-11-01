@@ -38,6 +38,7 @@ from .tests.popup_layout import PopupLayoutTest
 from .tests.popup_interaction import PopupInteractionTest
 from .tests.tab_layout import TabLayoutTest
 from .tests.tab_interaction import TabInteractionTest
+from .tests.tab_scroll import TabScrollTest
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
