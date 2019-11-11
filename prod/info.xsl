@@ -169,7 +169,8 @@ div {
 }
 
 .about dd {
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     margin-left: 0;
     float: right;
     clear: right;

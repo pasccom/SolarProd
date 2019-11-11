@@ -34,7 +34,8 @@ body {
 }
 
 .popup {
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     margin: auto;
     position: fixed;
     border-radius: 4px;
@@ -168,12 +169,14 @@ select {
 }
 
 #legend .label {
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
 }
 
 #legend .input {
     padding-left: 4px;
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     float: right;
 }
 
@@ -362,7 +365,8 @@ rect {
     display: block;
     position: absolute;
     z-index: 99;
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     font-size: 16pt;
     text-align: center;
     height: 29px;
@@ -392,7 +396,8 @@ rect {
 
 .tab-view > ul li {
     display: inline-block;
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     padding-left: 5px;
     padding-right: 12px;
     padding-top: 4px;
@@ -415,7 +420,10 @@ rect {
 
 .tab-view > ul li.active-tab {
     font-weight: bold;
-    border-bottom: 1px solid background;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: white;
+    border-bottom-color: -moz-default-background-color;
     /*background-color: #FFBBBB;*/
     border-left: 1px solid black;
     border-top-left-radius: 8px;
@@ -478,7 +486,8 @@ rect {
 }
 
 .about dd {
-    background-color: background;
+    background-color: white;
+    background-color: -moz-default-background-color;
     margin-left: 0;
     float: right;
     clear: right;

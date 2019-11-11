@@ -228,7 +228,7 @@ function SolarChart(root, data) {
                                                   .style('display', 'none');
                     xCursor.append('line').attr('y2', -h);
                     xCursor.append('line').attr('y2', 6).style('stroke-dasharray', 'none');
-                    xCursor.append('rect').attr('fill', 'background');
+                    yCursor.append('rect').style('fill', '-moz-default-background-color');
                     xCursor.append('text').attr('y', 10)
                                         .attr('dy', '0.71em')
                                         .style('text-anchor', 'middle');
@@ -240,7 +240,7 @@ function SolarChart(root, data) {
                                                   .style('display', 'none');
                     yCursor.append('line').attr('x2', w / 1.025);
                     yCursor.append('line').attr('x2', -6).style('stroke-dasharray', 'none');
-                    yCursor.append('rect').attr('fill', 'background');
+                    yCursor.append('rect').style('fill', '-moz-default-background-color');
                     yCursor.append('text').attr('x', -9)
                                         .attr('dy', '0.32em')
                                         .style('text-anchor', 'end');
