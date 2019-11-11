@@ -73,7 +73,17 @@ SolarCache.prototype = {
 
 function drawGraphs(selection){
     selection.selectAll('svg').each(function() {
-        var graph = d3.select(this);
+        // NOTE This is a workaround which is required due to incompatibility of
+        // XSLTProcessor and SVG (an xmlns declaration may fix it but my attempts
+        // were unsuccessful.
+        // Here I add a new SVG element, update its attributes so that they match
+        // the attributes of the initial SVG element and delete the old one.
+        var graph = selection.insert('svg', (d, i, nodes) => (nodes[i] == this));
+        for (var i = 0; i < this.attributes.length; i++) {
+            var attribute = this.attributes.item(i);
+            graph.attr(attribute.nodeName, attribute.nodeValue);
+        }
+        d3.select(this).remove();
 
         // Scales:
         var xScale = d3.scaleLinear().domain([0, 24]);
@@ -924,9 +934,14 @@ function SolarProd() {
     buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
     buttons.info.on('click', function() {
-        popup(function(selection) { // TODO do not show popup when json does not load
-            d3.html('info.html', (html) => {
-                tabView(selection, html);
+        popup(function(selection) { // TODO do not show popup when xml does not load
+            d3.xml('info.xml', (xml) => {
+                d3.xml('info_fr.xsl', (xsl) => {
+                    var xslProc = new XSLTProcessor();
+                    xslProc.importStylesheet(xsl);
+                    var html = xslProc.transformToDocument(xml)
+                    tabView(selection, html);
+                });
             });
         }, 'À propos', 'img/info.png');
     });

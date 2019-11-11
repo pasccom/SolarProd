@@ -483,6 +483,7 @@ rect {
     float: right;
     clear: right;
     display: block;
+    height: 21px;
 }
 
 .about img {

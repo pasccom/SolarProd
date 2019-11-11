@@ -289,5 +289,6 @@ if [ -z "$ANS" ]; then
     cp -a "$CODE_DIR/js" "$DEST_DIR/prod/"
     cp -a "$CODE_DIR"/*.css "$DEST_DIR/prod/"
     cp -a "$CODE_DIR"/*.html "$DEST_DIR/prod/"
+    cp -a "$CODE_DIR"/*.xsl "$DEST_DIR/prod/"
     echo "DONE"
 fi
