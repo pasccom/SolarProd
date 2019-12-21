@@ -423,6 +423,7 @@ function SolarProd() {
             var l = (arguments.length > 0) ? arguments[0] : 3;
             return data.slice(0, l);
         };
+
         ret.update = function(level, value) {
             if (value === null)
                 return false;
@@ -430,6 +431,33 @@ function SolarProd() {
             console.log('Date.update:', level, value);
             data[level - 1] = value;
             return true;
+        };
+
+        ret.push = function(value) {
+            if (value === null)
+                return false;
+
+            var l = 0;
+            while(++l <= 4) {
+                if (data[l - 1] == '') {
+                    data[l - 1] = value;
+                    return l;
+                }
+            }
+
+            return false;
+        };
+
+        ret.pop = function() {
+            var l = 4;
+            while(--l >= 0) {
+                if (data[l - 1] != '') {
+                    data[l - 1] = '';
+                    return l;
+                }
+            }
+
+            return false;
         };
 
         return ret;
@@ -843,6 +871,17 @@ function SolarProd() {
             selectDate.update(level, selectDate.dir*dir);
             this.siblingPlot(dir, callPlot, level - 1);
         }
+    };
+
+    this.childPlot = function(child)
+    {
+        var child = arguments[0];
+        var callPlot = (arguments.length > 1) ? arguments[1] : true;
+        var level = child == '' ? date.pop() : date.push('' + child + '');
+
+        if (level === false)
+            return;
+        this.update(callPlot, level);
     };
 
     // Window resize event:
