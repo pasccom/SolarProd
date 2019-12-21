@@ -360,7 +360,7 @@ describe('SolarData', function() {
             return createSolarData(year, '', '').then(function(solarData) {
                 var parsedDate = solarData.dateParser(dateStr);
                 expect(typeof parsedDate).toBe('number');
-                expect(parsedDate).toBe(date.getMonth());
+                expect(parsedDate).toBe(date.getMonth() + 1);
             });
         });
         it('should return day', [
@@ -422,13 +422,13 @@ describe('SolarData', function() {
         });
         it('should return "%m/%Y"', [
             generators.year,
-            GenTest.types.choose(0, 11),
+            GenTest.types.choose(1, 12),
         ], function(year, month) {
             return createSolarData(year, '', '').then(function(solarData) {
                 var formattedDate = solarData.dateFormatter(month);
                 expect(typeof formattedDate).toBe('string');
                 expect(formattedDate.length).toBe(7);
-                expect(formattedDate).toBe(SolarData.pad(month + 1, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
+                expect(formattedDate).toBe(SolarData.pad(month, 2, '0') + '/' + SolarData.pad(year, 4, '0'));
             });
         });
         it('should return "%d/%m/%Y"', [
@@ -962,7 +962,7 @@ describe('SolarData', function() {
 
                 expect(solarData.length).toBe(maxMonth - minMonth + 1);
                 for (var m = 0; m < solarData.length; m++) {
-                    expect(solarData[m].x).toBe(minMonth + m - 1);
+                    expect(solarData[m].x).toBe(minMonth + m);
                     expect(solarData[m].y).toBe(expectedData[m]);
                 }
             });
@@ -1130,7 +1130,7 @@ describe('SolarData', function() {
                 var domain = solarData.xScale.domain();
                 expect(domain.length).toBe(maxMonth - minMonth + 1);
                 for (var m = 0; m < domain.length; m++)
-                    expect(domain[m]).toBe(minMonth + m - 1);
+                    expect(domain[m]).toBe(minMonth + m);
             });
         });
         it('should be days', [
@@ -1298,14 +1298,14 @@ describe('SolarData', function() {
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     var tickFormat = solarData.xAxis.tickFormat();
-                    expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m)) + '.');
+                    expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m - 1)) + '.');
                 }),
                 createSolarData(year, '', '').then(function(solarData) {
                     expect(solarData.xRange([0, w])).toEqual([0, w]);
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     var tickFormat = solarData.xAxis.tickFormat();
-                    expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m)) + '.');
+                    expect(tickFormat(m)).toBe(locale.format('%b')(new Date(2000, m - 1)) + '.');
                 }),
             ]);
         });
@@ -1320,14 +1320,14 @@ describe('SolarData', function() {
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     var tickFormat = solarData.xAxis.tickFormat();
-                    expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m)));
+                    expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m - 1)));
                 }),
                 createSolarData(year, '', '').then(function(solarData) {
                     expect(solarData.xRange([0, w])).toEqual([0, w]);
                     expect(solarData.xRange()).toEqual([0, w]);
                     expect(solarData.xRange(null)).toEqual([0, w]);
                     var tickFormat = solarData.xAxis.tickFormat();
-                    expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m)));
+                    expect(tickFormat(m)).toBe(locale.format('%B')(new Date(2000, m - 1)));
                 }),
             ]);
         });

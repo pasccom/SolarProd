@@ -146,8 +146,8 @@ function SolarData()
                     break;
                 case Type.YEAR:
                     this.xLabel = 'Mois';
-                    this.dateParser = ((date) => d3.isoParse(date).getMonth());
-                    this.dateFormatter = ((date) => SolarData.pad('' + (date + 1) + '', 2, '0') + '/' + SolarData.pad(year, 4, '0'));
+                    this.dateParser = ((date) => d3.isoParse(date).getMonth() + 1);
+                    this.dateFormatter = ((date) => SolarData.pad('' + date + '', 2, '0') + '/' + SolarData.pad(year, 4, '0'));
                     break;
                 case Type.MONTH:
                     this.xLabel = 'Jour';
@@ -305,9 +305,9 @@ function SolarData()
                 // Adapt X axis tick labels:
                 if (type == Type.YEAR) {
                     if (w >= 750)
-                        this.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d));});
+                        this.xAxis.tickFormat(function(d) {return localeLongMonth(new Date(1970, d - 1));});
                     else
-                        this.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d)) + '.';});
+                        this.xAxis.tickFormat(function(d) {return localeShortMonth(new Date(1970, d - 1)) + '.';});
                 }
             }
 
