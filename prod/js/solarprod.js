@@ -639,6 +639,7 @@ function SolarProd() {
     // Update year, month and day selector (depending on level):
     this.update = function(callPlot, level) {
         if (level == 4) {
+            updatePrevNext();
             if (callPlot)
                 this.plot();
             return;
@@ -652,6 +653,7 @@ function SolarProd() {
         if ((level > 1) && (date()[level - 2] == '')) {
             clearSelect(level);
             this.windowResize();
+            updatePrevNext();
             if (callPlot)
                 this.plot();
             return;
@@ -703,7 +705,6 @@ function SolarProd() {
             if (dateOffset != 0) {
                 date.update(level, data[dateOffset]);
                 selects()[level - 1].property('value', date()[level - 1]);
-                updatePrevNext();
             } else {
                 selects()[level - 1].property('value', date()[level - 1]);
                 date.update(level, selects()[level - 1].property('value'));
@@ -713,14 +714,17 @@ function SolarProd() {
                 updateCache();
             selectDate.update(level, selectDateOffset);
 
-            if (selectDate()[level - 1] == 0)
+            if (selectDate()[level - 1] == 0) {
                 this.update(callPlot, level + 1);
-            else if ((selectDate()[level - 1]*selectDate.dir > 0) && !cache.isLast(... date(level)))
+            } else if ((selectDate()[level - 1]*selectDate.dir > 0) && !cache.isLast(... date(level))) {
                 this.siblingPlot(1, callPlot, level - 1);
-            else if ((selectDate()[level - 1]*selectDate.dir < 0) && !cache.isFirst(... date(level)))
+            } else if ((selectDate()[level - 1]*selectDate.dir < 0) && !cache.isFirst(... date(level))) {
                 this.siblingPlot(-1, callPlot, level - 1);
-            else if (callPlot)
-                this.plot();
+            } else {
+                updatePrevNext();
+                if (callPlot)
+                    this.plot();
+            }
         }).get();
     };
 
@@ -789,7 +793,6 @@ function SolarProd() {
             date.update(1, selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);}).attr('value'));
             selects.year.property('value', date()[0]);
             this.update(false, 2);
-            updatePrevNext();
         }
 
         if (today) {
@@ -834,6 +837,7 @@ function SolarProd() {
         var callPlot = (arguments.length > 1) ? arguments[1] : true;
 
         if (dir == 0) {
+            updatePrevNext();
             if (callPlot)
                 this.plot();
             return;
@@ -874,7 +878,6 @@ function SolarProd() {
             selectDate.update(level, selectDate.dir*dir);
         } else if (date.update(level, siblingOption.call(selects()[level - 1], dir))) {
             selects()[level - 1].property('value', date()[level - 1]);
-            updatePrevNext();
             this.update(callPlot, level + 1);
         } else if ((level > 1) || (selectDate().some((x) => x != 0))) {
             selectDate.update(level, selectDate.dir*dir);
@@ -890,6 +893,8 @@ function SolarProd() {
 
         if (level === false)
             return;
+
+        buttons.up.classed('disabled', (child == '') && (level == 1));
         this.update(callPlot, level);
     };
 

@@ -242,7 +242,7 @@ class SlowKeyTest(ServerTestCase):
 
         self.server.clear_request_log()
         with self.server.hold():
-            self.pressKeys([Key.CONTROL, Key.ARROW_UP], repeat).perform()
+            self.pressKeys([Key.CONTROL, Key.HOME], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
