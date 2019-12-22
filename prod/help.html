@@ -121,6 +121,7 @@ a:hover {
             <li>De l'onduleur (différenciés par la couleur des courbes ou des barres)</li>
             <li>De la string (différenciés par la transparence des courbes ou des barres)</li>
         </ul>
+        <p>Quand un graphique en barres est activé, on peut cliquer sur les barres pour avoir la vue correspondant à cette barre. L'opération inverse est le bouton <a href="#up">Élargir</a>.</p>
         <p>Le bouton <a href="#cursor">curseur</a> permet d'activer un curseur dans le diagramme courant. S'il s'agit de courbes, il faudra de plus cliquer sur la courbe, qui devient rouge au survol, pour activer le curseur. Sinon, il suffit de survoler les barres pour afficher la valeur exacte.</p>
         <p>Une légende permet de relier les données affichées à leur source. Quand plusieurs courbes sont affichées (e.g. dans le cas d'un affichage par onduleur ou par string), elle permet aussi de cacher certaines courbes (en décochant la case à cocher).</p>
         <h2>Sélecteurs</h2>
@@ -137,11 +138,12 @@ a:hover {
             </dl>
         <h2>Boutons</h2>
         <dl>
+            <dt id="today"><img class="button" src="img/today.png" alt="Aujourd'hui" />Aujourd'hui</dt><dd>Affiche les données de la journée et met à jour les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> en conséquence <span class="shortcut">(Ctrl + Origine)</span>.</dd>
             <dt id="plot"><img class="button" src="img/plot.png" alt="Tracer" />Tracer</dt><dd>Lance l'affichage des données sélectionnées, suivant les valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + Entrée)</span>.</dd>
-            <dt id="today"><img class="button" src="img/today.png" alt="Aujourd'hui" />Aujourd'hui</dt><dd>Affiche les données de la journée et met à jour les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> en conséquence <span class="shortcut">(Ctrl + &#x2191;&#x00A0;)</span>.</dd>
             <dt id="prev"><img class="button" src="img/prev.png" alt="Précédent" />Précédent</dt><dd>Affiche les données du jour, du mois ou de l'année précedents en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &#x2190;&#x00A0;)</span>.</dd>
+            <dt id="up"><img class="button" src="img/up.png" alt="Élargir" />Élargir</dt><dd>Affiche une vue plus large en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a>: Quand un jour est affiché, affiche le mois correspondant; quand um mois est affiché, affiche l'année correspondante: etc ... <span class="shortcut">(Ctrl + &#x2191;&#x00A0;)</span></dd>
             <dt id="next"><img class="button" src="img/next.png" alt="Suivant" />Suivant</dt><dd>Affiche les données du jour, du mois ou de l'année suivants en fonction des valeurs dans les sélecteurs de <a href="#day">jour</a>, de <a href="#month">mois</a> et d'<a href="#year">année</a> <span class="shortcut">(Ctrl + &#x2192;&#x00A0;)</span>.</dd>
-            <dt id="cursor"><img class="button" src="img/cursor.png" alt="Curseur" />Curseur</dt><dd>Active le curseur permettant de lire précisément une donnée.<span class="shortcut">(Ctrl + C)</span></dd>
+            <dt id="cursor"><img class="button" src="img/cursor.png" alt="Curseur" />Curseur</dt><dd>Active le curseur permettant de lire précisément une donnée <span class="shortcut">(Ctrl + C)</span>.</dd>
             <dt id="csv"><img class="button" src="img/csv.png" alt="Exporter" />Exporter</dt><dd>Exporte les données actuellement affichées dans un fichier <acronym title="Comma-Separated Values">CSV</acronym>, qui peut être importé dans n'importe quel tableur ou lu avec un éditeur de texte. Ce bouton est activé quand on charge des données en appuyant sur le bouton <a href="#plot">tracer</a> <span class="shortcut">(Ctrl + &#x2193;&#x00A0;)</span>.</dd>
             <dt id="info"><img class="button" src="img/info.png" alt="À propos" />À propos</dt><dd>Affiche des informations sur l'installation et le logiciel <span class="shortcut">(Ctrl + F2)</span>.</dd>
             <dt id="help"><img class="button" src="img/help.png" alt="Aide" />Aide</dt><dd>Affiche cette page d'aide <span class="shortcut">(Ctrl + F1)</span>.</dd>

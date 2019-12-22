@@ -522,6 +522,10 @@ function SolarProd() {
         if (dir == -1)
             return buttons.prev;
     };
+    buttons.today = toolbar2.append('img').classed('button', true)
+                                          .attr('src', 'img/today.png')
+                                          .attr('title', 'Aujourd\'hui')
+                                          .attr('alt', 'Aujourd\'hui');
     buttons.plot = toolbar1.append('img').classed('button', true)
                                          .attr('src', 'img/plot.png')
                                          .attr('title', 'Tracer')
@@ -531,10 +535,10 @@ function SolarProd() {
                                          .attr('src', 'img/prev.png')
                                          .attr('title', 'Précédent')
                                          .attr('alt', 'Précédent');
-    buttons.today = toolbar2.append('img').classed('button', true)
-                                          .attr('src', 'img/today.png')
-                                          .attr('title', 'Aujourd\'hui')
-                                          .attr('alt', 'Aujourd\'hui');
+    buttons.up = toolbar2.append('img').classed('button', true)
+                                       .classed('disabled', true)
+                                       .attr('src', 'img/up.png')
+                                       .attr('alt', 'Élargir');
     buttons.next = toolbar2.append('img').classed('button', true)
                                          .classed('disabled', true)
                                          .attr('src', 'img/next.png')
@@ -567,9 +571,10 @@ function SolarProd() {
     selects.var.attr('id', 'var');
     selects.agg.attr('id', 'sum');
 
+    buttons.today.attr('id', 'today');
     buttons.plot.attr('id', 'plot');
     buttons.prev.attr('id', 'prev');
-    buttons.today.attr('id', 'today');
+    buttons.up.attr('id', 'up');
     buttons.next.attr('id', 'next');
     buttons.cursor.attr('id', 'cursor');
     buttons.export.attr('id', 'export');
@@ -954,6 +959,7 @@ function SolarProd() {
     });
     selects.year.call(setupSelectEvents, () => {
         date.update(1, selects.year.property('value'));
+        buttons.up.classed('disabled', selects.year.property('value') == '');
         updatePrevNext();
         this.update(false, 2);
     });
@@ -970,9 +976,10 @@ function SolarProd() {
     });
 
     // Click event:
+    buttons.today.on('click', () => {this.plot(true);});
     buttons.plot.on('click', () => {this.plot();});
     buttons.prev.on('click', () => {this.siblingPlot(-1);});
-    buttons.today.on('click', () => {this.plot(true);});
+    buttons.up.on('click', () => {this.childPlot('');});
     buttons.next.on('click', () => {this.siblingPlot(1);});
     buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
@@ -1014,11 +1021,14 @@ function SolarProd() {
         if (d3.event.shiftKey || d3.event.altKey || !d3.event.ctrlKey || d3.event.metaKay)
             return;
 
+        if ((d3.event.key == 'Home') && !d3.event.repeat)
+            buttons.today.dispatch('click');
+
         if ((d3.event.key == 'Enter') && !d3.event.repeat)
             buttons.plot.dispatch('click');
 
         if ((d3.event.key == 'ArrowUp') && !d3.event.repeat)
-            buttons.today.dispatch('click');
+            buttons.up.dispatch('click');
 
         if (d3.event.key == 'ArrowLeft')
             buttons.prev.dispatch('click');
