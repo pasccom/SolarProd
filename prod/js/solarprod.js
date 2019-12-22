@@ -887,6 +887,7 @@ function SolarProd() {
 
     this.childPlot = function()
     {
+        var titles = ["", "Afficher toutes les années", "Afficher toute l\'année", "Afficher tout le mois"]
         var child = arguments[0];
         var callPlot = (arguments.length > 1) ? arguments[1] : true;
         var level = child == '' ? date.pop() : date.push('' + child + '');
@@ -895,6 +896,7 @@ function SolarProd() {
             return;
 
         buttons.up.classed('disabled', (child == '') && (level == 1));
+        buttons.up.attr('title', titles[level - (child == '')])
         this.update(callPlot, level);
     };
 
