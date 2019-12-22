@@ -57,7 +57,7 @@ function LinePlot(root) {
             return d3.select(g).selectAll('path').nodes().map((p) => d3.select(p));
         }));
 
-        return true;
+        return d3.select();
     };
 
     this.redraw = function() {

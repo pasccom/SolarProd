@@ -808,7 +808,11 @@ function SolarProd() {
                 return;
 
             updateVars(data);
-            this.chart.setData(data);
+
+            var parentElements = this.chart.setData(data);
+            parentElements.each((d, i, nodes) => {
+                d3.select(nodes[i]).on('click', (d) => this.childPlot(d.x));
+            });
 
             // Activate data cursor and export:
             buttons.cursor.classed('checked', false);
@@ -873,7 +877,7 @@ function SolarProd() {
         }
     };
 
-    this.childPlot = function(child)
+    this.childPlot = function()
     {
         var child = arguments[0];
         var callPlot = (arguments.length > 1) ? arguments[1] : true;

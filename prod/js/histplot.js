@@ -76,7 +76,7 @@ function HistPlot(root) {
             }));
         }));
 
-        return true;
+        return groups;
     };
 
     this.redraw = function() {

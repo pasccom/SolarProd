@@ -94,7 +94,7 @@ function SolarChart(root, data) {
         // Resize new plot to old plot size:
         this.plot.resize(ow, oh);
         // Draw new plot:
-        this.draw();
+        return this.draw();
     };
 
     // Chart resize event:
@@ -146,16 +146,18 @@ function SolarChart(root, data) {
         chartRoot.selectAll('.cursor').remove();
         chartRoot.selectAll('.selected').classed('selected', false);
 
-        if (this.plot.draw()) {
+        var drawn = this.plot.draw();
+
+        if (drawn !== false) {
             legend.clear();
             if (this.plot.legendStyle)
                 legend.draw(this.plot.legendData, this.plot.legendStyle);
+            this.redraw();
         } else {
             this.hide();
-            return false;
         }
 
-        return this.redraw();
+        return drawn;
     }
 
     // Redraw the chart: Position the plot, the axes and the grid
