@@ -619,6 +619,15 @@ function SolarProd() {
                                        (!siblingOption.call(selects.day, 1) &&
                                         !siblingOption.call(selects.month, 1) &&
                                         !siblingOption.call(selects.year, 1)));
+
+        if (selects.year.property('value') == '')
+            buttons.up.attr('title', '');
+        else if (selects.month.property('value') == '')
+            buttons.up.attr('title', "Afficher toutes les années");
+        else if (selects.day.property('value') == '')
+            buttons.up.attr('title', "Afficher toute l'année");
+        else
+            buttons.up.attr('title', "Afficher tout le mois");
     };
 
     // Update cache:
@@ -792,6 +801,8 @@ function SolarProd() {
             selectDate.dir = 1;
             date.update(1, selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);}).attr('value'));
             selects.year.property('value', date()[0]);
+            buttons.up.classed('disabled', false);
+            buttons.up.attr('title', "Afficher tout le mois");
             this.update(false, 2);
         }
 
@@ -887,7 +898,7 @@ function SolarProd() {
 
     this.childPlot = function()
     {
-        var titles = ["", "Afficher toutes les années", "Afficher toute l\'année", "Afficher tout le mois"]
+        var titles = ["", "Afficher toutes les années", "Afficher toute l'année", "Afficher tout le mois"]
         var child = arguments[0];
         var callPlot = (arguments.length > 1) ? arguments[1] : true;
         var level = child == '' ? date.pop() : date.push('' + child + '');
