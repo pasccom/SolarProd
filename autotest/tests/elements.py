@@ -43,6 +43,7 @@ class ElementsTest(BrowserTestCase):
         {'name': 'plot',    'enabled': True },
         {'name': 'today',   'enabled': True },
         {'name': 'prev',    'enabled': False},
+        {'name': 'up',      'enabled': False},
         {'name': 'next',    'enabled': False},
         {'name': 'cursor',  'enabled': False},
         {'name': 'export',  'enabled': False},
