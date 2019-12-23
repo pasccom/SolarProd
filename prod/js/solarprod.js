@@ -526,7 +526,7 @@ function SolarProd() {
                                           .attr('src', 'img/today.png')
                                           .attr('title', 'Aujourd\'hui')
                                           .attr('alt', 'Aujourd\'hui');
-    buttons.plot = toolbar1.append('img').classed('button', true)
+    buttons.plot = toolbar2.append('img').classed('button', true)
                                          .attr('src', 'img/plot.png')
                                          .attr('title', 'Tracer')
                                          .attr('alt', 'Tracer');
