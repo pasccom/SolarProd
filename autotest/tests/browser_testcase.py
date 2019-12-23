@@ -62,6 +62,9 @@ class BrowserTestCase(TestCase):
     def clearLog(self):
         self.browser.execute_script('console.capture.clear();')
 
+    def assertTitle(self, obj, title):
+        self.assertEqual(obj.get_attribute('title'), title)
+
     def assertClassed(self, obj, cls, classed):
         if (classed):
             self.assertIn(cls, self.getClasses(obj))
@@ -82,7 +85,7 @@ class BrowserTestCase(TestCase):
         wait = self.assertSelectValue('day', str(day), wait)
         return wait
 
-    def selectDate(self, year, month=None, day=None, partial=False):
+    def selectDate(self, year=None, month=None, day=None, partial=False):
         if year is not None:
             self.selectOption('year', str(year))
         else:
@@ -151,6 +154,10 @@ class BrowserTestCase(TestCase):
 
     def plotPrev(self, repeat=1):
         self.clickButton(self.browser.find_element_by_id('prev'), repeat).perform()
+        time.sleep(1)
+
+    def plotParent(self):
+        self.clickButton(self.browser.find_element_by_id('up')).perform()
         time.sleep(1)
 
     def plotNext(self, repeat=1):
