@@ -45,14 +45,17 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.server.clear_request_log()
         with self.server.hold():
             self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=2)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toutes les années")
         self.assertDataRequests([self.dataPath(prevYear)]*requests, wait=2)
 
 
@@ -82,6 +85,7 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.server.clear_request_log()
         with self.server.hold():
@@ -89,8 +93,10 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, wait=2)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toute l'année")
         self.assertDataRequests([self.dataPath(prevYear, prevMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -119,14 +125,17 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         with self.server.hold():
             self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=2)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher tout le mois")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -151,14 +160,17 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.server.clear_request_log()
         with self.server.hold():
             self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, wait=2)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toutes les années")
         self.assertDataRequests([self.dataPath(nextYear)]*requests, wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -187,6 +199,7 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.server.clear_request_log()
         with self.server.hold():
@@ -194,8 +207,10 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, wait=2)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toute l'année")
         self.assertDataRequests([self.dataPath(nextYear, nextMonth)]*int(requests), wait=2)
 
     # NOTE The page should not be reloaded before each date
@@ -224,14 +239,17 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         with self.server.hold():
             self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=2)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher tout le mois")
 
     @TestData([1, 2])
     def testToday(self, repeat):
@@ -239,6 +257,7 @@ class SlowKeyTest(ServerTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.server.clear_request_log()
         with self.server.hold():
@@ -246,6 +265,8 @@ class SlowKeyTest(ServerTestCase):
             self.browser.execute_script('console.log("Server restarts")')
 
         self.assertDate(2017, 8, 8, wait=2)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', True)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', True)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher tout le mois")
         self.assertDataRequests([self.dataPath('today')], wait=2)

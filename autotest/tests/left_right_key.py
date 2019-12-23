@@ -53,12 +53,15 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, wait=5)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toutes les années")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -97,12 +100,15 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, wait=5)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toute l'année")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -138,12 +144,15 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_LEFT], repeat).perform()
 
         self.assertDate(prevYear, prevMonth, prevDay, wait=5)
-        self.assertClassed(prevButton, 'disabled', not prevEnabled)
-        self.assertClassed(nextButton, 'disabled', False)
+        self.assertClassed(prevButton,   'disabled', not prevEnabled)
+        self.assertClassed(nextButton,   'disabled', False)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher tout le mois")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -176,12 +185,15 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toutes les années")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -220,12 +232,15 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth, wait=5)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher toute l'année")
 
     # NOTE The page should not be reloaded before each date
     # that's why @cacheTest is first.
@@ -261,9 +276,12 @@ class LeftRightKeyTest(BrowserTestCase):
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
+        parentButton = self.browser.find_element_by_id('up')
 
         self.pressKeys([Key.CONTROL, Key.ARROW_RIGHT], repeat).perform()
 
         self.assertDate(nextYear, nextMonth, nextDay, wait=5)
-        self.assertClassed(prevButton, 'disabled', False)
-        self.assertClassed(nextButton, 'disabled', not nextEnabled)
+        self.assertClassed(prevButton,   'disabled', False)
+        self.assertClassed(nextButton,   'disabled', not nextEnabled)
+        self.assertClassed(parentButton, 'disabled', False)
+        self.assertTitle(parentButton, "Afficher tout le mois")
