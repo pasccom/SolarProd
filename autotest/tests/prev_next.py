@@ -20,6 +20,26 @@ from .PythonUtils.testdata import TestData
 from .browser_testcase import BrowserTestCase
 
 class PrevNextTest(BrowserTestCase):
+    @BrowserTestCase.cacheTest
+    def testEmpty(self):
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.assertDate()
+        self.assertClassed(prevButton, 'disabled', True)
+        self.assertClassed(nextButton, 'disabled', True)
+
+    @BrowserTestCase.cacheTest
+    def testYears(self):
+        self.selectDate()
+        self.plot()
+
+        prevButton = self.browser.find_element_by_id('prev')
+        nextButton = self.browser.find_element_by_id('next')
+
+        self.assertDate()
+        self.assertClassed(prevButton, 'disabled', True)
+        self.assertClassed(nextButton, 'disabled', True)
 
     @TestData([
         {'year': 2009, 'prevEnabled': False, 'nextEnabled': True },
@@ -325,12 +345,3 @@ class PrevNextTest(BrowserTestCase):
         self.assertDate(nextYear, nextMonth, nextDay, wait=5)
         self.assertClassed(prevButton, 'disabled', False)
         self.assertClassed(nextButton, 'disabled', not nextEnabled)
-
-    @BrowserTestCase.cacheTest
-    def testNoPrevNext(self):
-        prevButton = self.browser.find_element_by_id('prev')
-        nextButton = self.browser.find_element_by_id('next')
-
-        self.assertDate()
-        self.assertClassed(prevButton, 'disabled', True)
-        self.assertClassed(nextButton, 'disabled', True)
