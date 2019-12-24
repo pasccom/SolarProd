@@ -19,8 +19,6 @@ from .PythonUtils.testdata import TestData
 
 from .chart_testcase import ChartTestCase
 
-import random
-
 class ChildTest(ChartTestCase):
 
     @TestData([
@@ -31,10 +29,7 @@ class ChildTest(ChartTestCase):
     def testYears(self, year):
         self.selectDate()
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == year]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(year)
 
         self.assertDate(year)
         parentButton = self.browser.find_element_by_id('up')
@@ -50,10 +45,7 @@ class ChildTest(ChartTestCase):
     def testMonth(self, year, month):
         self.selectDate(year)
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == month]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(month)
 
         self.assertDate(year, month)
         parentButton = self.browser.find_element_by_id('up')
@@ -69,10 +61,7 @@ class ChildTest(ChartTestCase):
     def testDay(self, year, month, day):
         self.selectDate(year, month)
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == day]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(day)
 
         self.assertDate(year, month, day)
         parentButton = self.browser.find_element_by_id('up')
@@ -111,13 +100,11 @@ class ChildTest(ChartTestCase):
         self.selectSum(agg)
 
         if (month is None):
-            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == year]
+            self.plotChild(year)
         elif (day is None):
-            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == month]
+            self.plotChild(month)
         else:
-            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == day]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+            self.plotChild(day)
 
         self.assertDate(year, month, day)
         self.assertSelectValue('var', var)
@@ -138,10 +125,7 @@ class ChildTest(ChartTestCase):
     def testPrevNextYear(self, year, prevEnabled, nextEnabled):
         self.selectDate()
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == year]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(year)
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -163,10 +147,7 @@ class ChildTest(ChartTestCase):
     def testPrevNextMonth(self, year, month, prevEnabled, nextEnabled):
         self.selectDate(year)
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == month]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(month)
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
@@ -186,10 +167,7 @@ class ChildTest(ChartTestCase):
     def testPrevNextDay(self, year, month, day, prevEnabled, nextEnabled):
         self.selectDate(year, month)
         self.plot()
-
-        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == day]
-        self.assertGreater(len(bar), 0)
-        random.choice(bar).click()
+        self.plotChild(day)
 
         prevButton = self.browser.find_element_by_id('prev')
         nextButton = self.browser.find_element_by_id('next')
