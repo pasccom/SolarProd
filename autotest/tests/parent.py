@@ -87,6 +87,42 @@ class ParentTest(BrowserTestCase):
         self.assertTitle(parentButton, "Afficher toute l'année")
 
     @TestData([
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2014, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2014, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':   12, 'day':   31, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':   12, 'day':   31, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    2, 'day':    1, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    2, 'day':    1, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj', 'agg': 'inv'},
+    ])
+    def testVarSum(self, year, month, day, var, agg):
+        self.selectDate(year, month, day)
+        self.plot()
+
+        self.selectVar(var)
+        self.selectSum(agg)
+        self.plotParent()
+
+        self.assertDate(year if month is not None else None, month if day is not None else None)
+        self.assertSelectValue('var', var)
+        self.assertSelectValue('sum', agg)
+
+    @TestData([
         {'year': 2009},
         {'year': 2014},
         {'year': 2019},

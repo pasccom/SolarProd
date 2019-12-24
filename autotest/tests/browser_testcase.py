@@ -79,10 +79,10 @@ class BrowserTestCase(TestCase):
             self.fail('Select "{}" does not have value "{}"'.format(name, value))
         return wait
 
-    def assertDate(self, year='', month='', day='', wait=0):
-        wait = self.assertSelectValue('year', str(year), wait)
-        wait = self.assertSelectValue('month', str(month), wait)
-        wait = self.assertSelectValue('day', str(day), wait)
+    def assertDate(self, year=None, month=None, day=None, wait=0):
+        wait = self.assertSelectValue('year', str(year) if year is not None else '', wait)
+        wait = self.assertSelectValue('month', str(month) if month is not None else '', wait)
+        wait = self.assertSelectValue('day', str(day) if day is not None else '', wait)
         return wait
 
     def selectDate(self, year=None, month=None, day=None, partial=False):

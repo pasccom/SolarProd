@@ -80,6 +80,50 @@ class ChildTest(ChartTestCase):
         self.assertTitle(parentButton, "Afficher tout le mois")
 
     @TestData([
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2014, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2014, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    8, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2011, 'month':   12, 'day':   31, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2011, 'month':   12, 'day':   31, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    2, 'day':    1, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    2, 'day':    1, 'var': 'nrj', 'agg': 'inv'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj', 'agg': 'inv'},
+    ])
+    def testVarSum(self, year, month, day, var, agg):
+        self.selectDate(year if month is not None else None, month if day is not None else None)
+        self.plot()
+
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        if (month is None):
+            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == year]
+        elif (day is None):
+            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == month]
+        else:
+            bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == day]
+        self.assertGreater(len(bar), 0)
+        random.choice(bar).click()
+
+        self.assertDate(year, month, day)
+        self.assertSelectValue('var', var)
+        self.assertSelectValue('sum', agg)
+
+    @TestData([
         {'year': 2009, 'prevEnabled': False, 'nextEnabled': True },
         {'year': 2010, 'prevEnabled': True,  'nextEnabled': True },
         {'year': 2011, 'prevEnabled': True,  'nextEnabled': True },
