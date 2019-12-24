@@ -24,6 +24,7 @@ from .tests.layout import LayoutTest
 from .tests.select import SelectTest
 from .tests.export import ExportTest
 from .tests.parent import ParentTest
+from .tests.child import ChildTest
 from .tests.prev_next import PrevNextTest
 from .tests.left_right_key import LeftRightKeyTest
 from .tests.repeat import RepeatTest
