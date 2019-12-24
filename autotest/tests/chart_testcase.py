@@ -17,6 +17,7 @@
 
 import re
 
+from random import choice
 from .helpers import groupby
 from .browser_testcase import BrowserTestCase
 
@@ -42,8 +43,18 @@ class ChartTestCase(BrowserTestCase):
         super().plotPrev(*args, **kwArgs)
         self.clearMapFunctions()
 
+    def plotParent(self, *args, **kwArgs):
+        super().plotParent(*args, **kwArgs)
+        self.clearMapFunctions()
+
     def plotNext(self, *args, **kwArgs):
         super().plotNext(*args, **kwArgs)
+        self.clearMapFunctions()
+
+    def plotChild(self, date):
+        bar = [b for b, r in self.getBars(self.parseRect) if int((r[0] + r[2])/2) == date]
+        self.assertGreater(len(bar), 0)
+        choice(bar).click()
         self.clearMapFunctions()
 
     def getColor(self, elem):

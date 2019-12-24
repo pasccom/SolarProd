@@ -488,4 +488,59 @@ class ChartTest(ChartTestCase):
 
         self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData('nrj', 'sum'))
 
+    @TestData([
+        {'year': 2011, 'month': 6, 'day': 24, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2011, 'month': 6, 'day': 24, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month': 8, 'day':  8, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month': 8, 'day':  8, 'var': 'nrj',  'agg': 'inv'},
+    ])
+    def testChildLine(self, year, month, day, var, agg):
+        self.loadData(year, month, day)
+        self.selectDate(year, month)
+        self.plot()
 
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        self.plotChild(day)
+        self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData(var, agg))
+
+    @TestData([
+        {'year': 2017, 'month': 8, 'day': 5, 'var': 'nrj', 'agg': 'sum'},
+        {'year': 2017, 'month': 8, 'day': 5, 'var': 'nrj', 'agg': 'inv'},
+    ])
+    def testChildEmpty(self, year, month, day, var, agg):
+        self.selectDate(year, month)
+        self.plot()
+
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        self.plotChild(day)
+        self.assertEqual(len(self.getLines()), 0)
+        self.assertEqual(len(self.getBars()), 0)
+
+    @TestData([
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2009, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2019, 'month': None, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2010, 'month':   12, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2018, 'month':    2, 'day': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2011, 'month':    6, 'day':   24, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2017, 'month':    8, 'day':    8, 'var': 'nrj',  'agg': 'inv'},
+    ])
+    def testParentBar(self, year, month, day, var, agg):
+        self.loadData(year if month is not None else None, month if day is not None else None)
+        self.selectDate(year, month, day)
+        self.plot()
+
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        self.plotParent()
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
