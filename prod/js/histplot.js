@@ -95,7 +95,7 @@ function HistPlot(root) {
         return true;
     };
 
-    this.enableCursor = function(enable, listener) {
+    this.enableCursor = function(enable, svg, xAxisLabels) {
         if (groups === undefined)
             return;
 
@@ -104,23 +104,43 @@ function HistPlot(root) {
             bar.dispatch('cursor', {bubbles: true, detail: {d: d}});
         }).on('mouseleave', !enable ? null : function() {
             d3.select(this).classed('hovered', false);
-            d3.customEvent(new Event(HistPlot.CURSOR_TYPE), listener);
-        }).on('cursor', !enable ? null : function(d, i) {
+            xAxisLabels.classed('cursor', false);
+            root.select('.cursor').remove();
+        }).on('cursor', !enable ? null : (d, i) => {
             d3.event.detail.frac = i/nGroups/nBars;
         });
 
-        subGroups.on('cursor', !enable ? null : function(d, i) {
+        subGroups.on('cursor', !enable ? null : (d, i) => {
             d3.event.detail.frac += i/nGroups;
         });
 
-        groups.on('cursor', !enable ? null : function (d) {
+        groups.on('cursor', !enable ? null : (d1) => {
             d3.event.stopPropagation();
-            d3.customEvent(new CustomEvent(HistPlot.CURSOR_TYPE, {detail: {x: d.x, xFrac: d3.event.detail.frac + 1/2/nGroups/nBars, y:d3.event.detail.d}}), listener);
+            xAxisLabels.classed('cursor', false);
+            root.select('.cursor').remove();
+
+            xAxisLabels.filter((d2) => (d2 == d1.x)).classed('cursor', true);
+            root.append('text').classed('cursor', true)
+                               .text(d3.event.detail.d/this.data.div)
+                               .attr('y', -5 + this.data.yScale(d3.event.detail.d/this.data.div))
+                               .attr('x', (d2, i, n) => {
+                var w = d3.max(this.data.xScale.range());
+                var h = d3.max(this.data.yScale.range());
+                var hw = n[0].getBBox().width/2;
+                var x = this.data.xScale(d1.x) + (d3.event.detail.frac + 1/2/nGroups/nBars)*this.data.xScale.bandwidth();
+
+                if (x - hw < 5)
+                    return 5 + hw;
+                if (x + hw > w)
+                    return  w - hw;
+                return x;
+            });
         });
 
+        if (!enable)
+            root.selectAll('.cursor').remove();
         return enable;
     };
 }
 
-HistPlot.CURSOR_TYPE = 'HistCursor';
 HistPlot.prototype = SolarPlot;

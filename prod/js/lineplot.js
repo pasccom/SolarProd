@@ -1,5 +1,7 @@
 function LinePlot(root) {
     var lines;
+    var xCursor = null;
+    var yCursor = null;
 
     this.legendStyle = (function(selection) {
         selection.classed('line', true);
@@ -74,21 +76,110 @@ function LinePlot(root) {
         return true;
     };
 
-    this.enableCursor = function(enable, listener) {
+    this.enableCursor = function(enable, svg) {
         if (lines === undefined)
             return;
 
-        var paths = lines.selectAll('path');
-        paths.on('mouseenter', !enable ? null : function() {d3.select(this).classed('hovered', true);})
-             .on('mouseleave', !enable ? null : function() {d3.select(this).classed('hovered', false);})
-             .on('click', !enable ? null : function(d) {
-                 d3.event.stopPropagation();
-                 d3.customEvent(new CustomEvent(LinePlot.CURSOR_TYPE, {detail: {data: d, line: d3.select(this)}}), listener);
+        lines.selectAll('path').on('mouseenter', !enable ? null : function() {d3.select(this).classed('hovered', true);})
+                               .on('mouseleave', !enable ? null : function() {d3.select(this).classed('hovered', false);})
+                               .on('click', !enable ? null : (d, i, nodes) => {
+            var selectedLine = d3.select(nodes[i]);
+
+            d3.event.stopPropagation();
+
+            if (xCursor === null) {
+                xCursor = root.append('g').classed('cursor', true)
+                                          .attr('id', 'xcursor')
+                                          .style('display', 'none');
+                xCursor.append('line').attr('y2', 0);
+                xCursor.append('line').attr('y2', 6).style('stroke-dasharray', 'none');
+                xCursor.append('rect').style('fill', '-moz-default-background-color');
+                xCursor.append('text').attr('y', 10)
+                                      .attr('dy', '0.71em')
+                                      .style('text-anchor', 'middle');
+            }
+
+            if (yCursor === null) {
+                yCursor = root.append('g').classed('cursor', true)
+                                          .attr('id', 'ycursor')
+                                          .style('display', 'none');
+                yCursor.append('line').attr('x2', 0);
+                yCursor.append('line').attr('x2', -6).style('stroke-dasharray', 'none');
+                yCursor.append('rect').style('fill', '-moz-default-background-color');
+                yCursor.append('text').attr('x', -9)
+                                      .attr('dy', '0.32em')
+                                      .style('text-anchor', 'end');
+            }
+
+            root.selectAll('.selected').classed('selected', false);
+            selectedLine.classed('selected', true);
+
+            svg.on('mousemove', () => {
+                console.log('Cursor mouse move');
+
+                var w = d3.max(this.data.xScale.range());
+                var h = d3.max(this.data.yScale.range());
+                var data = selectedLine.data()[0];
+
+                xCursor.style('display', 'none');
+                yCursor.style('display', 'none');
+
+                var mousePos = d3.mouse(root.node());
+
+                if ((mousePos[0] < 0) ||
+                    (mousePos[0] > w / 1.025) ||
+                    (mousePos[1] < 0) ||
+                    (mousePos[1] > h))
+                    return;
+
+                var x = this.data.xScale.invert(mousePos[0]);
+                var bisector = d3.bisector((d) => d.x);
+                var i = bisector.left(data, x);
+                var y = (i == 0) ? data[i].y : data[i].y + (data[i - 1].y - data[i].y) / (data[i - 1].x - data[i].x) * (x - data[i].x);
+
+                xCursor.selectAll('line').filter(function() {return d3.select(this).attr('y2') <= 0;}).attr('y2', -h);
+                yCursor.select('line').filter(function() {return d3.select(this).attr('x2') >= 0;}).attr('x2', w / 1.025);
+
+                xCursor.style('display', null).attr('transform', 'translate(' + this.data.xScale(x) + ', ' + h + ')');
+                yCursor.style('display', null).attr('transform', 'translate(0, ' + this.data.yScale(y / this.data.div) + ')');
+
+                xCursor.select('text').text(x.toLocaleTimeString());
+                yCursor.select('text').text(this.data.yCursor(y));
+
+                root.selectAll('.cursor text').each(function() {
+                    var bBox = this.getBBox();
+                    d3.select(this.parentNode).select('rect').attr('x', bBox.x - 3)
+                                                             .attr('y', bBox.y)
+                                                             .attr('width', bBox.width + 6)
+                                                             .attr('height', bBox.height);
+                });
             });
+
+            svg.on('click', () => {
+                svg.on('mousemove', null);
+                svg.on('click', null);
+
+                selectedLine.classed('selected', false);
+                xCursor.remove();
+                yCursor.remove();
+                xCursor = null;
+                yCursor = null;
+            });
+        });
+
+        if (!enable) {
+            svg.on('mousemove', null);
+            svg.on('click', null);
+
+            root.selectAll('.selected').classed('selected', false);
+            xCursor.remove();
+            yCursor.remove();
+            xCursor = null;
+            yCursor = null;
+        }
 
         return enable;
     };
 }
 
-LinePlot.CURSOR_TYPE = 'LineCursor';
 LinePlot.prototype = SolarPlot;

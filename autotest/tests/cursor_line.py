@@ -41,7 +41,7 @@ class CursorLineTest(ChartTestCase):
         div = self.getDivider([d for l, d in lineData])
 
         chart = self.browser.find_element_by_id('chart')
-        xMin = 60
+        xMin = 61
         xMax = xMin - 1 + (chart.rect['width'] - 80) / 1.025
         yMin = 20
         yMax = chart.rect['height'] - 40
