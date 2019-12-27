@@ -36,6 +36,7 @@ from .tests.cursor import CursorTest
 from .tests.cursor_legend import CursorLegendTest
 from .tests.cursor_bar import CursorBarTest
 from .tests.cursor_line import CursorLineTest
+from .tests.default_plot import DefaultPlotTest
 from .tests.popup_layout import PopupLayoutTest
 from .tests.popup_interaction import PopupInteractionTest
 from .tests.tab_layout import TabLayoutTest
