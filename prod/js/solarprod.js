@@ -829,9 +829,11 @@ function SolarProd() {
             updateVars(data);
 
             var parentElements = this.chart.setData(data);
-            parentElements.each((d, i, nodes) => {
-                d3.select(nodes[i]).on('click', (d) => this.childPlot(d.x));
-            });
+            if (parentElements) {
+                parentElements.each((d, i, nodes) => {
+                    d3.select(nodes[i]).on('click', (d) => this.childPlot(d.x));
+                });
+            }
 
             // Activate data cursor and export:
             buttons.cursor.classed('checked', false);
