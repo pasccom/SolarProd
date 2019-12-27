@@ -789,24 +789,33 @@ function SolarProd() {
         }
     };
 
-    this.plot = function(today) {
+    this.plot = function(currentLevel) {
         // Do not fetch plot data while there are pending list requests:
         if (pendingListRequests != 0)
             return;
 
-        // Set date of today:
-        if (today) {
-            selectDate.update(2, -1);
-            selectDate.update(3, -1);
-            selectDate.dir = 1;
-            date.update(1, selects.year.selectAll('option').filter(function() {return (this.nextElementSibling == null);}).attr('value'));
-            selects.year.property('value', date()[0]);
-            buttons.up.classed('disabled', false);
-            buttons.up.attr('title', "Afficher tout le mois");
-            this.update(false, 2);
+        // Set date of current year/month/day:
+        if (currentLevel !== undefined) {
+            var titles = ["", "Afficher toutes les années", "Afficher toute l'année", "Afficher tout le mois"]; // TODO locale
+
+            clearSelect(Math.max(currentLevel, 1));
+            this.chart.setData(new EmptyData());
+
+            for (var l = 1; l <= currentLevel; l++)
+                selectDate.update(l, -1);
+            if (currentLevel >= 1)
+                selectDate.dir = 1;
+
+            buttons.cursor.classed('disabled', currentLevel < 0);
+            buttons.up.classed('disabled', currentLevel <= 0);
+            buttons.up.attr('title', titles[Math.max(currentLevel, 0)]);
+
+            this.update((currentLevel < 3) && (currentLevel >= 0), 1);
+            if (currentLevel < 3)
+                return;
         }
 
-        if (today) {
+        if (currentLevel == 3) {
             if (this.chart.plot.data.hasDate())
                 return;
         } else {
@@ -814,7 +823,7 @@ function SolarProd() {
                 return;
         }
 
-        var solarPromise = today ? SolarData.create() : SolarData.create(... date());
+        var solarPromise = currentLevel == 3 ? SolarData.create() : SolarData.create(... date());
         pendingDataRequests++;
         solarPromise.catch((msg) => {
             pendingDataRequests--;
@@ -900,7 +909,7 @@ function SolarProd() {
 
     this.childPlot = function()
     {
-        var titles = ["", "Afficher toutes les années", "Afficher toute l'année", "Afficher tout le mois"]
+        var titles = ["", "Afficher toutes les années", "Afficher toute l'année", "Afficher tout le mois"]; // TODO centralize in locale
         var child = arguments[0];
         var callPlot = (arguments.length > 1) ? arguments[1] : true;
         var level = child == '' ? date.pop() : date.push('' + child + '');
@@ -996,7 +1005,7 @@ function SolarProd() {
     });
 
     // Click event:
-    buttons.today.on('click', () => {this.plot(true);});
+    buttons.today.on('click', () => {this.plot(3);});
     buttons.plot.on('click', () => {this.plot();});
     buttons.prev.on('click', () => {this.siblingPlot(-1);});
     buttons.up.on('click', () => {this.childPlot('');});
@@ -1073,6 +1082,6 @@ function SolarProd() {
     d3.select(window).on('resize', this.windowResize.bind(this));
     this.windowResize();
 
-    // Update year selector:
-    this.update(false, 1);
+    // Plot default:
+    this.plot(-1);
 };
