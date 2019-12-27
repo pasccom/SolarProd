@@ -21,7 +21,7 @@ from .tests.helpers import HelpersTest
 from .tests.elements import ElementsTest
 from .tests.help import HelpTest
 from .tests.layout import LayoutTest
-from .tests.select import SelectTest
+from .tests.selects import SelectTest
 from .tests.export import ExportTest
 from .tests.parent import ParentTest
 from .tests.child import ChildTest
