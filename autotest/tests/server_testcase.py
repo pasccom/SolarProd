@@ -17,60 +17,10 @@
 
 import http.server as http
 
-from threading import Thread
-from contextlib import contextmanager
-
-import os
 import time
 
+from .test_server import TestHTTPServer
 from .browser_testcase import BrowserTestCase
-
-class TestHTTPRequestHandler(http.SimpleHTTPRequestHandler):
-    def log_request(self, code='-', size='-'):
-        super().log_request(code, size)
-        if isinstance(code, http.HTTPStatus):
-            code = code.value
-        self.server.log_request({
-            'timestamp': time.time(),
-            'origin'   : self.client_address[0] + ':' + str(self.client_address[1]),
-            'command'  : self.command,
-            'path'     : self.path,
-            'code'     : code,
-            'size'     : size,
-        })
-
-class TestHTTPServer(http.HTTPServer):
-    def __init__(self, address, handler=TestHTTPRequestHandler):
-        super().__init__(address, handler)
-        self.__log = []
-
-    def start(self, poll_interval=0.5):
-        superObj = super()
-        serverThread = Thread(target=lambda: superObj.serve_forever(poll_interval), name='server')
-        serverThread.start()
-        print('Server started')
-
-    def stop(self):
-        self.shutdown()
-        print('Server stopped')
-
-    @contextmanager
-    def hold(self):
-        try:
-            self.stop()
-            yield None
-        finally:
-            self.start()
-
-    def log_request(self, requestData):
-        self.__log += [requestData]
-
-    def clear_request_log(self):
-        print('Request log cleared')
-        self.__log = []
-
-    def get_request_log(self):
-        return self.__log
 
 class ServerTestCase(BrowserTestCase):
     server = None
@@ -92,11 +42,12 @@ class ServerTestCase(BrowserTestCase):
             cls.server.stop()
             cls.server.server_close()
 
-    def setUp(self):
+    def setUp(self, loadIndex):
         super().setUp(False)
         self.server = self.__class__.server
         self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/autotest/prod'
-        self.browser.get(self.index)
+        if loadIndex:
+            self.browser.get(self.index)
 
     def assertDataRequests(self, expected, wait=0):
         dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
@@ -106,10 +57,3 @@ class ServerTestCase(BrowserTestCase):
             dataRequests = [r['path'][1:] for r in self.server.get_request_log() if (r['command'] == 'GET') and r['path'].startswith('/autotest/prod/data/')]
         print(dataRequests)
         self.assertEqual(dataRequests, expected)
-
-if __name__ == '__main__':
-    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prod'))
-
-    with TestHTTPServer(('localhost', 2222)) as httpd:
-        print('Server listening on port {}'.format(httpd.server_port))
-        httpd.serve_forever()
