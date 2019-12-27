@@ -1082,6 +1082,18 @@ function SolarProd() {
     d3.select(window).on('resize', this.windowResize.bind(this));
     this.windowResize();
 
+    var getCookie = function(name, defaultValue)
+    {
+        var cookies = decodeURIComponent(document.cookie).split(';');
+        for(var c = 0; c < cookies.length; c++) {
+            if (!cookies[c].trim().startsWith(name + '='))
+                continue;
+            return cookies[c].trim().substring(name.length + 1);
+        }
+
+        return defaultValue;
+    }
+
     // Plot default:
-    this.plot(-1);
+    this.plot(parseInt(getCookie('defaultPlot', -1)));
 };
