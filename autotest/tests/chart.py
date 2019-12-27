@@ -506,6 +506,27 @@ class ChartTest(ChartTestCase):
         self.assertCoordinatesEqual(self.getLineData(), self.getData('dates'), self.getData(var, agg))
 
     @TestData([
+        {'year': 2009, 'month': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2009, 'month': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2019, 'month': None, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2019, 'month': None, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2010, 'month':   12, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2010, 'month':   12, 'var': 'nrj',  'agg': 'inv'},
+        {'year': 2018, 'month':    2, 'var': 'nrj',  'agg': 'sum'},
+        {'year': 2018, 'month':    2, 'var': 'nrj',  'agg': 'inv'},
+    ])
+    def testChildBar(self, year, month, var, agg):
+        self.loadData(year, month)
+        self.selectDate(year if month is not None else None)
+        self.plot()
+
+        self.selectVar(var)
+        self.selectSum(agg)
+
+        self.plotChild(month if month is not None else year)
+        self.assertBarsEqual(self.getBarData(), self.getData('dates'), self.getData(var, agg))
+
+    @TestData([
         {'year': 2017, 'month': 8, 'day': 5, 'var': 'nrj', 'agg': 'sum'},
         {'year': 2017, 'month': 8, 'day': 5, 'var': 'nrj', 'agg': 'inv'},
     ])

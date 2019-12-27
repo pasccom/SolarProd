@@ -419,6 +419,70 @@ class CursorTest(ChartTestCase, LegendTestCase):
         self.assertCursor(False)
 
     @TestData([
+        {'year': 2009, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2010, 'month':   12, 'day': None},
+        {'year': 2018, 'month':    2, 'day': None},
+        {'year': 2011, 'month':    6, 'day':   24},
+        {'year': 2017, 'month':    8, 'day':    8},
+    ])
+    def testParent(self, year, month, day):
+        self.selectDate(year, month, day)
+        self.plot()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.plotParent()
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @TestData([
+        {'year': 2009, 'month': None, 'day': None},
+        {'year': 2019, 'month': None, 'day': None},
+        {'year': 2010, 'month':   12, 'day': None},
+        {'year': 2018, 'month':    2, 'day': None},
+        {'year': 2011, 'month':    6, 'day':   24},
+        {'year': 2017, 'month':    8, 'day':    8},
+    ])
+    def testChild(self, year, month, day):
+        self.selectDate(year if month is not None else None, month if day is not None else None)
+        self.plot()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        if (day is not None):
+            self.plotChild(day)
+        elif (month is not None):
+            self.plotChild(month)
+        else:
+            self.plotChild(year)
+        self.assertClassed(cursor, 'checked', False)
+        self.assertCursor(False)
+
+    @TestData([
+        {'year': 2017, 'month': 8,    'day': 5},
+    ])
+    def testChildEmpty(self, year, month, day):
+        self.selectDate(year, month)
+        self.plot()
+
+        cursor = self.browser.find_element_by_id('cursor')
+        cursor.click()
+        self.assertClassed(cursor, 'checked', True)
+        self.assertCursor(True)
+
+        self.plotChild(day)
+        self.assertClassed(cursor, 'checked', False)
+        self.assertClassed(cursor, 'disabled', True)
+        self.assertCursor(False)
+
+    @TestData([
         {'year': 2017, 'month': 8,    'day': 5},
     ])
     def testEmpty(self, year, month, day):
