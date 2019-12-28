@@ -218,6 +218,10 @@ function SolarProd() {
                                            .attr('src', 'img/csv.png')
                                            .attr('title', 'Export CSV')
                                            .attr('alt', 'Export CSV');
+    buttons.config = toolbar2.append('img').classed('button', true)
+                                           .attr('src', 'img/config.png')
+                                           .attr('title', 'Configuration')
+                                           .attr('alt', 'Config');
     buttons.info = toolbar2.append('img').classed('button', true)
                                          .attr('src', 'img/info.png')
                                          .attr('title', 'Informations')
@@ -242,6 +246,7 @@ function SolarProd() {
     buttons.next.attr('id', 'next');
     buttons.cursor.attr('id', 'cursor');
     buttons.export.attr('id', 'export');
+    buttons.config.attr('id', 'config');
     buttons.info.attr('id', 'info');
     buttons.help.attr('id', 'help');
 
@@ -752,6 +757,9 @@ function SolarProd() {
 
         if ((d3.event.key == 'c') && !buttons.cursor.classed('checked'))
             buttons.cursor.dispatch('click');
+
+        if ((d3.event.key == 'F3') && !d3.event.repeat)
+            buttons.config.dispatch('click');
 
         if ((d3.event.key == 'F2') && !d3.event.repeat)
             buttons.info.dispatch('click');
