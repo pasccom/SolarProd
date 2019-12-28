@@ -491,6 +491,9 @@ function SolarProd() {
         return ret;
     })();
 
+    var selectVar = null;
+    var selectSum = null;
+
     // Cache:
     var cache = new SolarCache();
 
@@ -761,6 +764,15 @@ function SolarProd() {
             }
         }
 
+        if (selectVar !== null) {
+            selects.var.property('value', selectVar);
+            if (data.variable() != selectVar) {
+                data.variable(selectVar);
+                chart.draw();
+            }
+        }
+        selectVar = null;
+
         updateAggs(data);
     };
 
@@ -787,6 +799,15 @@ function SolarProd() {
                 data.aggregation(selects.agg.property('value'));
             }
         }
+
+        if (selectSum !== null) {
+            selects.agg.property('value', selectSum);
+            if (data.aggregation() != selectSum) {
+                data.aggregation(selectSum);
+                chart.draw();
+            }
+        }
+        selectSum = null;
     };
 
     this.plot = function(currentLevel) {
@@ -1092,8 +1113,10 @@ function SolarProd() {
         }
 
         return defaultValue;
-    }
+    };
 
     // Plot default:
-    this.plot(parseInt(getCookie('defaultPlot', -1)));
+    selectVar = getCookie('defaultVar', null);
+    selectSum = getCookie('defaultSum', null);
+    this.plot(parseInt(getCookie('defaultDate', -1)));
 };

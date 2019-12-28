@@ -46,7 +46,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
     ])
     def testSelectors(self, level, year, month, day):
         self.__loadIndex({
-            'name': 'defaultPlot',
+            'name': 'defaultDate',
             'value': str(level),
         })
 
@@ -61,7 +61,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
     ])
     def testButtons(self, level, prevEnabled, nextEnabled, upEnabled):
         self.__loadIndex({
-            'name': 'defaultPlot',
+            'name': 'defaultDate',
             'value': str(level),
         })
 
@@ -78,7 +78,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
     ])
     def testEmptyPlot(self, level, year, month, day):
         self.__loadIndex({
-            'name': 'defaultPlot',
+            'name': 'defaultDate',
             'value': str(level),
         })
 
@@ -94,7 +94,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
     ])
     def testBarPlot(self, level, year, month, day):
         self.__loadIndex({
-            'name': 'defaultPlot',
+            'name': 'defaultDate',
             'value': str(level),
         })
 
@@ -119,7 +119,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
     ])
     def testLinePlot(self, level):
         self.__loadIndex({
-            'name': 'defaultPlot',
+            'name': 'defaultDate',
             'value': str(level),
         })
 
