@@ -37,6 +37,9 @@ cp "prod/js/histplot.js" "$1/js/"
 cp "prod/js/solarplot.js" "$1/js/"
 cp "prod/js/solarlegend.js" "$1/js/"
 cp "prod/js/solarchart.js" "$1/js/"
+cp "prod/js/popup.js" "$1/js/"
+cp "prod/js/tabview.js" "$1/js/"
+cp "prod/js/drawgraphs.js" "$1/js/"
 cp "prod/js/solarprod.js" "$1/js/"
 
 # Get FileSaver.js from GitHub:
