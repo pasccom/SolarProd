@@ -253,6 +253,19 @@ function SolarProd() {
     var chart = new SolarChart(d3.select('body'));
     this.chart = chart;
 
+    // Get the value of a cookie:
+    var getCookie = function(name, defaultValue)
+    {
+        var cookies = decodeURIComponent(document.cookie).split(';');
+        for(var c = 0; c < cookies.length; c++) {
+            if (!cookies[c].trim().startsWith(name + '='))
+                continue;
+            return cookies[c].trim().substring(name.length + 1);
+        }
+
+        return defaultValue;
+    };
+
     // Clears selects from level upwads:
     var clearSelect = function(level) {
         for (var l = level; l <= 3; l++) {
@@ -609,6 +622,67 @@ function SolarProd() {
         this.update(callPlot, level);
     };
 
+    this.configure = function() {
+        popup(function(selection) {
+            d3.html('config.html', (html) => { // TODO do not show popup when html does not load
+                tabView(selection, html);
+
+                var dataSources = selection.selectAll('select').filter(function() {
+                    return d3.select(this).attr('data-src') != null;
+                });
+                dataSources.each(function() {
+                    var dataSink = d3.select(this);
+                    var dataValues = JSON.parse(dataSink.attr('data-values').replace(/'/g, '"'));
+                    selection.select(dataSink.attr('data-src')).on('change', function() {
+                        var dataOptions = dataSink.selectAll('option').data(Object.getOwnPropertyNames(dataValues[d3.select(d3.event.target).property('value')]));
+                        dataOptions.exit().remove();
+                        dataOptions = dataOptions.enter().append('option').merge(dataOptions);
+                        dataOptions.attr('value', (d) => d)
+                                   .text((d) => dataValues[d3.select(d3.event.target).property('value')][d]);
+                        dataSink.attr('disabled', dataSink.selectAll('option').empty() ? true : null);
+                        dataSink.select(function() {
+                            return this.parentElement.previousElementSibling;
+                        }).classed('disabled', dataSink.attr('disabled') != null);
+                        dataSink.dispatch('change');
+                    });
+                });
+
+                selection.selectAll('select').each(function() {
+                    var select = d3.select(this);
+                    select.property('value', getCookie(select.attr('id'), ''));
+                    select.dispatch('change');
+                });
+
+                selection.selectAll('input[name="configScale"]').filter(function() {
+                    return d3.select(this).attr('value') == getCookie('configScale', '');
+                }).property('checked', true);
+            });
+        }, 'Configuration', 'img/config.png', [{
+            'title': 'Valider',
+            'callback': function(selection) {
+                selection.selectAll('select').each(function() {
+                    var select = d3.select(this);
+                    if (select.property('value') == '')
+                        document.cookie = select.attr('id') + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+                    else
+                        document.cookie = select.attr('id') + '=' + select.property('value') + '; expires=Fri, 31 Dec 9999 23:59:59';
+                });
+                selection.selectAll('input[name="configScale"]').filter(function() {
+                    return d3.select(this).property('checked');
+                }).each(function() {
+                    document.cookie = 'configScale=' + this.value + '; expires=Fri, 31 Dec 9999 23:59:59';
+                });
+
+                this.close();
+            },
+        }, {
+            'title': 'Annuler',
+            'callback': function(selection) {
+                this.close();
+            },
+        }]);
+    };
+
     // Window resize event:
     this.windowResize = function()
     {
@@ -699,6 +773,7 @@ function SolarProd() {
     buttons.next.on('click', () => {this.siblingPlot(1);});
     buttons.cursor.on('click', () => {toogleCursor.call(this);});
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
+    buttons.config.on('click', () => {this.configure();});
     buttons.info.on('click', function() {
         popup(function(selection) { // TODO do not show popup when xml does not load
             d3.xml('info.xml', (xml) => {
@@ -771,18 +846,6 @@ function SolarProd() {
     // Resize event:
     d3.select(window).on('resize', this.windowResize.bind(this));
     this.windowResize();
-
-    var getCookie = function(name, defaultValue)
-    {
-        var cookies = decodeURIComponent(document.cookie).split(';');
-        for(var c = 0; c < cookies.length; c++) {
-            if (!cookies[c].trim().startsWith(name + '='))
-                continue;
-            return cookies[c].trim().substring(name.length + 1);
-        }
-
-        return defaultValue;
-    };
 
     // Plot default:
     selectVar = getCookie('defaultVar', null);
