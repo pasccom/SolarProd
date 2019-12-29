@@ -1,16 +1,19 @@
 function popup() {
-    // Argument processing (contents[, title[, icon]])
+    // Argument processing (contents[, title[, icon, [buttons]]])
     if (arguments.length < 1)
         return;
 
     var contents = arguments[0];
     var title = null;
     var icon = null;
+    var buttons = [];
 
     if (arguments.length >= 2)
         title = arguments[1];
     if (arguments.length >= 3)
         icon = arguments[2];
+    if (arguments.length >= 4)
+        buttons = arguments[3].reverse();
 
     // The overlay:
     var overlay = d3.select('body').append('div').classed('overlay', true);
@@ -36,7 +39,23 @@ function popup() {
     }
 
     // Contents:
-    contents(popup.append('div').attr('id', 'content'));
+    var content = popup.append('div').attr('id', 'content')
+    contents(content);
+
+    // Buttons:
+    if (buttons.length != 0) {
+        var buttonBox = popup.append('div').classed('buttonBox', true);
+        content.style('bottom','37px');
+
+        buttons.map((d) => {
+            buttonBox.append('input').attr('type', 'button')
+                                     .attr('title', d.title)
+                                     .attr('value', d.title)
+                                     .on('click', () => d.callback.bind(this)(content));
+        });
+    } else {
+        content.style('bottom','0px');
+    }
 
     // Close function:
     this.close = function() {
