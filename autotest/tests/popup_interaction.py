@@ -42,8 +42,9 @@ class PopupInteractionTest(BrowserTestCase):
 
 
     @TestData([
-        {'popup': 'info', 'title': 'À propos', 'icon': 'img/info.png'},
-        {'popup': 'help', 'title': 'Aide'    , 'icon': 'img/help.png'},
+        {'popup': 'config', 'title': 'Configuration', 'icon': 'img/config.png'},
+        {'popup':   'info', 'title':      'À propos', 'icon':   'img/info.png'},
+        {'popup':   'help', 'title':          'Aide', 'icon':   'img/help.png'},
     ])
     def testCloseButton(self, popup, title, icon):
         self.browser.find_element_by_id(popup).click()
@@ -53,8 +54,9 @@ class PopupInteractionTest(BrowserTestCase):
         self.assertPopup(0)
 
     @TestData([
-        {'popup': 'info', 'title': 'À propos', 'icon': 'img/info.png'},
-        {'popup': 'help', 'title': 'Aide'    , 'icon': 'img/help.png'},
+        {'popup': 'config', 'title': 'Configuration', 'icon': 'img/config.png'},
+        {'popup':   'info', 'title':      'À propos', 'icon':   'img/info.png'},
+        {'popup':   'help', 'title':          'Aide', 'icon':   'img/help.png'},
     ])
     def testEscapeKey(self, popup, title, icon):
         self.browser.find_element_by_id(popup).click()
@@ -64,22 +66,30 @@ class PopupInteractionTest(BrowserTestCase):
         self.assertPopup(0)
 
     @TestData([
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'info'},
-        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'info'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'info'},
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'info'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'info'},
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'info'},
-        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'info'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'info'},
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'help'},
-        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'help'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'help'},
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'help'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'help'},
-        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'help'},
-        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'help'},
-        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'help'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'config'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'config'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' : 'config'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'config'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0,   'ph': 0,   'wh': 0.5, 'popup' : 'config'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'config'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'config'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' : 'config'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'info'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'info'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'info'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0,   'ph': 0,   'wh': 0.5, 'popup' :   'info'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0,   'ph': 0,   'wh': 0.5, 'popup' :   'info'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'info'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'info'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'info'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'help'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'help'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0,   'wh': 0,   'popup' :   'help'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0,   'ph': 0,   'wh': 0.5, 'popup' :   'help'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0,   'ph': 0,   'wh': 0.5, 'popup' :   'help'},
+        {'px': 0.5, 'pw': 0,   'ww': 0,   'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'help'},
+        {'px': 0,   'pw': 0,   'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'help'},
+        {'px': 0.5, 'pw': 0.5, 'ww': 0.5, 'py': 0.5, 'ph': 0.5, 'wh': 0.5, 'popup' :   'help'},
     ])
     def testClickOutside(self, popup, px, py, pw, ph, ww, wh):
         self.browser.find_element_by_id(popup).click()
@@ -100,10 +110,12 @@ class PopupInteractionTest(BrowserTestCase):
         self.assertPopup(0)
 
     @TestData([
-        {'yOffset': 15, 'popup': 'info'},
-        {'yOffset': 45, 'popup': 'info'},
-        {'yOffset': 15, 'popup': 'help'},
-        {'yOffset': 45, 'popup': 'help'},
+        {'yOffset': 15, 'popup': 'config'},
+        {'yOffset': 45, 'popup': 'config'},
+        {'yOffset': 15, 'popup':   'info'},
+        {'yOffset': 45, 'popup':   'info'},
+        {'yOffset': 15, 'popup':   'help'},
+        {'yOffset': 45, 'popup':   'help'},
     ])
     def testClickInside(self, popup, yOffset):
         self.browser.find_element_by_id(popup).click()

@@ -43,12 +43,14 @@ class PopupLayoutTest(TestCase):
 
 
     @TestData([
-        {'size': (1024, 680), 'button': 'info'},
-        {'size': (724,  660), 'button': 'info'},
-        {'size': (1024, 680), 'button': 'help'},
-        {'size': (724,  660), 'button': 'help'},
+        {'size': (1024, 680), 'button': 'config', 'buttonBox':  True},
+        {'size': (724,  660), 'button': 'config', 'buttonBox':  True},
+        {'size': (1024, 680), 'button':   'info', 'buttonBox': False},
+        {'size': (724,  660), 'button':   'info', 'buttonBox': False},
+        {'size': (1024, 680), 'button':   'help', 'buttonBox': False},
+        {'size': (724,  660), 'button':   'help', 'buttonBox': False},
     ])
-    def testLargeSizes(self, size, button):
+    def testLargeSizes(self, size, button, buttonBox):
         self.setUpBrowser(size)
         self.browser.find_element_by_id(button).click()
 
@@ -68,18 +70,29 @@ class PopupLayoutTest(TestCase):
         self.assertEqual(content.rect['x'], 0.25*size[0])
         self.assertEqual(content.rect['y'], 0.15*size[1] + 32)
         self.assertEqual(content.rect['width'], 0.5*size[0])
-        self.assertEqual(content.rect['height'], round(0.7*size[1]) - 32)
+        if not buttonBox:
+            self.assertEqual(content.rect['height'], round(0.7*size[1]) - 32)
+        else:
+            self.assertEqual(content.rect['height'], round(0.7*size[1]) - 32 - 37)
+
+            buttonBox = popup.find_element_by_class_name('buttonBox')
+            self.assertEqual(buttonBox.rect['x'], 0.25*size[0])
+            self.assertEqual(buttonBox.rect['y'], 0.85*size[1] - 33)
+            self.assertEqual(buttonBox.rect['width'], 0.5*size[0])
+            self.assertEqual(buttonBox.rect['height'], 33)
 
         self.browser.close()
         self.browser = None
 
     @TestData([
-        {'size': (723, 659), 'button': 'info'},
-        {'size': (362, 462), 'button': 'info'},
-        {'size': (723, 659), 'button': 'help'},
-        {'size': (362, 462), 'button': 'help'},
+        {'size': (723, 659), 'button': 'config', 'buttonBox':  True},
+        {'size': (362, 462), 'button': 'config', 'buttonBox':  True},
+        {'size': (723, 659), 'button':   'info', 'buttonBox': False},
+        {'size': (362, 462), 'button':   'info', 'buttonBox': False},
+        {'size': (723, 659), 'button':   'help', 'buttonBox': False},
+        {'size': (362, 462), 'button':   'help', 'buttonBox': False},
     ])
-    def testSmallSizes(self, size, button):
+    def testSmallSizes(self, size, button, buttonBox):
         self.setUpBrowser(size)
         self.browser.find_element_by_id(button).click()
 
@@ -99,16 +112,26 @@ class PopupLayoutTest(TestCase):
         self.assertEqual(content.rect['x'], (size[0] - 362) / 2)
         self.assertEqual(content.rect['y'], (size[1] - 462) / 2 + 32)
         self.assertEqual(content.rect['width'], 362)
-        self.assertEqual(content.rect['height'], 462 - 32)
+        if not buttonBox:
+            self.assertEqual(content.rect['height'], 462 - 32)
+        else:
+            self.assertEqual(content.rect['height'], 462 - 32 - 37)
+
+            buttonBox = popup.find_element_by_class_name('buttonBox')
+            self.assertEqual(buttonBox.rect['x'], (size[0] - 362) / 2)
+            self.assertEqual(buttonBox.rect['y'], (size[1] + 462) / 2 - 33)
+            self.assertEqual(buttonBox.rect['width'], 362)
+            self.assertEqual(buttonBox.rect['height'], 33)
 
         self.browser.close()
         self.browser = None
 
     @TestData([
-        {'size': (361, 461), 'button': 'info'},
-        {'size': (361, 461), 'button': 'help'},
+        {'size': (361, 461), 'button': 'config', 'buttonBox':  True},
+        {'size': (361, 461), 'button':   'info', 'buttonBox': False},
+        {'size': (361, 461), 'button':   'help', 'buttonBox': False},
     ])
-    def testVerySmallSize(self, size, button):
+    def testVerySmallSize(self, size, button, buttonBox):
         self.setUpBrowser(size)
         self.browser.find_element_by_id(button).click()
 
@@ -128,7 +151,16 @@ class PopupLayoutTest(TestCase):
         self.assertEqual(content.rect['x'], 0)
         self.assertEqual(content.rect['y'], 32)
         self.assertEqual(content.rect['width'], size[0])
-        self.assertEqual(content.rect['height'], size[1] - 32)
+        if not buttonBox:
+            self.assertEqual(content.rect['height'], size[1] - 32)
+        else:
+            self.assertEqual(content.rect['height'], size[1] - 32 - 37)
+
+            buttonBox = popup.find_element_by_class_name('buttonBox')
+            self.assertEqual(buttonBox.rect['x'], 0)
+            self.assertEqual(buttonBox.rect['y'], size[1] - 33)
+            self.assertEqual(buttonBox.rect['width'], size[0])
+            self.assertEqual(buttonBox.rect['height'], 33)
 
         self.browser.close()
         self.browser = None
