@@ -58,7 +58,6 @@ body {
     overflow: auto;
     position: absolute;
     top: 32px;
-    bottom: 0px;
     left: 0px;
     right: 0px;
     padding: 4px;
@@ -68,6 +67,18 @@ body {
     float: right;
     margin-right: 4px;
     margin-top: 4px;
+}
+
+div.buttonBox {
+    bottom: 0px;
+    width: 100%;
+    position: absolute;
+}
+
+.buttonBox input {
+    float:right;
+    margin-right: 4px;
+    margin-bottom: 4px;
 }
 
 /* Toolbars style */
@@ -437,10 +448,18 @@ rect {
     background-color: #FFAAFF;
 }*/
 
-/* About style */
-.about ul {
+/* About and config style */
+.about ul, .config ul {
     padding-left: 20px;
     margin: 0;
+}
+
+.config ul {
+    list-style: none
+}
+
+.config li {
+    margin-left: -20px;
 }
 
 .about li {
@@ -448,17 +467,21 @@ rect {
     display: inline-block;
 }
 
-.about dl {
+.about dl, .config dl {
     margin: 0;
     padding-left: 20px;
     overflow-x: hidden;
+}
+
+.config dl {
+    margin-top: 3px;
 }
 
 .about dl dl {
     clear: both;
 }
 
-.about dt {
+.about dt, .config dt {
     margin-left: -20px;
     display: block;
     clear: both;
@@ -468,7 +491,16 @@ rect {
     white-space: nowrap;
 }
 
-.about dt::after {
+.config dt {
+    margin-top: 12px;
+}
+
+dt.disabled, dt.disabled:hover {
+    background-color: inherit;
+    color: #888888;
+}
+
+.about dt::after, .config dt:after {
     display: block;
     float: right;
     width: 0;
@@ -487,7 +519,7 @@ rect {
              ". . . . . . . . . . . . . . . . . . . . ";
 }
 
-.about dd {
+.about dd, .config dd {
     background-color: white;
     background-color: -moz-default-background-color;
     margin-left: 0;
@@ -500,4 +532,13 @@ rect {
 .about img {
     width: 100%;
     margin-top: 4px;
+}
+
+.config p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.config select {
+    width: 150px;
 }

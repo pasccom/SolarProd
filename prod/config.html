@@ -1,0 +1,180 @@
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Ducomquet: Production solaire</title>
+    <style type="text/css">
+div {
+    border: 1px solid black;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    padding: 4px;
+}
+
+.config p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.config ul {
+    padding-left: 20px;
+    margin: 0;
+    list-style: none
+}
+
+.config li {
+    margin-left: -20px;
+}
+
+.config select {
+    width: 100px;
+}
+
+.config dl {
+    margin: 0;
+    padding-left: 20px;
+    overflow-x: hidden;
+}
+
+.config dt {
+    margin-left: -20px;
+    display: block;
+    clear: both;
+    float: left;
+    width: -moz-fit-content;
+    width: fit-content;
+    white-space: nowrap;
+}
+
+.config dt {
+    margin-top: 15px;
+}
+
+.config dt::after {
+    display: block;
+    float: right;
+    width: 0;
+    white-space: nowrap;
+    content: " . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . "
+             ". . . . . . . . . . . . . . . . . . . . ";
+}
+
+.config dd {
+    background-color: white;
+    background-color: -moz-default-background-color;
+    margin-left: 0;
+    float: right;
+    clear: right;
+    display: block;
+}
+    </style>
+</head>
+<body id="content">
+    <div class="config" id="home" title="Accueil">
+        <dl>
+            <dt>Charger</dt><dd><select id="defaultDate">
+                <option value="-1"></option>
+                <option value="0">Toutes les années</option>
+                <option value="1">L'année courante</option>
+                <option value="2">Le mois courant</option>
+                <option value="3">Le jour courant</option>
+            </select></dd>
+            <dt class="disabled">Grandeur</dt><dd><select disabled id="defaultVar" data-src="#defaultDate" data-values="{'-1': {}, '0': {'': '', 'nrj': 'Énergie'}, '1': {'': '', 'nrj': 'Énergie'}, '2':{'': '', 'nrj': 'Énergie', 'pwr': 'Puissance'}, '3': {'': '', 'nrj': 'Énergie', 'pac': 'Puissance AC', 'pdc': 'Puissance DC', 'udc': 'Tension DC', 'temp': 'Température'}}"></select></dd>
+            <dt class="disabled">Niveau</dt><dd><select disabled id="defaultSum" data-src="#defaultVar" data-values="{'': {}, 'nrj': {'': '', 'sum' : 'Total', 'inv': 'Par onduleur'}, 'pwr': {'': '', 'sum' : 'Total', 'inv': 'Par onduleur'}, 'pac': {'': '', 'sum' : 'Total', 'inv': 'Par onduleur'}, 'pdc': {'': '', 'sum' : 'Total', 'inv': 'Par onduleur', 'str': 'Par string'}, 'udc': {'': '', 'str': 'Par string'}, 'temp': {'': '', 'inv': 'Par onduleur'}}"></select></dd>
+        </dl>
+    </div>
+    <div class="config" id="scale" title="Échelle">
+        <p>Ajustement de l'échelle:</p>
+        <ul>
+            <li><input type="radio" name="configScale" id="configScaleVariable" value="auto" />Automatique</li>
+            <li><input type="radio" name="configScale" id="configScaleFixed" value="fixed" />Fixe</li>
+        </ul>
+    </div>
+    <!--<div class="config" id="inverters" title="Onduleurs">
+        <dl>
+            <dt>Modèle</dt><dd>Test inverter type</dd>
+        </dl>
+        <ul>
+            <li>Onduleur 1</li>
+            <dl>
+                <dt>Modèle</dt><dd>XXX12.5</dd>
+                <dt>Numéro de série</dt><dd>012345A678</dd>
+                <dl>
+                    <dt>Branche A</dt><dd>3.540kW</dd>
+                    <dt>Branche B</dt><dd>3.540kW</dd>
+                    <dt>Branche C</dt><dd>3.540kW</dd>
+                </dl>
+                <dt>Puissance nominale</dt><dd>10.620kW</dd>
+            </dl>
+            <li>Onduleur 2</li>
+            <dl>
+                <dt>Modèle</dt><dd>XXX12.5</dd>
+                <dt>Numéro de série</dt><dd>012345B678</dd>
+                <dl>
+                    <dt>Branche D</dt><dd>3.540kW</dd>
+                    <dt>Branche E</dt><dd>3.540kW</dd>
+                    <dt>Branche F</dt><dd>3.540kW</dd>
+                </dl>
+                <dt>Puissance nominale</dt><dd>10.620kW</dd>
+            </dl>
+            <li>Onduleur 3</li>
+            <dl>
+                <dt>Modèle</dt><dd>XXX10</dd>
+                <dt>Numéro de série</dt><dd>012345A678</dd>
+                <dl>
+                    <dt>Branche G</dt><dd>4.250kW</dd>
+                    <dt>Branche H</dt><dd>4.250kW</dd>
+                </dl>
+                <dt>Puissance nominale</dt><dd>8.500kW</dd>
+            </dl>
+        </ul>
+    </div>
+    <div class="config" id="solarlog" title="SolarLog">
+        <dl>
+            <dt>Numéro de série</dt><dd>1234567</dd>
+            <dt>Version du firmware</dt><dd>1.2.3 Build 45</dd>
+            <dt>Date du firmware</dt><dd>01/12/2012</dd>
+            <dt>Configuration</dt><dd>12/12/2012 18:58:17</dd>
+        </dl>
+    </div>
+    <div class="config" id="software" title="Logiciel">
+        <ul>
+            <li>Distribution</li>
+            <dl>
+                <dt>Nom</dt><dd><a href="http://www.raspbian.org" title="Site Web de Raspbian">Raspbian</a></dd>
+                <dt>Version</dt><dd>8 (jessie)</dd>
+            </dl>
+            <li>Linux</li>
+            <dl>
+                <dt>Nom</dt><dd>ducomquet-raspi</dd>
+                <dt>Version</dt><dd>4.9.35-v7+</dd>
+                <dt>Architecture</dt><dd>armv7l</dd>
+            </dl>
+            <li>Serveur Web</li>
+            <dl>
+                <dt>Nom</dt><dd>lighttpd</dd>
+                <dt>Version</dt><dd>1.4.35</dd>
+            </dl>
+            <li>Serveur FTP</li>
+            <dl>
+                <dt>Nom</dt><dd>vsftpd</dd>
+                <dt>Version</dt><dd>3.0.2</dd>
+            </dl>
+            <li>Serveur SSH</li>
+            <dl>
+                <dt>Nom</dt><dd>OpenSSH</dd>
+                <dt>Version</dt><dd>6.7p1</dd>
+            </dl>
+        </ul>
+    </div>-->
+</body>
+</html>
