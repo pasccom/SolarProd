@@ -17,33 +17,10 @@
 
 from .PythonUtils.testdata import TestData
 
-from .server_testcase import ServerTestCase
+from .cookies_testcase import CookiesTestCase
 from .chart_testcase import ChartTestCase
 
-import time
-
-class DefaultPlotTest(ServerTestCase, ChartTestCase):
-
-    def setUp(self):
-        super().setUp(False)
-
-    def __loadIndex(self, cookies=None):
-        self.browser.get(self.index)
-        if cookies is None:
-            return
-        for cookie in cookies:
-            if cookie['value'] != 'None':
-                self.browser.add_cookie(cookie)
-            else:
-                self.browser.delete_cookie(cookie['name'])
-
-        self.browser.get(self.index)
-        time.sleep(1)
-        for cookie in cookies:
-            if cookie['value'] != 'None':
-                self.assertEqual(self.browser.get_cookie(cookie['name'])['value'], str(cookie['value']))
-            else:
-                self.assertIsNone(self.browser.get_cookie(cookie['name']))
+class DefaultPlotTest(CookiesTestCase, ChartTestCase):
 
     @TestData([
         {'level': None, 'year': None, 'month': None, 'day': None, 'var':   None, 'agg':  None},
@@ -71,7 +48,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
         {'level':    3, 'year': 2017, 'month':    8, 'day':    8, 'var': 'temp', 'agg': 'inv'},
     ])
     def testSelectors(self, level, year, month, day, var, agg):
-        self.__loadIndex([{
+        self.setUpCookies([{
             'name': 'defaultDate',
             'value': str(level),
         }, {
@@ -97,7 +74,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
         {'level':    3, 'prevEnabled':  True, 'nextEnabled': False, 'upEnabled':  True},
     ])
     def testButtons(self, level, prevEnabled, nextEnabled, upEnabled):
-        self.__loadIndex([{
+        self.setUpCookies([{
             'name': 'defaultDate',
             'value': str(level),
         }])
@@ -115,7 +92,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
         {'level':   -1, 'year': None, 'month': None, 'day': None},
     ])
     def testEmptyPlot(self, level, year, month, day):
-        self.__loadIndex([{
+        self.setUpCookies([{
             'name': 'defaultDate',
             'value': str(level),
         }])
@@ -139,7 +116,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
         {'level':  2, 'year': 2018, 'month':    2, 'day': None, 'var': 'pwr', 'agg': 'inv'},
     ])
     def testBarPlot(self, level, year, month, day, var, agg):
-        self.__loadIndex([{
+        self.setUpCookies([{
             'name': 'defaultDate',
             'value': str(level),
         }, {
@@ -185,7 +162,7 @@ class DefaultPlotTest(ServerTestCase, ChartTestCase):
         {'level':  3, 'var': 'temp', 'agg': 'inv'},
     ])
     def testLinePlot(self, level, var, agg):
-        self.__loadIndex([{
+        self.setUpCookies([{
             'name': 'defaultDate',
             'value': str(level),
         }, {
