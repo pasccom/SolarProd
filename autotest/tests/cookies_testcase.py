@@ -18,6 +18,7 @@
 from .server_testcase import ServerTestCase
 
 import time
+from datetime import datetime
 
 class CookiesTestCase(ServerTestCase):
 
@@ -29,6 +30,7 @@ class CookiesTestCase(ServerTestCase):
         if cookies is None:
             return
         for cookie in cookies:
+            cookie['path'] = '/autotest/prod/'
             if cookie['value'] != 'None':
                 self.browser.add_cookie(cookie)
             else:
@@ -41,3 +43,18 @@ class CookiesTestCase(ServerTestCase):
                 self.assertEqual(self.browser.get_cookie(cookie['name'])['value'], str(cookie['value']))
             else:
                 self.assertIsNone(self.browser.get_cookie(cookie['name']))
+
+    def assertCookies(self, cookies):
+        for n, v in cookies.items():
+            self.assertCookie(n, v)
+
+    def assertCookie(self, name, value):
+        cookie = self.browser.get_cookie(name)
+        if value is None:
+            self.assertIsNone(cookie)
+        else:
+            self.assertEqual(cookie['value'], str(value))
+            try:
+                self.assertEqual(datetime.utcfromtimestamp(cookie['expiry']).isoformat(), '9999-12-31T23:59:59')
+            except (KeyError):
+                pass
