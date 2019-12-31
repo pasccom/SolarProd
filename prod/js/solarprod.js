@@ -625,7 +625,8 @@ function SolarProd() {
     this.configure = function() {
         popup(function(selection) {
             d3.html('config.html', (html) => { // TODO do not show popup when html does not load
-                tabView(selection, html);
+                //tabView(selection, html);
+                selection.classed('config', true).html(html.getElementById('home').innerHTML.trim());
 
                 var dataSources = selection.selectAll('select').filter(function() {
                     return d3.select(this).attr('data-src') != null;
@@ -653,9 +654,9 @@ function SolarProd() {
                     select.dispatch('change');
                 });
 
-                selection.selectAll('input[name="configScale"]').filter(function() {
+                /*selection.selectAll('input[name="configScale"]').filter(function() {
                     return d3.select(this).attr('value') == getCookie('configScale', '');
-                }).property('checked', true);
+                }).property('checked', true);*/
             });
         }, 'Configuration', 'img/config.png', [{
             'title': 'Valider',
@@ -780,7 +781,7 @@ function SolarProd() {
                 d3.xml('info_fr.xsl', (xsl) => {
                     var xslProc = new XSLTProcessor();
                     xslProc.importStylesheet(xsl);
-                    var html = xslProc.transformToDocument(xml)
+                    var html = xslProc.transformToDocument(xml);
                     tabView(selection, html);
                 });
             });

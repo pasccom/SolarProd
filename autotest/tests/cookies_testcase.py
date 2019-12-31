@@ -28,6 +28,7 @@ class CookiesTestCase(ServerTestCase):
     def setUpCookies(self, cookies=None):
         self.browser.get(self.index)
         if cookies is None:
+            self.browser.delete_all_cookies()
             return
         for cookie in cookies:
             cookie['path'] = '/autotest/prod/'

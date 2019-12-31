@@ -36,14 +36,15 @@ class ConfigHomeTest(CookiesTestCase):
         self.assertIsNotNone(self.okButton)
         self.assertIsNotNone(self.cancelButton)
 
-        tabView = self.browser.find_element_by_class_name('popup').find_element_by_id('content')
-        tabPages = zip(tabView.find_element_by_tag_name('ul').find_elements_by_tag_name('li'),
-                       tabView.find_element_by_tag_name('div').find_elements_by_tag_name('div'))
-        tabPages = [tp for tp in tabPages if tp[1].get_attribute('id') == 'home']
-        self.assertEqual(len(tabPages), 1)
-        self.tab, self.page = tabPages[0]
+        self.page = self.browser.find_element_by_class_name('popup').find_element_by_id('content')
+        #tabView = self.browser.find_element_by_class_name('popup').find_element_by_id('content')
+        #tabPages = zip(tabView.find_element_by_tag_name('ul').find_elements_by_tag_name('li'),
+        #               tabView.find_element_by_tag_name('div').find_elements_by_tag_name('div'))
+        #tabPages = [tp for tp in tabPages if tp[1].get_attribute('id') == 'home']
+        #self.assertEqual(len(tabPages), 1)
+        #self.tab, self.page = tabPages[0]
 
-        self.tab.click()
+        #self.tab.click()
         self.assertEqual(self.page.value_of_css_property('display'), 'block')
 
     def __makeChoices(self):
