@@ -499,7 +499,6 @@ function SolarProd() {
             var titles = ["", "Afficher toutes les années", "Afficher toute l'année", "Afficher tout le mois"]; // TODO locale
 
             clearSelect(Math.max(currentLevel, 1));
-            this.chart.setData(new EmptyData());
 
             for (var l = 1; l <= currentLevel; l++)
                 selectDate.update(l, -1);
