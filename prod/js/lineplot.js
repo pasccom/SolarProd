@@ -160,9 +160,11 @@ function LinePlot(root) {
                 svg.on('click', null);
 
                 selectedLine.classed('selected', false);
-                xCursor.remove();
-                yCursor.remove();
+                if (xCursor !== null)
+                    xCursor.remove();
                 xCursor = null;
+                if (yCursor !== null)
+                    yCursor.remove();
                 yCursor = null;
             });
         });
@@ -172,9 +174,11 @@ function LinePlot(root) {
             svg.on('click', null);
 
             root.selectAll('.selected').classed('selected', false);
-            xCursor.remove();
-            yCursor.remove();
+            if (xCursor !== null)
+                xCursor.remove();
             xCursor = null;
+            if (yCursor !== null)
+                yCursor.remove();
             yCursor = null;
         }
 
