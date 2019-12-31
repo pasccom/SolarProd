@@ -628,6 +628,8 @@ function SolarProd() {
                 console.warn('Could not load "config.html"', error);
                 this.close();
             }).on('load', (html) => {
+                this.show();
+
                 //tabView(selection, html);
                 selection.classed('config', true).html(html.getElementById('home').innerHTML.trim());
 
@@ -660,8 +662,6 @@ function SolarProd() {
                 /*selection.selectAll('input[name="configScale"]').filter(function() {
                     return d3.select(this).attr('value') == getCookie('configScale', '');
                 }).property('checked', true);*/
-
-                this.show();
             }).get();
         }, 'Configuration', 'img/config.png', [{
             'title': 'Valider',
@@ -790,11 +790,12 @@ function SolarProd() {
                     console.warn('Could not load "info_fr.xsl"', error);
                     this.close();
                 }).on('load', (xsl) => {
+                    this.show();
+
                     var xslProc = new XSLTProcessor();
                     xslProc.importStylesheet(xsl);
                     var html = xslProc.transformToDocument(xml);
                     tabView(selection, html);
-                    this.show();
                 }).get();
             }).get();
         }, 'À propos', 'img/info.png');
