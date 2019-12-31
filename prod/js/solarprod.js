@@ -624,7 +624,10 @@ function SolarProd() {
 
     this.configure = function() {
         popup(function(selection) {
-            d3.html('config.html', (html) => { // TODO do not show popup when html does not load
+            d3.html('config.html').on('error', (error) => {
+                console.warn('Could not load "config.html"', error);
+                this.close();
+            }).on('load', (html) => {
                 //tabView(selection, html);
                 selection.classed('config', true).html(html.getElementById('home').innerHTML.trim());
 
@@ -657,7 +660,9 @@ function SolarProd() {
                 /*selection.selectAll('input[name="configScale"]').filter(function() {
                     return d3.select(this).attr('value') == getCookie('configScale', '');
                 }).property('checked', true);*/
-            });
+
+                this.show();
+            }).get();
         }, 'Configuration', 'img/config.png', [{
             'title': 'Valider',
             'callback': function(selection) {
@@ -776,22 +781,33 @@ function SolarProd() {
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
     buttons.config.on('click', () => {this.configure();});
     buttons.info.on('click', function() {
-        popup(function(selection) { // TODO do not show popup when xml does not load
-            d3.xml('info.xml', (xml) => {
-                d3.xml('info_fr.xsl', (xsl) => {
+        popup(function(selection) {
+            d3.xml('info.xml').on('error', (error) => {
+                console.warn('Could not load "info.xml"', error);
+                this.close();
+            }).on('load', (xml) => {
+                d3.xml('info_fr.xsl').on('error', (error) => {
+                    console.warn('Could not load "info_fr.xsl"', error);
+                    this.close();
+                }).on('load', (xsl) => {
                     var xslProc = new XSLTProcessor();
                     xslProc.importStylesheet(xsl);
                     var html = xslProc.transformToDocument(xml);
                     tabView(selection, html);
-                });
-            });
+                    this.show();
+                }).get();
+            }).get();
         }, 'À propos', 'img/info.png');
     });
     buttons.help.on('click', function() {
-        popup(function(selection) { // TODO do not show popup when html does not load
-            d3.html('help.html', (html) => {
+        popup(function(selection) {
+            d3.html('help.html').on('error', (error) => {
+                console.warn('Could not load "help.html"', error);
+                this.close();
+            }).on('load', (html) => {
                 selection.classed('help', true).html(html.getElementById('content').innerHTML.trim());
-            });
+                this.show();
+            }).get();
         }, 'Aide', 'img/help.png');
     });
 

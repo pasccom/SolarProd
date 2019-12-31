@@ -20,7 +20,8 @@ function popup() {
 
     // The popup:
     var popup = d3.select('body').append('div').classed('popup', true)
-                                 .on('click', () => {d3.event.stopPropagation();});
+                                               .style('display', 'none')
+                                               .on('click', () => {d3.event.stopPropagation();});
 
     // The close button:
     var closeButton = popup.append('img').attr('src', 'img/close.png')
@@ -40,7 +41,7 @@ function popup() {
 
     // Contents:
     var content = popup.append('div').attr('id', 'content')
-    contents(content);
+    contents.bind(this)(content);
 
     // Buttons:
     if (buttons.length != 0) {
@@ -55,6 +56,11 @@ function popup() {
         });
     } else {
         content.style('bottom','0px');
+    }
+
+    // Show function:
+    this.show = function() {
+        popup.style('display', null);
     }
 
     // Close function:
