@@ -42,7 +42,7 @@ class ServerTestCase(BrowserTestCase):
             cls.server.stop()
             cls.server.server_close()
 
-    def setUp(self, loadIndex):
+    def setUp(self, loadIndex=True):
         super().setUp(False)
         self.server = self.__class__.server
         self.index = 'http://' + self.server.server_name + ':' + str(self.server.server_port) + '/autotest/prod'

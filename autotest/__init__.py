@@ -39,6 +39,7 @@ from .tests.cursor_line import CursorLineTest
 from .tests.default_plot import DefaultPlotTest
 from .tests.popup_layout import PopupLayoutTest
 from .tests.popup_interaction import PopupInteractionTest
+from .tests.popup_error import PopupErrorTest
 from .tests.tab_layout import TabLayoutTest
 from .tests.tab_interaction import TabInteractionTest
 from .tests.tab_scroll import TabScrollTest

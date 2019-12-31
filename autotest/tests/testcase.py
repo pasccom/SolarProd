@@ -71,8 +71,9 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.index = 'file://' + self.__class__.baseDir + '/prod/index.html'
-        self.helpFile = self.__class__.baseDir + '/prod/help.html'
+        self.baseDir = os.path.join(self.__class__.baseDir, 'prod')
+        self.index = 'file://' + self.baseDir + '/index.html'
+        self.helpFile = os.path.join(self.baseDir, 'help.html')
         self.profilesDir = self.__class__.profilesDir
         self.cacheDir = os.path.join(self.__class__.baseDir, 'prod', 'list', 'cache.json')
 
