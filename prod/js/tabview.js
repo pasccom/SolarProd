@@ -1,4 +1,4 @@
-function tabView(parent, contents) {
+function TabView(parent, contents) {
     // Parent customization:
     parent.classed('tab-view', true)
           .style('overflow-x', 'hidden');

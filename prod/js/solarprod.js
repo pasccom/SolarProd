@@ -629,7 +629,7 @@ function SolarProd() {
             }).on('load', (html) => {
                 this.show();
 
-                //tabView(selection, html);
+                //new TabView(selection, html);
                 selection.classed('config', true).html(html.getElementById('home').innerHTML.trim());
 
                 var dataSources = selection.selectAll('select').filter(function() {
@@ -794,7 +794,7 @@ function SolarProd() {
                     var xslProc = new XSLTProcessor();
                     xslProc.importStylesheet(xsl);
                     var html = xslProc.transformToDocument(xml);
-                    tabView(selection, html);
+                    new TabView(selection, html);
                 }).get();
             }).get();
         }, 'À propos', 'img/info.png');
