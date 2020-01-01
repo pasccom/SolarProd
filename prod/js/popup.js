@@ -1,4 +1,4 @@
-function popup() {
+function Popup() {
     // Argument processing (contents[, title[, icon, [buttons]]])
     if (arguments.length < 1)
         return;
@@ -41,7 +41,6 @@ function popup() {
 
     // Contents:
     var content = popup.append('div').attr('id', 'content')
-    contents.bind(this)(content);
 
     // Buttons:
     if (buttons.length != 0) {
@@ -71,12 +70,6 @@ function popup() {
         d3.select(window).on('keydown.popup', null);
         d3.select(window).on('resize.popup', null);
     };
-    overlay.on('click', this.close.bind(this));
-    closeButton.on('click', this.close.bind(this));
-    d3.select(window).on('keydown.popup', () => {
-        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKey)
-            this.close();
-    });
 
     // Resize event:
     this.windowResize = function() {
@@ -93,6 +86,14 @@ function popup() {
              .style('top', ((h - ph) / 2) + 'px');
     };
 
+    overlay.on('click', this.close.bind(this));
+    closeButton.on('click', this.close.bind(this));
+    d3.select(window).on('keydown.popup', () => {
+        if ((d3.event.key == 'Escape') && !d3.event.shiftKey && !d3.event.altKey && !d3.event.ctrlKey && !d3.event.metaKey)
+            this.close();
+    });
+
+    contents.bind(this)(content);
     d3.select(window).on('resize.popup', this.windowResize.bind(this));
     this.windowResize();
 }

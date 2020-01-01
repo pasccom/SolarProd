@@ -622,7 +622,7 @@ function SolarProd() {
     };
 
     this.configure = function() {
-        popup(function(selection) {
+        new Popup(function(selection) {
             d3.html('config.html').on('error', (error) => {
                 console.warn('Could not load "config.html"', error);
                 this.close();
@@ -780,7 +780,7 @@ function SolarProd() {
     buttons.export.on('click', () => {this.chart.plot.data.exportCsv();});
     buttons.config.on('click', () => {this.configure();});
     buttons.info.on('click', function() {
-        popup(function(selection) {
+        new Popup(function(selection) {
             d3.xml('info.xml').on('error', (error) => {
                 console.warn('Could not load "info.xml"', error);
                 this.close();
@@ -800,7 +800,7 @@ function SolarProd() {
         }, 'À propos', 'img/info.png');
     });
     buttons.help.on('click', function() {
-        popup(function(selection) {
+        new Popup(function(selection) {
             d3.html('help.html').on('error', (error) => {
                 console.warn('Could not load "help.html"', error);
                 this.close();
