@@ -25,7 +25,11 @@ fi
 sed -e 's|src="js/d3.js"|src="https://d3js.org/d3.v4.min.js"|' \
     -e 's|src="js/FileSaver.js"|src="js/FileSaver.min.js"|' "prod/index.html" > "$1/index.html"
 cp "prod/help.html" "$1/"
+cp "prod/config.html" "$1/"
 cp "prod/style.css" "$1/"
+cp "prod/info.xsl" "$1/"
+cp "prod/info_fr.xsl" "$1/"
+cp "prod/info_en.xsl" "$1/"
 cp -r "prod/img" "$1/"
 mkdir "$1/js"
 cp "prod/js/locale.js" "$1/js/"
@@ -46,7 +50,7 @@ cp "prod/js/solarprod.js" "$1/js/"
 if [ -f 'FileSaver-version.local' ]; then
     FILESAVER_VERSION=$(cat 'FileSaver-version.local')
 else
-    FILESAVER_VERSION=$(curl "https://github.com/eligrey/FileSaver.js/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/eligrey/FileSaver.js/releases/tag/\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
+    FILESAVER_VERSION=$(curl "https://github.com/eligrey/FileSaver.js/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/eligrey/FileSaver.js/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
 fi
 rm "FileSaver.js-$FILESAVER_VERSION.tar.gz" 2> /dev/null
 rm -R "FileSaver.js-$FILESAVER_VERSION" 2> /dev/null
@@ -59,3 +63,21 @@ fi
 cp "$FILESAVER_PATH" "$1/js/FileSaver.min.js"
 rm "FileSaver.js-$FILESAVER_VERSION.tar.gz"
 rm -R "FileSaver.js-$FILESAVER_VERSION"
+
+# Get D3.js from GitHub:
+if [ -f 'D3-version.local' ]; then
+    D3_VERSION=$(cat 'D3-version.local')
+else
+    D3_VERSION=$(curl "https://github.com/d3/d3/releases/latest" | sed -e 's|^<html><body>You are being <a href="https://github.com/d3/d3/releases/tag/v\([0-9]\+.[0-9]\+.[0-9]\+\)">redirected</a>.</body></html>$|\1|')
+fi
+rm "d3.js-$D3_VERSION.tar.gz" 2> /dev/null
+rm -R "d3.js-$D3_VERSION" 2> /dev/null
+wget -O "d3.js-$D3_VERSION.zip" "https://github.com/d3/d3/releases/download/v$D3_VERSION/d3.zip"
+unzip "d3.js-$D3_VERSION.zip" -d "d3.js-$D3_VERSION"
+D3_PATH=$(find "d3.js-$D3_VERSION/" -iname d3.min.js)
+if [ -z "D3_PATH" ]; then
+    D3PATH=$(find "d3.js-$D3_VERSION/" -iname d3.js)
+fi
+cp "$D3_PATH" "$1/js/d3.min.js"
+rm "d3.js-$D3_VERSION.zip"
+rm -R "d3.js-$D3_VERSION"
