@@ -816,12 +816,14 @@ function SolarProd() {
     });
 
     // Load event:
+    buttons.today.on('load', () => {this.windowResize();});
     buttons.plot.on('load', () => {this.windowResize();});
     buttons.prev.on('load', () => {this.windowResize();});
-    buttons.today.on('load', () => {this.windowResize();});
+    buttons.up.on('load', () => {this.windowResize();});
     buttons.next.on('load', () => {this.windowResize();});
     buttons.cursor.on('load', () => {this.windowResize();});
     buttons.export.on('load', () => {this.windowResize();});
+    buttons.config.on('load', () => {this.windowResize();});
     buttons.info.on('load', () => {this.windowResize();});
     buttons.help.on('load', () => {this.windowResize();});
 
