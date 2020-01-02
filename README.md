@@ -17,6 +17,12 @@ Here is the list of the current features (included in version 1.0.0)
 - Legend allows to select shown curves.
 - Easily go to previous/next day/month/year.
 - Export displayed data as CSV.
+- Cursors (to obtain the accurate value of a data point).
+- Parent plot.
+- Child plot by clicking on the desired bar.
+- Embedded help.
+- Plant information.
+- Configuration of the application.
 
 Ideas I have to extend the functionalities of the page are listed
 [below](#future-developments)
@@ -25,10 +31,9 @@ FUTURE DEVELOPMENTS
 -------------------
 
 Here is the list of ideas I would like to implement
-- Nominal data
-- Cursors (to obtain the accurate value of a data point)
-- Plant information
-- Plant events
+- Nominal data.
+- Plant events.
+- Fixed scale plots.
 
 If you have any other feature you will be interested in, please let me know.
 I will be pleased to develop it if I think it is a must have.
