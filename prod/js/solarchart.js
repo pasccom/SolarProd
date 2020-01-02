@@ -99,7 +99,7 @@ function SolarChart(root, data) {
 
     // Chart resize event:
     var resizeTimer; // Timer to ensure the chart is not updated continuously
-    this.resize = function(w, h) {
+    this.resize = function(w, h, wait) {
         // Legend width between 175px and 250px
         var lw = 175 + 75*(w - 6 - 700)/(1000 - 700);
         if (lw > 250)
@@ -122,10 +122,7 @@ function SolarChart(root, data) {
         chartRoot.attr('width', cw)
                  .attr('height', h);
 
-        // Update plot size only after some time:
-        if (resizeTimer !== undefined)
-            clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
+        var doResize = function() {
             resizeTimer = undefined;
 
             chartRoot.attr('viewBox', "0 0 " + cw + " " + h);
@@ -134,7 +131,16 @@ function SolarChart(root, data) {
             yLabel.attr('transform', "translate(20," + ((h + margins.top - margins.bottom) / 2) + ")");
 
             this.redraw();
-        }, 100);
+        };
+
+        if (wait == 0) {
+            doResize.call(this);
+        } else {
+            // Update plot size only after some time:
+            if (resizeTimer !== undefined)
+                clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(doResize.bind(this), wait);
+        }
     };
 
     // Draw the chart: Create the plot elements

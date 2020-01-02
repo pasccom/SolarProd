@@ -691,6 +691,10 @@ function SolarProd() {
     // Window resize event:
     this.windowResize = function()
     {
+        var wait = 100;
+        if (arguments.length >= 1)
+            wait = arguments[0];
+
         // Compute toolbar total width (defaults to 437):
         var tw = 12;
         d3.selectAll('.toolbar').each(function() {tw += (this.getBoundingClientRect().width + 4);});
@@ -701,7 +705,7 @@ function SolarProd() {
         if (window.innerWidth < tw)
             h -= 36;
 
-        this.chart.resize(w, h);
+        this.chart.resize(w, h, wait);
     };
 
     var toogleCursor = function() {
@@ -861,8 +865,8 @@ function SolarProd() {
     });
 
     // Resize event:
-    d3.select(window).on('resize', this.windowResize.bind(this));
-    this.windowResize();
+    d3.select(window).on('resize', () => {this.windowResize();});
+    this.windowResize(0);
 
     // Plot default:
     selectVar = getCookie('defaultVar', null);
