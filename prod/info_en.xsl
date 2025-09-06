@@ -17,54 +17,58 @@
      along with SolarProd. If not, see <http://www.gnu.org/licenses/>
 -->
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:exsl="http://exslt.org/common">
     <xsl:import href="info.xsl" />
 
-    <xsl:variable name="lang" select="document('')/*/xsl:variable[substring(@name, 1, 5)='lang.']" />
-    <xsl:variable name="lang.plant">Plant</xsl:variable>
-    <xsl:variable name="lang.characteristics">Characteristics</xsl:variable>
-    <xsl:variable name="lang.inverters">Inverters</xsl:variable>
-    <xsl:variable name="lang.solar_log">SolarLog</xsl:variable>
-    <xsl:variable name="lang.software">Software</xsl:variable>
+    <xsl:variable name="dict">
+        <tr name="plant">Plant</tr>
+        <tr name="characteristics">Characteristics</tr>
+        <tr name="inverters">Inverters</tr>
+        <tr name="solar_log">SolarLog</tr>
+        <tr name="software">Software</tr>
 
-    <xsl:variable name="lang.name">Name</xsl:variable>
-    <xsl:variable name="lang.orientation">Orientation</xsl:variable>
-    <xsl:variable name="lang.panels">Panels</xsl:variable>
-    <xsl:variable name="lang.city">City</xsl:variable>
-    <xsl:variable name="lang.lang">Country</xsl:variable>
-    <xsl:variable name="lang.owner">Owner</xsl:variable>
+        <tr name="name">Name</tr>
+        <tr name="orientation">Orientation</tr>
+        <tr name="panels">Panels</tr>
+        <tr name="city">City</tr>
+        <tr name="lang">Country</tr>
+        <tr name="owner">Owner</tr>
 
-    <xsl:variable name="lang.date_start">Start date</xsl:variable>
-    <xsl:variable name="lang.current">Current time</xsl:variable>
-    <xsl:variable name="lang.interval">Transmission interval</xsl:variable>
-    <xsl:variable name="lang.online">Online</xsl:variable>
-    <xsl:variable name="lang.temp">Temperature</xsl:variable>
-    <xsl:variable name="lang.maximum_power">Maximum power</xsl:variable>
-    <xsl:variable name="lang.reward">Estimated reward</xsl:variable>
-    <xsl:variable name="lang.production_hours">Production hours</xsl:variable>
-    <xsl:variable name="lang.months">January February March April May June July August September October November Décember</xsl:variable>
+        <tr name="date_start">Start date</tr>
+        <tr name="current">Current time</tr>
+        <tr name="interval">Transmission interval</tr>
+        <tr name="online">Online</tr>
+        <tr name="temp">Temperature</tr>
+        <tr name="maximum_power">Maximum power</tr>
+        <tr name="reward">Estimated reward</tr>
+        <tr name="production_hours">Production hours</tr>
+        <tr name="months">January February March April May June July August September October November Décember</tr>
 
-    <xsl:variable name="lang.model">Model</xsl:variable>
-    <xsl:variable name="lang.serial_number">Serial number</xsl:variable>
-    <xsl:variable name="lang.rated_power">Rated power</xsl:variable>
-    <xsl:variable name="lang.fw_version">Firmware version</xsl:variable>
-    <xsl:variable name="lang.fw_date">Firmware date</xsl:variable>
-    <xsl:variable name="lang.config">Configuration</xsl:variable>
+        <tr name="model">Model</tr>
+        <tr name="serial_number">Serial number</tr>
+        <tr name="rated_power">Rated power</tr>
+        <tr name="fw_version">Firmware version</tr>
+        <tr name="fw_date">Firmware date</tr>
+        <tr name="config">Configuration</tr>
 
-    <xsl:variable name="lang.prod">Web page</xsl:variable>
-    <xsl:variable name="lang.distribution">Distribution</xsl:variable>
-    <xsl:variable name="lang.uname">Linux</xsl:variable>
-    <xsl:variable name="lang.web">Web Server</xsl:variable>
-    <xsl:variable name="lang.ftp">FTP Server</xsl:variable>
-    <xsl:variable name="lang.ssh">SSH Server</xsl:variable>
+        <tr name="prod">Web page</tr>
+        <tr name="distribution">Distribution</tr>
+        <tr name="uname">Linux</tr>
+        <tr name="web">Web Server</tr>
+        <tr name="ftp">FTP Server</tr>
+        <tr name="ssh">SSH Server</tr>
 
-    <xsl:variable name="lang.version">Version</xsl:variable>
-    <xsl:variable name="lang.arch">Architecture</xsl:variable>
+        <tr name="version">Version</tr>
+        <tr name="arch">Architecture</tr>
 
-    <xsl:variable name="lang.True">Yes</xsl:variable>
-    <xsl:variable name="lang.False">No</xsl:variable>
+        <tr name="True">Yes</tr>
+        <tr name="False">No</tr>
 
-    <xsl:variable name="lang.send_mail">Send an email to</xsl:variable>
-    <xsl:variable name="lang.web_site">Website of</xsl:variable>
-    <xsl:variable name="lang.plant_picture">Photo of the plant</xsl:variable>
+        <tr name="send_mail">Send an email to</tr>
+        <tr name="web_site">Website of</tr>
+        <tr name="plant_picture">Photo of the plant</tr>
+    </xsl:variable>
+
+    <!-- Store all translations as a node list in "lang" variable -->
+    <xsl:variable name="lang" select="exsl:node-set($dict)/tr" />
 </xsl:stylesheet>

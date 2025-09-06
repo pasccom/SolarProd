@@ -26,12 +26,12 @@
         <xsl:param name="name" />
         <xsl:param name="suffix" />
         <xsl:choose>
-            <xsl:when test="$lang[@name = concat('lang.', $name)]">
+            <xsl:when test="$lang[@name = $name]">
                 <xsl:value-of select="$prefix" />
                 <xsl:if test="$prefix != ''">
                     <xsl:text> </xsl:text>
                 </xsl:if>
-                <xsl:value-of select="$lang[@name = concat('lang.', $name)]" />
+                <xsl:value-of select="$lang[@name = $name]" />
                 <xsl:if test="$suffix != ''">
                     <xsl:text> </xsl:text>
                 </xsl:if>
