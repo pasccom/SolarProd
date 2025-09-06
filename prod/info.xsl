@@ -125,12 +125,16 @@
     </xsl:template>
 
     <xsl:template match="list">
-        <dl>
-            <xsl:apply-templates select="item[not(child::*)]" />
-        </dl>
-        <ul>
-            <xsl:apply-templates select="item[child::*]" />
-        </ul>
+        <xsl:if test="item[not(child::*)]">
+            <dl>
+                <xsl:apply-templates select="item[not(child::*)]" />
+            </dl>
+        </xsl:if>
+        <xsl:if test="item[child::*]">
+            <ul>
+                <xsl:apply-templates select="item[child::*]" />
+            </ul>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="graph">
@@ -171,9 +175,11 @@
                 </xsl:call-template>
             </xsl:attribute>
             <xsl:apply-templates select="img" />
-            <dl>
-                <xsl:apply-templates select="datum" />
-            </dl>
+            <xsl:if test="datum">
+                <dl>
+                    <xsl:apply-templates select="datum" />
+                </dl>
+            </xsl:if>
             <xsl:apply-templates select="list|graph" />
         </div>
     </xsl:template>
