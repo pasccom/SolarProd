@@ -58,19 +58,39 @@
                     <xsl:with-param name="name" select="@name" />
                 </xsl:call-template></dt>
                 <xsl:variable name="value" select="." />
-                <dd><img src="img/{.}-20x20.png" alt="{$lang[@name = concat('lang.', $value)]}" /></dd>
+                <dd><img src="img/{.}-20x20.png">
+                    <xsl:attribute name="alt">
+                        <xsl:call-template name="translated_text">
+                            <xsl:with-param name="name" select="." />
+                        </xsl:call-template>
+                    </xsl:attribute>
+                </img></dd>
             </xsl:when>
             <xsl:when test="@type='email'">
                 <dt><xsl:call-template name="translated_text">
                     <xsl:with-param name="name" select="@name" />
                 </xsl:call-template></dt>
-                <dd><a href="mailto:{.}" title="{$lang[@name='lang.send_mail']} {.}"><xsl:value-of select="../datum[@type='name' and @name=./@name]" /></a></dd>
+                <dd><a href="mailto:{.}">
+                    <xsl:attribute name="title">
+                        <xsl:call-template name="translated_text">
+                            <xsl:with-param name="name">send_mail</xsl:with-param>
+                            <xsl:with-param name="suffix" select="." />
+                        </xsl:call-template>
+                    </xsl:attribute>
+                    <xsl:value-of select="../datum[@type='name' and @name=./@name]" />
+                </a></dd>
             </xsl:when>
             <xsl:when test="@type='home_url'">
                 <dt><xsl:call-template name="translated_text">
                     <xsl:with-param name="name" select="@name" />
                 </xsl:call-template></dt>
-                <dd><a href="{.}" title="{$lang[@name='lang.web_site']} {../datum[@type='name' and @name=./@name]}">
+                <dd><a href="{.}">
+                    <xsl:attribute name="title">
+                        <xsl:call-template name="translated_text">
+                            <xsl:with-param name="name">web_site</xsl:with-param>
+                            <xsl:with-param name="suffix" select="../datum[@type='name' and @name=./@name]" />
+                        </xsl:call-template>
+                    </xsl:attribute>
                     <xsl:value-of select="../datum[@type='name' and @name=./@name]" />
                 </a></dd>
             </xsl:when>
@@ -114,25 +134,42 @@
     </xsl:template>
 
     <xsl:template match="graph">
-        <xsl:variable name="name" select="@name" />
         <svg id="prodChart"
              width="100%"
              height="300"
-             title="{$lang[@name=concat('lang.', $name)]}"
              xlabel="Heure"
              xstart="{@start}"
-             xend="{@end}"
-             ydata="{$lang.months}"/>
+             xend="{@end}">
+            <xsl:attribute name="title">
+                <xsl:call-template name="translated_text">
+                    <xsl:with-param name="name" select="@name" />
+                </xsl:call-template>
+            </xsl:attribute>
+            <xsl:attribute name="ydata">
+                <xsl:call-template name="translated_text">
+                    <xsl:with-param name="name">months</xsl:with-param>
+                </xsl:call-template>
+            </xsl:attribute>
+        </svg>
     </xsl:template>
 
     <xsl:template match="img">
-        <xsl:variable name="name" select="@name" />
-        <img src="{@src}" alt="{$lang[@name=concat('lang.', $name)]}" />
+        <img src="{@src}">
+            <xsl:attribute name="alt">
+                <xsl:call-template name="translated_text">
+                    <xsl:with-param name="name" select="@name" />
+                </xsl:call-template>
+            </xsl:attribute>
+        </img>
     </xsl:template>
 
     <xsl:template match="section">
-        <xsl:variable name="name" select="@name" />
-        <div class="about" id="{@name}" title="{$lang[@name=concat('lang.', $name)]}">
+        <div class="about" id="{@name}">
+            <xsl:attribute name="title">
+                <xsl:call-template name="translated_text">
+                    <xsl:with-param name="name" select="@name" />
+                </xsl:call-template>
+            </xsl:attribute>
             <xsl:apply-templates select="img" />
             <dl>
                 <xsl:apply-templates select="datum" />
@@ -140,7 +177,6 @@
             <xsl:apply-templates select="list|graph" />
         </div>
     </xsl:template>
-
 
     <xsl:template match="/info">
         <html>
