@@ -21,13 +21,31 @@
     <xsl:output method="html" encoding="UTF-8" />
 
     <xsl:template name="translated_text">
+        <xsl:param name="prefix" />
         <xsl:param name="name" />
+        <xsl:param name="suffix" />
         <xsl:choose>
             <xsl:when test="$lang[@name = concat('lang.', $name)]">
+                <xsl:value-of select="$prefix" />
+                <xsl:if test="$prefix != ''">
+                    <xsl:text> </xsl:text>
+                </xsl:if>
                 <xsl:value-of select="$lang[@name = concat('lang.', $name)]" />
+                <xsl:if test="$suffix != ''">
+                    <xsl:text> </xsl:text>
+                </xsl:if>
+                <xsl:value-of select="$suffix" />
             </xsl:when>
             <xsl:otherwise>
-                 <xsl:value-of select="$name" />
+                <xsl:value-of select="$prefix" />
+                <xsl:if test="$prefix != ''">
+                    <xsl:text> </xsl:text>
+                </xsl:if>
+                <xsl:value-of select="$name" />
+                <xsl:if test="$suffix != ''">
+                    <xsl:text> </xsl:text>
+                </xsl:if>
+                <xsl:value-of select="$suffix" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
