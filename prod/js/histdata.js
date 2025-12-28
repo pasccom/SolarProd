@@ -32,7 +32,7 @@ function HistData(data, year, month, day) {
     
     // Available variables:
     if (data[0])
-        this.validVars = Object.keys(data[0]).filter((k) => (k != 'date'))
+        this.validVars = Object.keys(data[0]).filter((k) => SolarData.variables.codes().includes(k))
                                              .sort(SolarData.variables.sort);
 
     // Parse dates:

@@ -450,6 +450,9 @@ SolarData.variables = (function() {
     ];
 
     return {
+        codes: function() {
+            return vars.map((v) => v.code);
+        },
         name: function(v) {
             return vars.find((e) => (e.code == v)).name;
         },

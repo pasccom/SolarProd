@@ -33,7 +33,7 @@ function LineData(data, year, month, day) {
     this.init(year, month, day, today);
     
     // Available variables:
-    this.validVars = Object.keys(data).filter((k) => (k != 'dates'))
+    this.validVars = Object.keys(data).filter((k) => SolarData.variables.codes().includes(k))
                                       .sort(SolarData.variables.sort);
 
     // Parse dates:
