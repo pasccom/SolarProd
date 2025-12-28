@@ -96,7 +96,7 @@ function SolarData()
         if (s <= 0)
             return aggLegend.call(this, e[0], s - 1);
         else
-            return e.map((d) => aggLegend.call(this, d, s - 1));
+            return e.filter((d) => d.length != 0).map((d) => aggLegend.call(this, d, s - 1));
     };
 
     var headLine = function(datum, i, format, a, l)

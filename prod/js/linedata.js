@@ -54,8 +54,8 @@ function LineData(data, year, month, day) {
     this.xAxis.ticks(d3.timeHour.every(1))
     this.xAxis.tickFormat(locale.format('%_H'));
 
-    this.isArray = (a) => (Array.isArray(a) && Array.isArray(a[0]));
-    this.sumArray = (a) => d3.transpose(a).map((d) => d3.sum(d));
+    this.isArray = (a) => (Array.isArray(a) && a.some((e) => Array.isArray(e)));
+    this.sumArray = (a) => d3.transpose(a.filter((e) => e !== null)).map((d) => d3.sum(d));
 
     this.export = function() {
         return {headers: this.headLines(data[this.variable()]),
