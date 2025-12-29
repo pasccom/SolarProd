@@ -85,18 +85,23 @@ function SolarData()
             return e;
     };
 
-    var aggLegend = function(e, s)
+    var aggLegend = function(e, s, i)
     {
-        if (!e || !this.isLegendArray(e)) {
-            var d = e;
-            d.isLeaf = true;
-            return d;
-        }
+        var d = e;
 
-        if (s <= 0)
-            return aggLegend.call(this, e[0], s - 1);
+        if (!d)
+            return d;
+        if (!this.isLegendArray(d))
+            d.isLeaf = true;
+        else if ((s <= 0) && (d.length > 0))
+            d = aggLegend.call(this, d[0], s - 1);
         else
-            return e.filter((d) => d.length != 0).map((d) => aggLegend.call(this, d, s - 1));
+            d = d.map((d, i) => aggLegend.call(this, d, s - 1, i))
+                 .filter((d) => d && (d.length != 0));
+
+        if (i !== undefined)
+            d.index = i;
+        return d;
     };
 
     var headLine = function(datum, i, format, a, l)

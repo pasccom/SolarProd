@@ -129,7 +129,7 @@ function SolarLegend(root)
         inv = inv.enter().append('li');
         inv.append('span').classed('label', true);
         inv.select('span').each(appendLegendItem);
-        inv.select('span').append('span').text((d, i) => ('Onduleur ' + (i + 1)));
+        inv.select('span').append('span').text((d) => ('Onduleur ' + (d.index + 1)));
         inv.each(appendVisibilityBox);
 
         var str = inv.append('ul').selectAll('li')
@@ -137,7 +137,7 @@ function SolarLegend(root)
         str = str.enter().append('li');
         str.append('span').classed('label', true);
         str.select('span').each(appendLegendItem);
-        str.select('span').append('span').text((d, i) => (' String ' + (i + 1)));
+        str.select('span').append('span').text((d) => (' String ' + (d.index + 1)));
         str.each(appendVisibilityBox);
 
         if (list.selectAll('li').empty()) {
