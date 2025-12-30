@@ -46,7 +46,7 @@ function LinePlot(root) {
         // Manages groups of lines (by inverter):
         var linesGroups = lines.selectAll('g').data((d) => {
             if (d.y === null)
-                return [d];
+                return [];
             return d.y.some((a) => Array.isArray(a)) ? d.y.map((a) => {
                 return {x: d.x, y: a, s: d.y.length - 1};
             }) : [{x: d.x, y: d.y, s: 0}];
@@ -58,7 +58,7 @@ function LinePlot(root) {
         // Manages individual lines (by string):
         var paths = linesGroups.selectAll('path').data((d) => {
             if (d.y === null)
-                return {x: d.x, y: null};
+                return [];
 
             var data = d.y.some((a) => Array.isArray(a)) ? d.y.map((a) => {
                 return a !== null ? a.map((e, i) => {
