@@ -48,30 +48,35 @@ function LinePlot(root) {
             if (d.y === null)
                 return [d];
             return d.y.some((a) => Array.isArray(a)) ? d.y.map((a) => {
-                return {x: d.x, y: a};
-            }) : [d];
+                return {x: d.x, y: a, s: d.y.length - 1};
+            }) : [{x: d.x, y: d.y, s: 0}];
         });
         linesGroups.exit().remove();
         linesGroups = linesGroups.enter().append('g').merge(linesGroups);
-        linesGroups.attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/linesGroups.size()));
+        linesGroups.attr('stroke', (d, i) => d3.interpolateInferno(0.9 - 0.45*i/(d.s + 1)));
 
         // Manages individual lines (by string):
         var paths = linesGroups.selectAll('path').data((d) => {
             if (d.y === null)
                 return {x: d.x, y: null};
-            return d.y.some((a) => Array.isArray(a)) ? d.y.map((a) => {
+
+            var data = d.y.some((a) => Array.isArray(a)) ? d.y.map((a) => {
                 return a !== null ? a.map((e, i) => {
-                    return {x: d.x[i], y:e};
+                    return {x: d.x[i], y: e};
                 }) : {x: d.x, y: null};
             }) : [d.y.map((e, i) => {
                 return {x: d.x[i], y: e};
             })];
+            data.map((d) => {
+                d.s = data.length - 1;
+            });
+            return data;
         });
         paths.exit().remove();
         paths = paths.enter().append('path').classed('line', true).merge(paths);
 
         // Draws lines:
-        paths.attr('stroke-opacity', (d, i) => (0.9 - 0.7*i*linesGroups.size()/paths.size()))
+        paths.attr('stroke-opacity', (d, i) => (0.9 - 0.6*i/d.s))
              .on('mouseenter', null)
              .on('mouseleave', null)
              .on('click', null);
